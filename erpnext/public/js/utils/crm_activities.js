@@ -87,6 +87,7 @@ erpnext.utils.CRMActivities = class CRMActivities {
 			let composer = new frappe.views.InteractionComposer(args);
 			composer.dialog.get_field("interaction_type").set_value("Event");
 			$(composer.dialog.get_field("interaction_type").wrapper).hide();
+			$(composer.dialog.get_field("custom_follow_up_type").wrapper).hide();
 		};
 		$(".new-event-btn").click(_create_event);
 	}
