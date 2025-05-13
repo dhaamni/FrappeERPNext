@@ -8,8 +8,6 @@ from frappe.utils import add_days, add_months, flt, getdate, nowdate
 from erpnext.controllers.accounts_controller import InvalidQtyError
 from erpnext.setup.utils import get_exchange_rate
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Product Bundle"]
-
 
 class TestQuotation(IntegrationTestCase):
 	def test_quotation_qty(self):
