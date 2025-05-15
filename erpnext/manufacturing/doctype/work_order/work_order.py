@@ -199,6 +199,7 @@ class WorkOrder(Document):
 
 		self.set_required_items(reset_only_qty=len(self.get("required_items")))
 		self.enable_auto_reserve_stock()
+		self.validate_operations_sequence()
 
 	def validate_dates(self):
 		if self.actual_start_date and self.actual_end_date:
@@ -228,6 +229,14 @@ class WorkOrder(Document):
 	def enable_auto_reserve_stock(self):
 		if self.is_new() and frappe.db.get_single_value("Stock Settings", "auto_reserve_stock"):
 			self.reserve_stock = 1
+
+	def validate_operations_sequence(self):
+		if any([not op.sequence_id for op in self.operations]):
+			frappe.throw(
+				_(
+					"Row #{0}: Incorrect Sequence ID. If any single operation has a Sequence ID then all other operations must have one too."
+				).format(next((op.idx for op in self.operations if not op.sequence_id), None))
+			)
 
 	def set_warehouses(self):
 		for row in self.required_items:
@@ -725,17 +734,6 @@ class WorkOrder(Document):
 
 		enable_capacity_planning = not cint(manufacturing_settings_doc.disable_capacity_planning)
 		plan_days = cint(manufacturing_settings_doc.capacity_planning_for_days) or 30
-
-		if all([op.sequence_id for op in self.operations]):
-			self.operations = sorted(self.operations, key=lambda op: op.sequence_id)
-			for idx, op in enumerate(self.operations):
-				op.idx = idx + 1
-		elif any([op.sequence_id for op in self.operations]):
-			frappe.throw(
-				_(
-					"Row #{0}: Incorrect Sequence ID. If any single operation has a Sequence ID then all other operations must have one too."
-				).format(next((op.idx for op in self.operations if not op.sequence_id), None))
-			)
 
 		for idx, row in enumerate(self.operations):
 			qty = self.qty
