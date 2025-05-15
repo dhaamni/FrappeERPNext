@@ -231,7 +231,11 @@ class WorkOrder(Document):
 			self.reserve_stock = 1
 
 	def validate_operations_sequence(self):
-		if any([not op.sequence_id for op in self.operations]):
+		bool_list = [not op.sequence_id for op in self.operations]
+		if all(bool_list):
+			for op in self.operations:
+				op.sequence_id = op.idx
+		elif any(bool_list):
 			frappe.throw(
 				_(
 					"Row #{0}: Incorrect Sequence ID. If any single operation has a Sequence ID then all other operations must have one too."
