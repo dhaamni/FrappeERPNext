@@ -231,16 +231,20 @@ class WorkOrder(Document):
 			self.reserve_stock = 1
 
 	def validate_operations_sequence(self):
-		bool_list = [not op.sequence_id for op in self.operations]
-		if all(bool_list):
+		if all([not op.sequence_id for op in self.operations]):
 			for op in self.operations:
 				op.sequence_id = op.idx
-		elif any(bool_list):
-			frappe.throw(
-				_(
-					"Row #{0}: Incorrect Sequence ID. If any single operation has a Sequence ID then all other operations must have one too."
-				).format(next((op.idx for op in self.operations if not op.sequence_id), None))
-			)
+			return
+
+		sequence_id = 1
+		for op in self.operations:
+			if op.sequence_id != sequence_id:
+				frappe.throw(
+					_("Row #{0}: Sequence ID must be {1} for Operation {2}.").format(
+						op.idx, frappe.bold(sequence_id), frappe.bold(op.operation)
+					)
+				)
+			sequence_id += 1
 
 	def set_warehouses(self):
 		for row in self.required_items:

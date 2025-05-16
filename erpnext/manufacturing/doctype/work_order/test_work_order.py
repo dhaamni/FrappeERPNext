@@ -2979,14 +2979,28 @@ class TestWorkOrder(IntegrationTestCase):
 		for op in wo.operations:
 			self.assertEqual(op.sequence_id, op.idx)
 
+		wo = frappe.copy_doc(wo)
+		wo.operations[0].sequence_id = 2
+
+		# Test 3 : Sequence IDs should not miss the correct sequence of numbers
+		self.assertRaises(frappe.ValidationError, wo.submit)
+
+		wo.operations[1].sequence_id = 1
+
+		# Test 4 : Sequence IDs should be in the correct ascending order
+		self.assertRaises(frappe.ValidationError, wo.submit)
+
 		workstation = frappe.get_doc("Workstation", "Test Workstation A")
 		workstation.production_capacity = 4
 		workstation.save()
 		wo = frappe.copy_doc(wo)
+		wo.operations[0].sequence_id = 1
+		wo.operations[1].sequence_id = 2
 		wo.operations[2].sequence_id = 2
+		wo.operations[3].sequence_id = 3
 		wo.submit()
 
-		# Test 3 : If two operations have the same sequence ID then the next operation will start 10 mins after the longest previous operation ends
+		# Test 5 : If two operations have the same sequence ID then the next operation will start 10 mins after the longest previous operation ends
 		self.assertEqual(
 			wo.operations[3].planned_start_time, add_to_date(wo.operations[1].planned_end_time, minutes=10)
 		)
