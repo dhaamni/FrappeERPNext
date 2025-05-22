@@ -354,7 +354,7 @@ def get_group_by_data(
 	fields = [
 		group_by,
 		"name",
-		"gross_purchase_amount",
+		"net_purchase_amount",
 		"opening_accumulated_depreciation",
 		"calculate_depreciation",
 	]
@@ -383,7 +383,7 @@ def get_group_by_data(
 			data.append(a)
 		else:
 			for field in (
-				"gross_purchase_amount",
+				"net_purchase_amount",
 				"opening_accumulated_depreciation",
 				"depreciated_amount",
 				"asset_value",
@@ -435,7 +435,7 @@ def get_columns(filters):
 			},
 			{
 				"label": _("Gross Purchase Amount"),
-				"fieldname": "gross_purchase_amount",
+				"fieldname": "net_purchase_amount",
 				"fieldtype": "Currency",
 				"options": "Company:company:default_currency",
 				"width": 250,
@@ -496,7 +496,7 @@ def get_columns(filters):
 		},
 		{
 			"label": _("Gross Purchase Amount"),
-			"fieldname": "gross_purchase_amount",
+			"fieldname": "net_purchase_amount",
 			"fieldtype": "Currency",
 			"options": "Company:company:default_currency",
 			"width": 100,
