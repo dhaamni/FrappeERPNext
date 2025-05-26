@@ -289,7 +289,11 @@ class Deferred_Revenue_and_Expense_Report:
 			.join(inv)
 			.on(inv.name == inv_item.parent)
 			.left_join(gle)
-			.on((inv_item.name == gle.voucher_detail_no) & (deferred_account_field == gle.account))
+			.on(
+				(inv_item.name == gle.voucher_detail_no)
+				& (deferred_account_field == gle.account)
+				& (gle.is_cancelled == 0)
+			)
 			.select(
 				inv.name.as_("doc"),
 				inv.posting_date,
