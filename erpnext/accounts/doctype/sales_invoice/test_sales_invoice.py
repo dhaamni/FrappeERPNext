@@ -27,7 +27,7 @@ from erpnext.assets.doctype.asset.test_asset import create_asset, create_asset_d
 from erpnext.assets.doctype.asset_depreciation_schedule.asset_depreciation_schedule import (
 	get_depr_schedule,
 )
-from erpnext.controllers.accounts_controller import update_invoice_status
+from erpnext.controllers.accounts_controller import InvalidQtyError, update_invoice_status
 from erpnext.controllers.taxes_and_totals import get_itemised_tax_breakup_data
 from erpnext.exceptions import InvalidAccountCurrency, InvalidCurrency
 from erpnext.selling.doctype.customer.test_customer import get_customer_dict
@@ -81,6 +81,16 @@ class TestSalesInvoice(FrappeTestCase):
 	@classmethod
 	def tearDownClass(self):
 		unlink_payment_on_cancel_of_invoice(0)
+
+	def test_sales_invoice_qty(self):
+		si = create_sales_invoice(qty=0, do_not_save=True)
+		with self.assertRaises(InvalidQtyError):
+			si.save()
+
+		# No error with qty=1
+		si.items[0].qty = 1
+		si.save()
+		self.assertEqual(si.items[0].qty, 1)
 
 	def test_timestamp_change(self):
 		w = frappe.copy_doc(test_records[0])
@@ -2571,6 +2581,62 @@ class TestSalesInvoice(FrappeTestCase):
 		acc_settings.book_deferred_entries_based_on = "Days"
 		acc_settings.save()
 
+	def test_validate_inter_company_transaction_address_links(self):
+		def _validate_address_link(address, link_doctype, link_name):
+			return frappe.db.get_value(
+				"Dynamic Link",
+				{
+					"parent": address,
+					"parenttype": "Address",
+					"link_doctype": link_doctype,
+					"link_name": link_name,
+				},
+				"parent",
+			)
+
+		si = create_sales_invoice(
+			company="Wind Power LLC",
+			customer="_Test Internal Customer",
+			debit_to="Debtors - WP",
+			warehouse="Stores - WP",
+			income_account="Sales - WP",
+			expense_account="Cost of Goods Sold - WP",
+			cost_center="Main - WP",
+			currency="USD",
+			do_not_save=1,
+		)
+
+		si.selling_price_list = "_Test Price List Rest of the World"
+		si.submit()
+
+		target_doc = make_inter_company_transaction("Sales Invoice", si.name)
+		target_doc.items[0].update(
+			{
+				"expense_account": "Cost of Goods Sold - _TC1",
+				"cost_center": "Main - _TC1",
+				"warehouse": "Stores - _TC1",
+			}
+		)
+		target_doc.save()
+
+		if target_doc.doctype in ["Purchase Invoice", "Purchase Order"]:
+			for details in [
+				("supplier_address", "Supplier", target_doc.supplier),
+				("dispatch_address", "Company", target_doc.company),
+				("shipping_address", "Company", target_doc.company),
+				("billing_address", "Company", target_doc.company),
+			]:
+				if address := target_doc.get(details[0]):
+					self.assertEqual(address, _validate_address_link(address, details[1], details[2]))
+		else:
+			for details in [
+				("company_address", "Company", target_doc.company),
+				("shipping_address_name", "Customer", target_doc.customer),
+				("customer_address", "Customer", target_doc.customer),
+			]:
+				if address := target_doc.get(details[0]):
+					self.assertEqual(address, _validate_address_link(address, details[1], details[2]))
+
 	def test_inter_company_transaction(self):
 		si = create_sales_invoice(
 			company="Wind Power LLC",
@@ -4379,7 +4445,7 @@ def create_sales_invoice(**args):
 	bundle_id = None
 	if si.update_stock and (args.get("batch_no") or args.get("serial_no")):
 		batches = {}
-		qty = args.qty or 1
+		qty = args.qty if args.qty is not None else 1
 		item_code = args.item or args.item_code or "_Test Item"
 		if args.get("batch_no"):
 			batches = frappe._dict({args.batch_no: qty})
@@ -4411,7 +4477,7 @@ def create_sales_invoice(**args):
 			"description": args.description or "_Test Item",
 			"warehouse": args.warehouse or "_Test Warehouse - _TC",
 			"target_warehouse": args.target_warehouse,
-			"qty": args.qty or 1,
+			"qty": args.qty if args.qty is not None else 1,
 			"uom": args.uom or "Nos",
 			"stock_uom": args.uom or "Nos",
 			"rate": args.rate if args.get("rate") is not None else 100,

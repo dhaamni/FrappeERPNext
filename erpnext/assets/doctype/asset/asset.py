@@ -42,15 +42,14 @@ from erpnext.controllers.accounts_controller import AccountsController
 
 class Asset(AccountsController):
 	# begin: auto-generated types
-	# ruff: noqa
-
 	# This code is auto-generated. Do not modify anything in this block.
 
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from erpnext.assets.doctype.asset_finance_book.asset_finance_book import AssetFinanceBook
 		from frappe.types import DF
+
+		from erpnext.assets.doctype.asset_finance_book.asset_finance_book import AssetFinanceBook
 
 		additional_asset_cost: DF.Currency
 		amended_from: DF.Link | None
@@ -118,10 +117,10 @@ class Asset(AccountsController):
 		total_asset_cost: DF.Currency
 		total_number_of_depreciations: DF.Int
 		value_after_depreciation: DF.Currency
-	# ruff: noqa
 	# end: auto-generated types
 
 	def validate(self):
+		self.validate_category()
 		self.validate_precision()
 		self.set_purchase_doc_row_item()
 		self.validate_asset_values()
@@ -342,6 +341,17 @@ class Asset(AccountsController):
 					_("Row #{}: Finance Book should not be empty since you're using multiple.").format(d.idx),
 					title=_("Missing Finance Book"),
 				)
+
+	def validate_category(self):
+		non_depreciable_category = frappe.db.get_value(
+			"Asset Category", self.asset_category, "non_depreciable_category"
+		)
+		if self.calculate_depreciation and non_depreciable_category:
+			frappe.throw(
+				_(
+					"This asset category is marked as non-depreciable. Please disable depreciation calculation or choose a different category."
+				)
+			)
 
 	def validate_precision(self):
 		if self.gross_purchase_amount:

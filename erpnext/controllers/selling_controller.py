@@ -31,6 +31,14 @@ class SellingController(StockController):
 					)
 				)
 
+		if self.docstatus == 1 and self.doctype in ["Delivery Note", "Sales Invoice"]:
+			self.set_onload(
+				"allow_to_make_qc_after_submission",
+				frappe.db.get_single_value(
+					"Stock Settings", "allow_to_make_quality_inspection_after_purchase_or_delivery"
+				),
+			)
+
 	def validate(self):
 		super().validate()
 		self.validate_items()
@@ -316,9 +324,6 @@ class SellingController(StockController):
 	def get_item_list(self):
 		il = []
 		for d in self.get("items"):
-			if d.qty is None:
-				frappe.throw(_("Row {0}: Qty is mandatory").format(d.idx))
-
 			if self.has_product_bundle(d.item_code):
 				for p in self.get("packed_items"):
 					if p.parent_detail_docname == d.name and p.parent_item == d.item_code:
