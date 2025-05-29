@@ -4561,6 +4561,8 @@ def check_gl_entries(doc, voucher_no, expected_gle, posting_date, voucher_type="
 	)
 	gl_entries = q.run(as_dict=True)
 
+	doc.assertGreater(len(gl_entries), 0)
+
 	for i, gle in enumerate(gl_entries):
 		doc.assertEqual(expected_gle[i][0], gle.account)
 		doc.assertEqual(expected_gle[i][1], gle.debit)

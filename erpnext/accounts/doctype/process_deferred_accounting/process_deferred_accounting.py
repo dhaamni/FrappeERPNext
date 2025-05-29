@@ -51,4 +51,5 @@ class ProcessDeferredAccounting(Document):
 			filters={"against_voucher_type": self.doctype, "against_voucher": self.name},
 		)
 
-		make_gl_entries(gl_map=gl_entries, cancel=1)
+		if gl_entries:
+			make_gl_entries(gl_map=gl_entries, cancel=1)
