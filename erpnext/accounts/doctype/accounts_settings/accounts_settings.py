@@ -129,3 +129,38 @@ class AccountsSettings(Document):
 	def validate_pending_reposts(self):
 		if self.acc_frozen_upto:
 			check_pending_reposting(self.acc_frozen_upto)
+<<<<<<< HEAD
+=======
+
+	def validate_and_sync_auto_reconcile_config(self):
+		if self.has_value_changed("auto_reconciliation_job_trigger"):
+			if (
+				cint(self.auto_reconciliation_job_trigger) > 0
+				and cint(self.auto_reconciliation_job_trigger) < 60
+			):
+				sync_auto_reconcile_config(self.auto_reconciliation_job_trigger)
+			else:
+				frappe.throw(_("Cron Interval should be between 1 and 59 Min"))
+
+		if self.has_value_changed("reconciliation_queue_size"):
+			if cint(self.reconciliation_queue_size) < 5 or cint(self.reconciliation_queue_size) > 100:
+				frappe.throw(_("Queue Size should be between 5 and 100"))
+
+	def validate_auto_tax_settings(self):
+		if self.add_taxes_from_item_tax_template and self.add_taxes_from_taxes_and_charges_template:
+			frappe.throw(
+				_("You cannot enable both the settings '{0}' and '{1}'.").format(
+					frappe.bold(_(self.meta.get_label("add_taxes_from_item_tax_template"))),
+					frappe.bold(_(self.meta.get_label("add_taxes_from_taxes_and_charges_template"))),
+				),
+				title=_("Auto Tax Settings Error"),
+			)
+
+	@frappe.whitelist()
+	def drop_ar_sql_procedures(self):
+		from erpnext.accounts.report.accounts_receivable.accounts_receivable import InitSQLProceduresForAR
+
+		frappe.db.sql(f"drop function if exists {InitSQLProceduresForAR.genkey_function_name}")
+		frappe.db.sql(f"drop procedure if exists {InitSQLProceduresForAR.init_procedure_name}")
+		frappe.db.sql(f"drop procedure if exists {InitSQLProceduresForAR.allocate_procedure_name}")
+>>>>>>> da32bb5f51 (refactor: utility to drop existing procedures and include cost center)
