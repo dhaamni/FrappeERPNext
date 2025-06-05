@@ -1,9 +1,8 @@
-from frappe.tests import IntegrationTestCase
-
+from erpnext.tests.utils import ERPNextTestSuite
 from erpnext.utilities.activation import get_level
 
 
-class TestActivation(IntegrationTestCase):
+class TestActivation(ERPNextTestSuite):
 	def test_activation(self):
 		levels = get_level()
 		self.assertTrue(levels)

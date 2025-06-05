@@ -7,7 +7,6 @@ import json
 import frappe
 from frappe import qb
 from frappe.model.dynamic_links import get_dynamic_link_map
-from frappe.tests import IntegrationTestCase, change_settings
 from frappe.utils import add_days, cint, flt, format_date, getdate, nowdate, today
 
 import erpnext
@@ -65,7 +64,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 		)
 		frappe.db.set_single_value("Accounts Settings", "acc_frozen_upto", None)
 
-	@change_settings(
+	@ERPNextTestSuite.change_settings(
 		"Accounts Settings",
 		{"maintain_same_internal_transaction_rate": 1, "maintain_same_rate_action": "Stop"},
 	)
@@ -228,9 +227,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 		self.assertRaises(frappe.LinkExistsError, si.cancel)
 		unlink_payment_on_cancel_of_invoice()
 
-	@IntegrationTestCase.change_settings(
-		"Accounts Settings", {"unlink_payment_on_cancellation_of_invoice": 1}
-	)
+	@ERPNextTestSuite.change_settings("Accounts Settings", {"unlink_payment_on_cancellation_of_invoice": 1})
 	def test_payment_entry_unlink_against_standalone_credit_note(self):
 		from erpnext.accounts.doctype.payment_entry.test_payment_entry import get_payment_entry
 
@@ -1400,9 +1397,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 		dn.submit()
 		return dn
 
-	@IntegrationTestCase.change_settings(
-		"Accounts Settings", {"unlink_payment_on_cancellation_of_invoice": 1}
-	)
+	@ERPNextTestSuite.change_settings("Accounts Settings", {"unlink_payment_on_cancellation_of_invoice": 1})
 	def test_sales_invoice_with_advance(self):
 		jv = frappe.copy_doc(self.globalTestRecords["Journal Entry"][0])
 		jv.insert()
@@ -2483,7 +2478,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 		for gle in gl_entries:
 			self.assertEqual(expected_values[gle.account]["cost_center"], gle.cost_center)
 
-	@IntegrationTestCase.change_settings(
+	@ERPNextTestSuite.change_settings(
 		"Accounts Settings",
 		{"book_deferred_entries_based_on": "Days", "book_deferred_entries_via_journal_entry": 0},
 	)
@@ -2541,7 +2536,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 
 		self.assertRaises(frappe.ValidationError, si.save)
 
-	@IntegrationTestCase.change_settings(
+	@ERPNextTestSuite.change_settings(
 		"Accounts Settings",
 		{"book_deferred_entries_based_on": "Months", "book_deferred_entries_via_journal_entry": 0},
 	)
@@ -2954,7 +2949,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 		self.assertEqual(sales_invoice.items[0].item_tax_template, "_Test Account Excise Duty @ 10 - _TC")
 		self.assertEqual(sales_invoice.items[0].item_tax_rate, item_tax_map)
 
-	@IntegrationTestCase.change_settings("Selling Settings", {"enable_discount_accounting": 1})
+	@ERPNextTestSuite.change_settings("Selling Settings", {"enable_discount_accounting": 1})
 	def test_sales_invoice_with_discount_accounting_enabled(self):
 		discount_account = create_account(
 			account_name="Discount Account",
@@ -2971,7 +2966,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 
 		check_gl_entries(self, si.name, expected_gle, add_days(nowdate(), -1))
 
-	@IntegrationTestCase.change_settings("Selling Settings", {"enable_discount_accounting": 1})
+	@ERPNextTestSuite.change_settings("Selling Settings", {"enable_discount_accounting": 1})
 	def test_additional_discount_for_sales_invoice_with_discount_accounting_enabled(self):
 		from erpnext.accounts.doctype.repost_accounting_ledger.test_repost_accounting_ledger import (
 			update_repost_settings,
@@ -3398,7 +3393,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 			si.commission_rate = commission_rate
 			self.assertRaises(frappe.ValidationError, si.save)
 
-	@IntegrationTestCase.change_settings("Accounts Settings", {"acc_frozen_upto": add_days(getdate(), 1)})
+	@ERPNextTestSuite.change_settings("Accounts Settings", {"acc_frozen_upto": add_days(getdate(), 1)})
 	def test_sales_invoice_submission_post_account_freezing_date(self):
 		si = create_sales_invoice(do_not_save=True)
 		si.posting_date = add_days(getdate(), 1)
@@ -3434,7 +3429,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 		self.assertTrue("cannot overbill" in str(err.exception).lower())
 		dn.cancel()
 
-	@IntegrationTestCase.change_settings(
+	@ERPNextTestSuite.change_settings(
 		"Accounts Settings",
 		{
 			"book_deferred_entries_via_journal_entry": 1,
@@ -3554,9 +3549,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 			account.disabled = 0
 			account.save()
 
-	@IntegrationTestCase.change_settings(
-		"Accounts Settings", {"unlink_payment_on_cancellation_of_invoice": 1}
-	)
+	@ERPNextTestSuite.change_settings("Accounts Settings", {"unlink_payment_on_cancellation_of_invoice": 1})
 	def test_gain_loss_with_advance_entry(self):
 		from erpnext.accounts.doctype.journal_entry.test_journal_entry import make_journal_entry
 
@@ -3719,7 +3712,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 
 		set_advance_flag(company="_Test Company", flag=0, default_account="")
 
-	@IntegrationTestCase.change_settings("Selling Settings", {"customer_group": None, "territory": None})
+	@ERPNextTestSuite.change_settings("Selling Settings", {"customer_group": None, "territory": None})
 	def test_sales_invoice_without_customer_group_and_territory(self):
 		# create a customer
 		if not frappe.db.exists("Customer", "_Test Simple Customer"):
@@ -3737,7 +3730,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 		self.assertEqual(si.customer_group, None)
 		self.assertEqual(si.territory, None)
 
-	@IntegrationTestCase.change_settings("Selling Settings", {"allow_negative_rates_for_items": 0})
+	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_negative_rates_for_items": 0})
 	def test_sales_return_negative_rate(self):
 		si = create_sales_invoice(is_return=1, qty=-2, rate=-10, do_not_save=True)
 		self.assertRaises(frappe.ValidationError, si.save)
@@ -4151,7 +4144,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 		self.assertEqual(len(actual), 4)
 		self.assertEqual(expected, actual)
 
-	@IntegrationTestCase.change_settings("Accounts Settings", {"enable_common_party_accounting": True})
+	@ERPNextTestSuite.change_settings("Accounts Settings", {"enable_common_party_accounting": True})
 	def test_common_party_with_foreign_currency_jv(self):
 		from erpnext.accounts.doctype.account.test_account import create_account
 		from erpnext.accounts.doctype.opening_invoice_creation_tool.test_opening_invoice_creation_tool import (
@@ -4233,7 +4226,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 		self.assertTrue(jv)
 		self.assertEqual(jv[0], si.grand_total)
 
-	@IntegrationTestCase.change_settings("Accounts Settings", {"enable_common_party_accounting": True})
+	@ERPNextTestSuite.change_settings("Accounts Settings", {"enable_common_party_accounting": True})
 	def test_common_party_with_different_currency_in_debtor_and_creditor(self):
 		from erpnext.accounts.doctype.account.test_account import create_account
 		from erpnext.accounts.doctype.opening_invoice_creation_tool.test_opening_invoice_creation_tool import (

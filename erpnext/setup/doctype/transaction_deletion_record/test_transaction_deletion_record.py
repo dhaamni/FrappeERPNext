@@ -3,10 +3,11 @@
 
 
 import frappe
-from frappe.tests import IntegrationTestCase
+
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestTransactionDeletionRecord(IntegrationTestCase):
+class TestTransactionDeletionRecord(ERPNextTestSuite):
 	def setUp(self):
 		create_company("Dunder Mifflin Paper Co")
 

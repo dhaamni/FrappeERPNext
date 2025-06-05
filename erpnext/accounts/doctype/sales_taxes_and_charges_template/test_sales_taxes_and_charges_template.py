@@ -3,8 +3,9 @@
 import unittest
 
 import frappe
-from frappe.tests import IntegrationTestCase
+
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestSalesTaxesandChargesTemplate(IntegrationTestCase):
+class TestSalesTaxesandChargesTemplate(ERPNextTestSuite):
 	pass

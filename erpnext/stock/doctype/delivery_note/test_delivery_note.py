@@ -6,7 +6,6 @@ import json
 from collections import defaultdict
 
 import frappe
-from frappe.tests import IntegrationTestCase, change_settings
 from frappe.utils import add_days, cstr, flt, getdate, nowdate, nowtime, today
 
 from erpnext.accounts.doctype.account.test_account import get_inventory_account
@@ -43,9 +42,10 @@ from erpnext.stock.doctype.stock_reconciliation.test_stock_reconciliation import
 )
 from erpnext.stock.doctype.warehouse.test_warehouse import get_warehouse
 from erpnext.stock.stock_ledger import get_previous_sle
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestDeliveryNote(IntegrationTestCase):
+class TestDeliveryNote(ERPNextTestSuite):
 	def test_delivery_note_qty(self):
 		dn = create_delivery_note(qty=0, do_not_save=True)
 		with self.assertRaises(InvalidQtyError):
@@ -1023,7 +1023,7 @@ class TestDeliveryNote(IntegrationTestCase):
 		self.assertEqual(dn2.per_billed, 100)
 		self.assertEqual(dn2.status, "Completed")
 
-	@change_settings("Accounts Settings", {"delete_linked_ledger_entries": True})
+	@ERPNextTestSuite.change_settings("Accounts Settings", {"delete_linked_ledger_entries": True})
 	def test_sales_invoice_qty_after_return(self):
 		from erpnext.stock.doctype.delivery_note.delivery_note import make_sales_return
 

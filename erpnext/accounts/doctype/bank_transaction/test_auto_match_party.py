@@ -2,13 +2,13 @@
 # License: GNU General Public License v3. See license.txt
 
 import frappe
-from frappe.tests import IntegrationTestCase
 from frappe.utils import nowdate
 
 from erpnext.accounts.doctype.bank_transaction.test_bank_transaction import create_bank_account
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestAutoMatchParty(IntegrationTestCase):
+class TestAutoMatchParty(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
 		create_bank_account()

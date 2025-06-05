@@ -4,10 +4,11 @@ import unittest
 
 import frappe
 from frappe import ValidationError
-from frappe.tests import IntegrationTestCase
+
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestBankAccount(IntegrationTestCase):
+class TestBankAccount(ERPNextTestSuite):
 	def test_validate_iban(self):
 		valid_ibans = [
 			"GB82 WEST 1234 5698 7654 32",

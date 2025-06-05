@@ -3,7 +3,6 @@
 
 
 import frappe
-from frappe.tests import IntegrationTestCase
 from frappe.utils.data import (
 	add_days,
 	add_months,
@@ -17,9 +16,10 @@ from frappe.utils.data import (
 )
 
 from erpnext.accounts.doctype.subscription.subscription import get_prorata_factor
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestSubscription(IntegrationTestCase):
+class TestSubscription(ERPNextTestSuite):
 	def setUp(self):
 		make_plans()
 		create_parties()
@@ -468,7 +468,7 @@ class TestSubscription(IntegrationTestCase):
 		currency = frappe.db.get_value("Sales Invoice", subscription.invoices[0].name, "currency")
 		self.assertEqual(currency, "USD")
 
-	@IntegrationTestCase.change_settings(
+	@ERPNextTestSuite.change_settings(
 		"Accounts Settings",
 		{"allow_multi_currency_invoices_against_single_party_account": 1},
 	)

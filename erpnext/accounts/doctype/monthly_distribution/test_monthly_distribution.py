@@ -3,8 +3,9 @@
 import unittest
 
 import frappe
-from frappe.tests import IntegrationTestCase
+
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestMonthlyDistribution(IntegrationTestCase):
+class TestMonthlyDistribution(ERPNextTestSuite):
 	pass

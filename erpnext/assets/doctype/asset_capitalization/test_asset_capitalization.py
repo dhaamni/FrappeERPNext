@@ -3,7 +3,6 @@
 import unittest
 
 import frappe
-from frappe.tests import IntegrationTestCase
 from frappe.utils import cint, flt, getdate, now_datetime
 
 from erpnext.assets.doctype.asset.depreciation import post_depreciation_entries
@@ -19,9 +18,10 @@ from erpnext.stock.doctype.item.test_item import create_item
 from erpnext.stock.doctype.serial_and_batch_bundle.test_serial_and_batch_bundle import (
 	make_serial_batch_bundle,
 )
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestAssetCapitalization(IntegrationTestCase):
+class TestAssetCapitalization(ERPNextTestSuite):
 	def setUp(self):
 		set_depreciation_settings_in_company()
 		create_asset_data()
