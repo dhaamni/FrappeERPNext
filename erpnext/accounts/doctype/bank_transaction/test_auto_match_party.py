@@ -11,15 +11,16 @@ from erpnext.tests.utils import ERPNextTestSuite
 class TestAutoMatchParty(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
+		super().setUpClass()
 		create_bank_account()
 		frappe.db.set_single_value("Accounts Settings", "enable_party_matching", 1)
 		frappe.db.set_single_value("Accounts Settings", "enable_fuzzy_matching", 1)
-		return super().setUpClass()
 
 	@classmethod
 	def tearDownClass(cls):
 		frappe.db.set_single_value("Accounts Settings", "enable_party_matching", 0)
 		frappe.db.set_single_value("Accounts Settings", "enable_fuzzy_matching", 0)
+		super().tearDownClass()
 
 	def test_match_by_account_number(self):
 		create_supplier_for_match(account_no="000000003716541159")
