@@ -50,6 +50,9 @@ def get_sle(**args):
 
 
 class TestStockEntry(ERPNextTestSuite):
+	def setUp(self):
+		self.load_test_records("Stock Entry")
+
 	def tearDown(self):
 		frappe.db.rollback()
 		frappe.set_user("Administrator")
