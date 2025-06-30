@@ -51,6 +51,9 @@ from erpnext.accounts.utils import (
 	get_fiscal_years,
 	validate_fiscal_year,
 )
+from erpnext.accounts.utils import (
+	get_advance_payment_doctypes as _get_advance_payment_doctypes,
+)
 from erpnext.buying.utils import update_last_purchase_rate
 from erpnext.controllers.print_settings import (
 	set_print_templates_for_item_table,
@@ -386,9 +389,13 @@ class AccountsController(TransactionBase):
 		adv = qb.DocType("Advance Payment Ledger Entry")
 		qb.from_(adv).delete().where(adv.voucher_type.eq(self.doctype) & adv.voucher_no.eq(self.name)).run()
 
+<<<<<<< HEAD
 		advance_payment_doctypes = frappe.get_hooks("advance_payment_doctypes")
 
 		if self.doctype in advance_payment_doctypes:
+=======
+		if self.doctype in self.get_advance_payment_doctypes():
+>>>>>>> 48e8e85617 (refactor: function to fetch advance payment doctypes)
 			qb.from_(adv).delete().where(
 				adv.against_voucher_type.eq(self.doctype) & adv.against_voucher_no.eq(self.name)
 			).run()
@@ -2272,6 +2279,41 @@ class AccountsController(TransactionBase):
 
 			self.db_set("advance_paid", advance_paid)
 
+<<<<<<< HEAD
+=======
+		self.set_advance_payment_status()
+
+	def set_advance_payment_status(self):
+		new_status = None
+
+		PaymentRequest = frappe.qb.DocType("Payment Request")
+		paid_amount = frappe.get_value(
+			doctype="Payment Request",
+			filters={
+				"reference_doctype": self.doctype,
+				"reference_name": self.name,
+				"docstatus": 1,
+			},
+			fieldname=Sum(PaymentRequest.grand_total - PaymentRequest.outstanding_amount),
+		)
+
+		if not paid_amount:
+			if self.doctype in self.get_advance_payment_doctypes(payment_type="receivable"):
+				new_status = "Not Requested" if paid_amount is None else "Requested"
+			elif self.doctype in self.get_advance_payment_doctypes(payment_type="payable"):
+				new_status = "Not Initiated" if paid_amount is None else "Initiated"
+		else:
+			total_amount = self.get("rounded_total") or self.get("grand_total")
+			new_status = "Fully Paid" if paid_amount == total_amount else "Partially Paid"
+
+		if new_status == self.advance_payment_status:
+			return
+
+		self.db_set("advance_payment_status", new_status, update_modified=False)
+		self.set_status(update=True)
+		self.notify_update()
+
+>>>>>>> 48e8e85617 (refactor: function to fetch advance payment doctypes)
 	@property
 	def company_abbr(self):
 		if not hasattr(self, "_abbr"):
@@ -2911,8 +2953,13 @@ class AccountsController(TransactionBase):
 		repost_ledger.insert()
 		repost_ledger.submit()
 
+<<<<<<< HEAD
 	def get_advance_payment_doctypes(self) -> list:
 		return frappe.get_hooks("advance_payment_doctypes")
+=======
+	def get_advance_payment_doctypes(self, payment_type=None) -> list:
+		return _get_advance_payment_doctypes(payment_type=payment_type)
+>>>>>>> 48e8e85617 (refactor: function to fetch advance payment doctypes)
 
 	def make_advance_payment_ledger_for_journal(self):
 		advance_payment_doctypes = self.get_advance_payment_doctypes()
