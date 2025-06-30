@@ -524,3 +524,142 @@ class TestPaymentRequest(FrappeTestCase):
 		self.assertEqual(pr.grand_total, 1000)
 
 		so.load_from_db()
+<<<<<<< HEAD
+=======
+		self.assertEqual(so.advance_payment_status, "Requested")
+
+	def test_partial_paid_invoice_with_payment_request(self):
+		si = create_sales_invoice(currency="INR", qty=1, rate=5000)
+		si.save()
+		si.submit()
+
+		pe = get_payment_entry("Sales Invoice", si.name, bank_account="_Test Bank - _TC")
+		pe.reference_no = "PAYEE0002"
+		pe.reference_date = frappe.utils.nowdate()
+		pe.paid_amount = 2500
+		pe.references[0].allocated_amount = 2500
+		pe.save()
+		pe.submit()
+
+		si.load_from_db()
+		pr = make_payment_request(dt="Sales Invoice", dn=si.name, mute_email=1)
+
+		self.assertEqual(pr.grand_total, si.outstanding_amount)
+
+	def test_partial_paid_invoice_with_more_payment_entry(self):
+		pi = make_purchase_invoice(currency="INR", qty=1, rate=500)
+		pi.submit()
+		pi_1 = make_purchase_invoice(currency="INR", qty=1, rate=300)
+		pi_1.submit()
+
+		pr = make_payment_request(dt="Purchase Invoice", dn=pi.name, mute_email=1, submit_doc=0, return_doc=1)
+		pr.grand_total = 200
+		pr.submit()
+		pr.create_payment_entry()
+		pr_1 = make_payment_request(
+			dt="Purchase Invoice", dn=pi.name, mute_email=1, submit_doc=0, return_doc=1
+		)
+		pr_1.grand_total = 200
+		pr_1.submit()
+		pr_1.create_payment_entry()
+
+		pe = get_payment_entry(dt="Purchase Invoice", dn=pi.name)
+		pe.paid_amount = 200
+		pe.references[0].reference_doctype = pi.doctype
+		pe.references[0].reference_name = pi.name
+		pe.references[0].grand_total = pi.grand_total
+		pe.references[0].outstanding_amount = pi.outstanding_amount
+		pe.references[0].allocated_amount = 100
+		pe.append(
+			"references",
+			{
+				"reference_doctype": pi_1.doctype,
+				"reference_name": pi_1.name,
+				"grand_total": pi_1.grand_total,
+				"outstanding_amount": pi_1.outstanding_amount,
+				"allocated_amount": 100,
+			},
+		)
+
+		pr_2 = make_payment_request(dt="Purchase Invoice", dn=pi.name, mute_email=1)
+		pi.load_from_db()
+		self.assertEqual(pr_2.grand_total, pi.outstanding_amount)
+
+	def test_consider_journal_entry_and_return_invoice(self):
+		from erpnext.accounts.doctype.journal_entry.test_journal_entry import make_journal_entry
+
+		si = create_sales_invoice(currency="INR", qty=5, rate=500)
+
+		je = make_journal_entry("_Test Cash - _TC", "Debtors - _TC", 500, save=False)
+		je.accounts[1].party_type = "Customer"
+		je.accounts[1].party = si.customer
+		je.accounts[1].reference_type = "Sales Invoice"
+		je.accounts[1].reference_name = si.name
+		je.accounts[1].credit_in_account_currency = 500
+		je.submit()
+
+		pe = get_payment_entry("Sales Invoice", si.name)
+		pe.paid_amount = 500
+		pe.references[0].allocated_amount = 500
+		pe.save()
+		pe.submit()
+
+		cr_note = create_sales_invoice(qty=-1, rate=500, is_return=1, return_against=si.name, do_not_save=1)
+		cr_note.update_outstanding_for_self = 0
+		cr_note.save()
+		cr_note.submit()
+
+		si.load_from_db()
+		pr = make_payment_request(dt="Sales Invoice", dn=si.name, mute_email=1)
+		self.assertEqual(pr.grand_total, si.outstanding_amount)
+
+	def test_partial_paid_invoice_with_submitted_payment_entry(self):
+		pi = make_purchase_invoice(currency="INR", qty=1, rate=5000)
+		pi.save()
+		pi.submit()
+
+		pe = get_payment_entry("Purchase Invoice", pi.name, bank_account="_Test Bank - _TC")
+		pe.reference_no = "PURINV0001"
+		pe.reference_date = frappe.utils.nowdate()
+		pe.paid_amount = 2500
+		pe.references[0].allocated_amount = 2500
+		pe.save()
+		pe.submit()
+		pe.cancel()
+
+		pe = get_payment_entry("Purchase Invoice", pi.name, bank_account="_Test Bank - _TC")
+		pe.reference_no = "PURINV0002"
+		pe.reference_date = frappe.utils.nowdate()
+		pe.paid_amount = 2500
+		pe.references[0].allocated_amount = 2500
+		pe.save()
+		pe.submit()
+
+		pi.load_from_db()
+		pr = make_payment_request(dt="Purchase Invoice", dn=pi.name, mute_email=1)
+		self.assertEqual(pr.grand_total, pi.outstanding_amount)
+
+	def test_payment_request_on_unreconcile(self):
+		pi = make_purchase_invoice(currency="INR", qty=1, rate=500)
+		pi.submit()
+
+		pr = make_payment_request(dt="Purchase Invoice", dn=pi.name, mute_email=1)
+		self.assertEqual(pr.grand_total, pi.outstanding_amount)
+
+		pe = pr.create_payment_entry()
+		unreconcile = frappe.get_doc(
+			{
+				"doctype": "Unreconcile Payment",
+				"company": pe.company,
+				"voucher_type": pe.doctype,
+				"voucher_no": pe.name,
+			}
+		)
+		unreconcile.add_references()
+		unreconcile.submit()
+
+		pi.load_from_db()
+		pr.load_from_db()
+
+		self.assertEqual(pr.grand_total, pi.outstanding_amount)
+>>>>>>> 8098229b55 (fix: update payment request outstanding on unreconciliation)
