@@ -645,6 +645,7 @@ def test_partial_paid_invoice_with_submitted_payment_entry(self):
 	pe.submit()
 	pe.cancel()
 
+<<<<<<< HEAD
 	pe = get_payment_entry("Purchase Invoice", pi.name, bank_account="_Test Bank - _TC")
 	pe.reference_no = "PURINV0002"
 	pe.reference_date = frappe.utils.nowdate()
@@ -656,3 +657,32 @@ def test_partial_paid_invoice_with_submitted_payment_entry(self):
 	pi.load_from_db()
 	pr = make_payment_request(dt="Purchase Invoice", dn=pi.name, mute_email=1)
 	self.assertEqual(pr.grand_total, pi.outstanding_amount)
+=======
+		pi.load_from_db()
+		pr = make_payment_request(dt="Purchase Invoice", dn=pi.name, mute_email=1)
+		self.assertEqual(pr.grand_total, pi.outstanding_amount)
+
+	def test_payment_request_on_unreconcile(self):
+		pi = make_purchase_invoice(currency="INR", qty=1, rate=500)
+		pi.submit()
+
+		pr = make_payment_request(dt="Purchase Invoice", dn=pi.name, mute_email=1)
+		self.assertEqual(pr.grand_total, pi.outstanding_amount)
+
+		pe = pr.create_payment_entry()
+		unreconcile = frappe.get_doc(
+			{
+				"doctype": "Unreconcile Payment",
+				"company": pe.company,
+				"voucher_type": pe.doctype,
+				"voucher_no": pe.name,
+			}
+		)
+		unreconcile.add_references()
+		unreconcile.submit()
+
+		pi.load_from_db()
+		pr.load_from_db()
+
+		self.assertEqual(pr.grand_total, pi.outstanding_amount)
+>>>>>>> 8098229b55 (fix: update payment request outstanding on unreconciliation)
