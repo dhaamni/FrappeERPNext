@@ -666,7 +666,13 @@ def test_partial_paid_invoice_with_submitted_payment_entry(self):
 		pi = make_purchase_invoice(currency="INR", qty=1, rate=500)
 		pi.submit()
 
-		pr = make_payment_request(dt="Purchase Invoice", dn=pi.name, mute_email=1)
+		pr = make_payment_request(
+			dt=pi.doctype,
+			dn=pi.name,
+			mute_email=1,
+			submit_doc=True,
+			return_doc=True,
+		)
 		self.assertEqual(pr.grand_total, pi.outstanding_amount)
 
 		pe = pr.create_payment_entry()
