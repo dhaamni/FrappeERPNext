@@ -9,8 +9,11 @@ from frappe import _, qb, query_builder, scrub
 <<<<<<< HEAD
 =======
 from frappe.database.schema import get_definition
+<<<<<<< HEAD
 from frappe.desk.reportview import build_match_conditions
 >>>>>>> 9d0ebe3427 (refactor: dynamic DB field types)
+=======
+>>>>>>> 7efeed54de (refactor: build and pass match conditions as qb criterion)
 from frappe.query_builder import Criterion
 from frappe.query_builder.functions import Date, Substring, Sum
 from frappe.utils import cint, cstr, flt, getdate, nowdate
@@ -19,7 +22,16 @@ from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
 	get_accounting_dimensions,
 	get_dimension_with_children,
 )
+<<<<<<< HEAD
 from erpnext.accounts.utils import get_currency_precision
+=======
+from erpnext.accounts.utils import (
+	build_qb_match_conditions,
+	get_advance_payment_doctypes,
+	get_currency_precision,
+	get_party_types_from_account_type,
+)
+>>>>>>> 7efeed54de (refactor: build and pass match conditions as qb criterion)
 
 #  This report gives a summary of all Outstanding Invoices considering the following
 
@@ -136,8 +148,12 @@ class ReceivablePayableReport:
 		self.build_data()
 
 	def fetch_ple_in_buffered_cursor(self):
+<<<<<<< HEAD
 		query, param = self.ple_query.walk()
 		self.ple_entries = frappe.db.sql(query, param, as_dict=True)
+=======
+		self.ple_entries = self.ple_query.run(as_dict=True)
+>>>>>>> 7efeed54de (refactor: build and pass match conditions as qb criterion)
 
 		for ple in self.ple_entries:
 			self.init_voucher_balance(ple)  # invoiced, paid, credit_note, outstanding
@@ -150,9 +166,12 @@ class ReceivablePayableReport:
 
 	def fetch_ple_in_unbuffered_cursor(self):
 		self.ple_entries = []
+<<<<<<< HEAD
 		query, param = self.ple_query.walk()
+=======
+>>>>>>> 7efeed54de (refactor: build and pass match conditions as qb criterion)
 		with frappe.db.unbuffered_cursor():
-			for ple in frappe.db.sql(query, param, as_dict=True, as_iterator=True):
+			for ple in self.ple_query.run(as_dict=True, as_iterator=True):
 				self.init_voucher_balance(ple)  # invoiced, paid, credit_note, outstanding
 				self.ple_entries.append(ple)
 
@@ -930,6 +949,12 @@ class ReceivablePayableReport:
 			else:
 				query = query.select(ple.remarks)
 
+<<<<<<< HEAD
+=======
+		if match_conditions := build_qb_match_conditions("Payment Ledger Entry"):
+			query = query.where(Criterion.all(match_conditions))
+
+>>>>>>> 7efeed54de (refactor: build and pass match conditions as qb criterion)
 		if self.filters.get("group_by_party"):
 			query = query.orderby(self.ple.party, self.ple.posting_date)
 		else:
