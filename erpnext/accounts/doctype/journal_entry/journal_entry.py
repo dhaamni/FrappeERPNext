@@ -195,7 +195,6 @@ class JournalEntry(AccountsController):
 		self.validate_cheque_info()
 		self.check_credit_limit()
 		self.make_gl_entries()
-		self.set_advance_payment_status_for_advance_doctypes()
 		self.update_asset_value()
 		self.update_inter_company_jv()
 		self.update_invoice_discounting()
@@ -297,7 +296,6 @@ class JournalEntry(AccountsController):
 			"Advance Payment Ledger Entry",
 		)
 		self.make_gl_entries(1)
-		self.set_advance_payment_status_for_advance_doctypes()
 		self.unlink_advance_entry_reference()
 		self.unlink_asset_reference()
 		self.unlink_inter_company_jv()
@@ -306,20 +304,6 @@ class JournalEntry(AccountsController):
 
 	def get_title(self):
 		return self.pay_to_recd_from or self.accounts[0].account
-
-	def set_advance_payment_status_for_advance_doctypes(self):
-		advance_paid = frappe._dict()
-		advance_payment_doctypes = frappe.get_hooks("advance_payment_receivable_doctypes") + frappe.get_hooks(
-			"advance_payment_payable_doctypes"
-		)
-		for d in self.get("accounts"):
-			if d.is_advance:
-				if d.reference_type in advance_payment_doctypes:
-					advance_paid.setdefault(d.reference_type, []).append(d.reference_name)
-
-		for voucher_type, order_list in advance_paid.items():
-			for voucher_no in list(set(order_list)):
-				frappe.get_doc(voucher_type, voucher_no).set_advance_payment_status()
 
 	def validate_inter_company_accounts(self):
 		if self.voucher_type == "Inter Company Journal Entry" and self.inter_company_journal_entry_reference:

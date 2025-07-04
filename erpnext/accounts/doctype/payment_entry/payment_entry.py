@@ -202,7 +202,6 @@ class PaymentEntry(AccountsController):
 		self.update_outstanding_amounts()
 		self.update_payment_schedule()
 		self.update_payment_requests()
-		self.set_advance_payment_status_for_advance_doctypes()  # advance_paid_status depends on the payment request amount
 		self.set_status()
 
 	def validate_for_repost(self):
@@ -306,7 +305,6 @@ class PaymentEntry(AccountsController):
 		self.update_outstanding_amounts()
 		self.update_payment_schedule(cancel=1)
 		self.update_payment_requests(cancel=True)
-		self.set_advance_payment_status_for_advance_doctypes()
 		self.delink_advance_entry_references()
 		self.set_status()
 
@@ -316,6 +314,7 @@ class PaymentEntry(AccountsController):
 		)
 
 		update_payment_requests_as_per_pe_references(self.references, cancel=cancel)
+		self.set_advance_payment_status_for_advance_doctypes()
 
 	def update_outstanding_amounts(self):
 		self.set_missing_ref_details(force=True)
@@ -1402,7 +1401,7 @@ class PaymentEntry(AccountsController):
 			allocated_amount_in_company_currency = self.calculate_base_allocated_amount_for_reference(d)
 
 			if (
-				d.reference_doctype in ["Sales Invoice", "Purchase Invoice", "Sales Order", "Purchase Order"]
+				d.reference_doctype in ["Sales Invoice", "Purchase Invoice"]
 				and d.allocated_amount < 0
 				and (
 					(party_account_type == "Receivable" and self.payment_type == "Pay")

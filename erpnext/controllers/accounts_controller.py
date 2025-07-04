@@ -2983,22 +2983,6 @@ class AccountsController(TransactionBase):
 			doc.flags.ignore_permissions = 1
 			doc.save()
 
-	def mark_advance_payment_ledger_as_delinked(self, references):
-		if not (references.get("reference_doctype") and references.get("reference_name")):
-			return
-
-		adv = qb.DocType("Advance Payment Ledger Entry")
-
-		(
-			qb.update(adv)
-			.set(adv.delinked, 1)
-			.where(adv.voucher_type == self.doctype)
-			.where(adv.voucher_no == self.name)
-			.where(adv.against_voucher_type == references.reference_doctype)
-			.where(adv.against_voucher_no == references.reference_name)
-			.run()
-		)
-
 	def make_advance_payment_ledger_entries(self):
 		if self.docstatus != 0:
 			if self.doctype == "Journal Entry":
