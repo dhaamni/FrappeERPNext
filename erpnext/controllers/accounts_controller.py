@@ -2256,6 +2256,8 @@ class AccountsController(TransactionBase):
 
 			self.db_set("advance_paid", advance_paid)
 
+		self.set_advance_payment_status()
+
 	def set_advance_payment_status(self):
 		new_status = None
 
