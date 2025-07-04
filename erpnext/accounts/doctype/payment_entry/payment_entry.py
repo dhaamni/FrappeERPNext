@@ -46,7 +46,6 @@ from erpnext.accounts.party import (
 from erpnext.accounts.utils import (
 	cancel_exchange_gain_loss_journal,
 	get_account_currency,
-	get_advance_reconciliation_date,
 	get_outstanding_invoices,
 )
 from erpnext.controllers.accounts_controller import (
@@ -303,9 +302,9 @@ class PaymentEntry(AccountsController):
 		super().on_cancel()
 		self.make_gl_entries(cancel=1)
 		self.update_outstanding_amounts()
+		self.delink_advance_entry_references()
 		self.update_payment_schedule(cancel=1)
 		self.update_payment_requests(cancel=True)
-		self.delink_advance_entry_references()
 		self.set_status()
 
 	def update_payment_requests(self, cancel=False):
@@ -1100,23 +1099,36 @@ class PaymentEntry(AccountsController):
 		advance_payment_doctypes = frappe.get_hooks("advance_payment_receivable_doctypes") + frappe.get_hooks(
 			"advance_payment_payable_doctypes"
 		)
+		if d.reference_doctype in advance_payment_doctypes:
+			# When referencing Sales/Purchase Order, use the source/target exchange rate depending on payment type.
+			# This is so there are no Exchange Gain/Loss generated for such doctypes
 
-		exchange_rate = 1
-		if self.payment_type == "Receive":
-			exchange_rate = self.source_exchange_rate
-		elif self.payment_type == "Pay":
-			exchange_rate = self.target_exchange_rate
+			exchange_rate = 1
+			if self.payment_type == "Receive":
+				exchange_rate = self.source_exchange_rate
+			elif self.payment_type == "Pay":
+				exchange_rate = self.target_exchange_rate
 
-		base_allocated_amount += flt(
-			flt(d.allocated_amount) * flt(exchange_rate), self.precision("base_paid_amount")
-		)
+			base_allocated_amount += flt(
+				flt(d.allocated_amount) * flt(exchange_rate), self.precision("base_paid_amount")
+			)
+		else:
+			# Use source/target exchange rate, so no difference amount is calculated.
+			# then update exchange gain/loss amount in reference table
+			# if there is an exchange gain/loss amount in reference table, submit a JE for that
 
-		# When referencing Sales/Purchase Order, use the source/target exchange rate depending on payment type.
-		# on rare case, when `exchange_rate` is unset, gain/loss amount is incorrectly calculated
-		# for base currency transactions
+			exchange_rate = 1
+			if self.payment_type == "Receive":
+				exchange_rate = self.source_exchange_rate
+			elif self.payment_type == "Pay":
+				exchange_rate = self.target_exchange_rate
 
-		# This is so there are no Exchange Gain/Loss generated for such doctypes
-		if d.reference_doctype not in advance_payment_doctypes:
+			base_allocated_amount += flt(
+				flt(d.allocated_amount) * flt(exchange_rate), self.precision("base_paid_amount")
+			)
+
+			# on rare case, when `exchange_rate` is unset, gain/loss amount is incorrectly calculated
+			# for base currency transactions
 			if d.exchange_rate is None:
 				d.exchange_rate = 1
 
@@ -1124,7 +1136,6 @@ class PaymentEntry(AccountsController):
 				flt(d.allocated_amount) * flt(d.exchange_rate), self.precision("base_paid_amount")
 			)
 			d.exchange_gain_loss = base_allocated_amount - allocated_amount_in_ref_exchange_rate
-
 		return base_allocated_amount
 
 	def set_total_allocated_amount(self):
@@ -1539,10 +1550,23 @@ class PaymentEntry(AccountsController):
 		else:
 			# For backwards compatibility
 			# Supporting reposting on payment entries reconciled before select field introduction
-			posting_date = get_advance_reconciliation_date(
-				self, invoice.reference_doctype, invoice.reference_name
+			reconciliation_takes_effect_on = frappe.get_cached_value(
+				"Company", self.company, "reconciliation_takes_effect_on"
 			)
+			if reconciliation_takes_effect_on == "Advance Payment Date":
+				posting_date = self.posting_date
+			elif reconciliation_takes_effect_on == "Oldest Of Invoice Or Advance":
+				date_field = "posting_date"
+				if invoice.reference_doctype in ["Sales Order", "Purchase Order"]:
+					date_field = "transaction_date"
+				posting_date = frappe.db.get_value(
+					invoice.reference_doctype, invoice.reference_name, date_field
+				)
 
+				if getdate(posting_date) < getdate(self.posting_date):
+					posting_date = self.posting_date
+			elif reconciliation_takes_effect_on == "Reconciliation Date":
+				posting_date = nowdate()
 			frappe.db.set_value("Payment Entry Reference", invoice.name, "reconcile_effect_on", posting_date)
 
 		dr_or_cr, account = self.get_dr_and_account_for_advances(invoice)

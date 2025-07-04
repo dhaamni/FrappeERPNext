@@ -701,10 +701,23 @@ def update_reference_in_payment_entry(
 	}
 
 	# Update Reconciliation effect date in reference
+	reconciliation_takes_effect_on = frappe.get_cached_value(
+		"Company", payment_entry.company, "reconciliation_takes_effect_on"
+	)
 	if payment_entry.book_advance_payments_in_separate_party_account:
-		reconcile_on = get_advance_reconciliation_date(
-			payment_entry, d.against_voucher_type, d.against_voucher
-		)
+		if reconciliation_takes_effect_on == "Advance Payment Date":
+			reconcile_on = payment_entry.posting_date
+		elif reconciliation_takes_effect_on == "Oldest Of Invoice Or Advance":
+			date_field = "posting_date"
+			if d.against_voucher_type in ["Sales Order", "Purchase Order"]:
+				date_field = "transaction_date"
+			reconcile_on = frappe.db.get_value(d.against_voucher_type, d.against_voucher, date_field)
+
+			if getdate(reconcile_on) < getdate(payment_entry.posting_date):
+				reconcile_on = payment_entry.posting_date
+		elif reconciliation_takes_effect_on == "Reconciliation Date":
+			reconcile_on = nowdate()
+
 		reference_details.update({"reconcile_effect_on": reconcile_on})
 
 	if d.voucher_detail_no:
@@ -756,28 +769,6 @@ def update_reference_in_payment_entry(
 		payment_entry.save(ignore_permissions=True)
 
 	return row
-
-
-def get_advance_reconciliation_date(doc, against_voucher_type, against_voucher):
-	reconciliation_takes_effect_on = frappe.get_cached_value(
-		"Company", doc.company, "reconciliation_takes_effect_on"
-	)
-	posting_date = doc.posting_date
-	reconcile_on = posting_date
-
-	if reconciliation_takes_effect_on == "Advance Payment Date":
-		reconcile_on = posting_date
-	elif reconciliation_takes_effect_on == "Oldest Of Invoice Or Advance":
-		date_field = "posting_date"
-		if against_voucher_type in ["Sales Order", "Purchase Order"]:
-			date_field = "transaction_date"
-		reconcile_on = frappe.db.get_value(against_voucher_type, against_voucher, date_field)
-		if getdate(reconcile_on) < getdate(posting_date):
-			reconcile_on = posting_date
-	elif reconciliation_takes_effect_on == "Reconciliation Date":
-		reconcile_on = nowdate()
-
-	return reconcile_on
 
 
 def cancel_exchange_gain_loss_journal(
@@ -1040,9 +1031,12 @@ def remove_ref_doc_link_from_pe(
 				pe_doc.set_amounts()
 
 				# Call cancel on only removed reference
-				for reference in pe_doc.references:
-					if reference.reference_doctype == ref_type and reference.reference_name == ref_no:
-						pe_doc.make_advance_gl_entries(reference, cancel=1)
+				references = [
+					x
+					for x in pe_doc.references
+					if x.reference_doctype == ref_type and x.reference_name == ref_no
+				]
+				[pe_doc.make_advance_gl_entries(x, cancel=1) for x in references]
 
 				pe_doc.clear_unallocated_reference_document_rows()
 				pe_doc.validate_payment_type_with_outstanding()
