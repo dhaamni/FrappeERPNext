@@ -341,12 +341,8 @@ def on_doctype_update():
 
 @frappe.whitelist()
 def get_items_from_product_bundle(row):
-<<<<<<< HEAD
 	row, items = json.loads(row), []
-=======
-	row, items = ItemDetailsCtx(json.loads(row)), []
 	defaults = frappe.defaults.get_defaults()
->>>>>>> 45c7bac2d0 (fix: rate not being fetched for product bundles in material request)
 
 	bundled_items = get_product_bundle_items(row["item_code"])
 	for item in bundled_items:
