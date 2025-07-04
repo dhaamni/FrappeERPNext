@@ -125,7 +125,7 @@ erpnext.selling.QuotationController = class QuotationController extends erpnext.
 				this.frm.add_custom_button(__("Sales Order"), () => this.make_sales_order(), __("Create"));
 			}
 
-			if (doc.status !== "Ordered" && frappe.model.can_write("Quotation")) {
+			if (doc.status !== "Ordered" && this.frm.has_perm("write")) {
 				this.frm.add_custom_button(__("Set as Lost"), () => {
 					this.frm.trigger("set_as_lost_dialog");
 				});
