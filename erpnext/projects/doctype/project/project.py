@@ -614,7 +614,7 @@ def send_project_update_email_to_users(project):
 	frappe.sendmail(
 		recipients=get_users_email(doc),
 		message=doc.message,
-		subject=_(doc.subject),
+		subject=doc.subject,
 		reference_doctype=project_update.doctype,
 		reference_name=project_update.name,
 		reply_to=incoming_email_account,
