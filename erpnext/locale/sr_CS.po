@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: hello@frappe.io\n"
 "POT-Creation-Date: 2025-06-29 09:36+0000\n"
-"PO-Revision-Date: 2025-06-30 04:47\n"
+"PO-Revision-Date: 2025-07-05 05:36\n"
 "Last-Translator: hello@frappe.io\n"
 "Language-Team: Serbian (Latin)\n"
 "MIME-Version: 1.0\n"
@@ -717,11 +717,11 @@ msgstr "<label class=\"control-label\" style=\"margin-bottom: 0px;\">Podešavanj
 
 #: erpnext/controllers/accounts_controller.py:2176
 msgid "<li>Item {0} in row(s) {1} billed more than {2}</li>"
-msgstr ""
+msgstr "<li>Stavka {0} u redu {1} je fakturisana više od {2}</li>"
 
 #: erpnext/controllers/accounts_controller.py:2173
 msgid "<p>Cannot overbill for the following Items:</p>"
-msgstr ""
+msgstr "<p>Nije moguće izvršiti prekomerno fakturisanje za sledeće stavke:</p>"
 
 #. Content of the 'html_llwp' (HTML) field in DocType 'Request for Quotation'
 #: erpnext/buying/doctype/request_for_quotation/request_for_quotation.json
@@ -772,7 +772,7 @@ msgstr "<p>Cena iz cenovnika nije podešena kao izmenjiva u podešavanju prodaje
 
 #: erpnext/controllers/accounts_controller.py:2185
 msgid "<p>To allow over-billing, please set allowance in Accounts Settings.</p>"
-msgstr ""
+msgstr "<p>Da biste dozvolili prekomerno fakturisanje, podesite dozvoljeni iznos u podešavanjima računa.</p>"
 
 #. Content of the 'Message Examples' (HTML) field in DocType 'Payment Gateway
 #. Account'
@@ -4236,7 +4236,7 @@ msgstr "Dozvoli prenos viška materijala"
 #. 'Accounts Settings'
 #: erpnext/accounts/doctype/accounts_settings/accounts_settings.json
 msgid "Allow Implicit Pegged Currency Conversion"
-msgstr ""
+msgstr "Dozvoli implicitnu konverziju fiksne valute"
 
 #. Label of the allow_in_returns (Check) field in DocType 'POS Payment Method'
 #: erpnext/accounts/doctype/pos_payment_method/pos_payment_method.json
@@ -4323,7 +4323,7 @@ msgstr "Dozvoli prekovremeni rad"
 #. Label of the allow_partial_payment (Check) field in DocType 'POS Profile'
 #: erpnext/accounts/doctype/pos_profile/pos_profile.json
 msgid "Allow Partial Payment"
-msgstr ""
+msgstr "Dozvoli delimičnu uplatu"
 
 #. Label of the allow_partial_reservation (Check) field in DocType 'Stock
 #. Settings'
@@ -6664,7 +6664,7 @@ msgstr "Automatska rezervacija zaliha za prodajnu porudžbinu pri kupovini"
 
 #: erpnext/accounts/doctype/accounts_settings/accounts_settings.py:155
 msgid "Auto Tax Settings Error"
-msgstr ""
+msgstr "Greška u automatskom podešavanju poreza"
 
 #. Description of the 'Close Replied Opportunity After Days' (Int) field in
 #. DocType 'CRM Settings'
@@ -6709,7 +6709,7 @@ msgstr "Automatski dodaj poreze i naknade iz šablona poreza za stavke"
 #. DocType 'Accounts Settings'
 #: erpnext/accounts/doctype/accounts_settings/accounts_settings.json
 msgid "Automatically Add Taxes from Taxes and Charges Template"
-msgstr ""
+msgstr "Automatski dodaj poreze iz šablona za poreze i naknade"
 
 #. Label of the create_new_batch (Check) field in DocType 'Item'
 #: erpnext/stock/doctype/item/item.json
@@ -9528,7 +9528,7 @@ msgstr "Otkazano"
 
 #: erpnext/accounts/doctype/pos_opening_entry/pos_opening_entry.py:66
 msgid "Cannot Assign Cashier"
-msgstr ""
+msgstr "Nije moguće dodeliti blagajnika"
 
 #: erpnext/stock/doctype/delivery_trip/delivery_trip.js:90
 #: erpnext/stock/doctype/delivery_trip/delivery_trip.py:215
@@ -9571,7 +9571,7 @@ msgstr "Ne može biti osnovno sredstvo jer je kreirana knjiga zaliha."
 
 #: erpnext/accounts/doctype/pos_closing_entry/pos_closing_entry.py:246
 msgid "Cannot cancel POS Closing Entry"
-msgstr ""
+msgstr "Nije moguće otkazati unos zatvaranja maloprodaje"
 
 #: erpnext/stock/doctype/repost_item_valuation/repost_item_valuation.py:212
 msgid "Cannot cancel as processing of cancelled documents is pending."
@@ -9957,7 +9957,7 @@ msgstr "Uplate prilikom zatvaranja blagajne"
 
 #: erpnext/accounts/doctype/pos_opening_entry/pos_opening_entry.py:67
 msgid "Cashier is currently assigned to another POS."
-msgstr ""
+msgstr "Blagajnik je trenutno dodeljen drugoj maloprodaji."
 
 #. Label of the catch_all (Link) field in DocType 'Communication Medium'
 #: erpnext/communication/doctype/communication_medium/communication_medium.json
@@ -10726,7 +10726,7 @@ msgstr "Sažmi sve"
 
 #: erpnext/accounts/doctype/pos_invoice/pos_invoice.js:269
 msgid "Collect Outstanding Amount"
-msgstr ""
+msgstr "Naplatiti neizmireni iznos"
 
 #. Label of the collect_progress (Check) field in DocType 'Project'
 #: erpnext/projects/doctype/project/project.json
@@ -13358,7 +13358,7 @@ msgstr "Kreiraj unos uplate"
 
 #: erpnext/accounts/doctype/pos_invoice/pos_invoice.py:806
 msgid "Create Payment Entry for Consolidated POS Invoices."
-msgstr ""
+msgstr "Kreiraj unos uplate za konsolidovane fiskalne račune."
 
 #: erpnext/manufacturing/doctype/work_order/work_order.js:718
 msgid "Create Pick List"
@@ -20291,7 +20291,7 @@ msgstr "Neuspešna prijava"
 
 #: erpnext/accounts/doctype/bank_statement_import/bank_statement_import.py:129
 msgid "Failed to parse MT940 format. Error: {0}"
-msgstr ""
+msgstr "Neuspešno parsiranje MT940 formata. Greška: {0}"
 
 #: erpnext/assets/doctype/asset/asset.js:214
 msgid "Failed to post depreciation entries"
@@ -23710,7 +23710,7 @@ msgstr "Ukoliko ima više od jednog pakovanja iste vrste (za štampu)"
 #. (Check) field in DocType 'Accounts Settings'
 #: erpnext/accounts/doctype/accounts_settings/accounts_settings.json
 msgid "If no taxes are set, and Taxes and Charges Template is selected, the system will automatically apply the taxes from the chosen template."
-msgstr ""
+msgstr "Ukoliko porezi nisu postavljeni, a šablon poreza i naknada je izabran, sistem će automatski primeniti poreze iz izabranog šablona."
 
 #: erpnext/stock/stock_ledger.py:1887
 msgid "If not, you can Cancel / Submit this entry"
@@ -24160,7 +24160,7 @@ msgstr "Pregled evidencije uvoza podataka"
 #. Import'
 #: erpnext/accounts/doctype/bank_statement_import/bank_statement_import.json
 msgid "Import MT940 Fromat"
-msgstr ""
+msgstr "Uvezi MT940 format"
 
 #. Label of the import_preview (HTML) field in DocType 'Bank Statement Import'
 #: erpnext/accounts/doctype/bank_statement_import/bank_statement_import.json
@@ -25607,7 +25607,7 @@ msgstr "Broj fakture"
 
 #: erpnext/accounts/doctype/pos_invoice/pos_invoice.py:812
 msgid "Invoice Paid"
-msgstr ""
+msgstr "Faktura je plaćena"
 
 #. Label of the invoice_portion (Percent) field in DocType 'Overdue Payment'
 #. Label of the invoice_portion (Percent) field in DocType 'Payment Schedule'
@@ -29240,7 +29240,7 @@ msgstr "Vrsta programa lojalnosti"
 
 #: erpnext/accounts/doctype/bank_statement_import/bank_statement_import.py:124
 msgid "MT940 file detected. Please enable 'Import MT940 Format' to proceed."
-msgstr ""
+msgstr "Otkriven je MT940 fajl. Omogućite 'Uvezi MT940 format' da biste nastavili."
 
 #: erpnext/manufacturing/report/downtime_analysis/downtime_analysis.js:23
 #: erpnext/manufacturing/report/downtime_analysis/downtime_analysis.py:78
@@ -31495,7 +31495,7 @@ msgstr "Pronađeno je više programa lojalnosti za kupca {}. Molimo Vas da izabe
 
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1137
 msgid "Multiple POS Opening Entry"
-msgstr ""
+msgstr "Višestruki unosi početnog stanja maloprodaje"
 
 #: erpnext/accounts/doctype/pricing_rule/utils.py:339
 msgid "Multiple Price Rules exists with same criteria, please resolve conflict by assigning priority. Price Rules: {0}"
@@ -34266,7 +34266,7 @@ msgstr "Nema na stanju"
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1144
 #: erpnext/selling/page/point_of_sale/pos_controller.js:208
 msgid "Outdated POS Opening Entry"
-msgstr ""
+msgstr "Zastareli unos početnog stanja maloprodaje"
 
 #. Option for the 'Inspection Type' (Select) field in DocType 'Quality
 #. Inspection'
@@ -34666,15 +34666,15 @@ msgstr "Unos početnog stanja maloprodaje"
 
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1145
 msgid "POS Opening Entry - {0} is outdated. Please close the POS and create a new POS Opening Entry."
-msgstr ""
+msgstr "Unos početnog stanja maloprodaje - {0} je zastareo. Zatvorite maloprodaju i kreirajte novi unos početnog stanja."
 
 #: erpnext/accounts/doctype/pos_opening_entry/pos_opening_entry.py:111
 msgid "POS Opening Entry Cancellation Error"
-msgstr ""
+msgstr "Greška pri otkazivanju unosa početnog stanja maloprodaje"
 
 #: erpnext/selling/page/point_of_sale/pos_controller.js:183
 msgid "POS Opening Entry Cancelled"
-msgstr ""
+msgstr "Unos početnog stanja maloprodaje je otkazan"
 
 #. Name of a DocType
 #: erpnext/accounts/doctype/pos_opening_entry_detail/pos_opening_entry_detail.json
@@ -34683,7 +34683,7 @@ msgstr "Detalji unosa početnog stanja maloprodaje"
 
 #: erpnext/accounts/doctype/pos_opening_entry/pos_opening_entry.py:57
 msgid "POS Opening Entry Exists"
-msgstr ""
+msgstr "Unos početnog stanja maloprodaje već postoji"
 
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1130
 msgid "POS Opening Entry Missing"
@@ -34691,11 +34691,11 @@ msgstr "Nedostaje unos početnog stanja maloprodaje"
 
 #: erpnext/accounts/doctype/pos_opening_entry/pos_opening_entry.py:112
 msgid "POS Opening Entry cannot be cancelled as unconsolidated Invoices exists."
-msgstr ""
+msgstr "Unos početnog stanja maloprodaje ne može biti otkazan jer postoje nekonsolidovani računi."
 
 #: erpnext/selling/page/point_of_sale/pos_controller.js:189
 msgid "POS Opening Entry has been cancelled. Please refresh the page."
-msgstr ""
+msgstr "Unos početnog stanja maloprodaje je otkazan. Molimo Vas da osvežite stranicu."
 
 #. Name of a DocType
 #: erpnext/accounts/doctype/pos_payment_method/pos_payment_method.json
@@ -34721,11 +34721,11 @@ msgstr "Profil maloprodaje"
 
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1138
 msgid "POS Profile - {0} has multiple open POS Opening Entries. Please close or cancel the existing entries before proceeding."
-msgstr ""
+msgstr "Profil maloprodaje - {0} ima više otvorenih unosa početnog stanja. Zatvorite ili otkažite postojeće unose pre nego što nastavite."
 
 #: erpnext/accounts/doctype/pos_closing_entry/pos_closing_entry.py:247
 msgid "POS Profile - {0} is currently open. Please close the POS or cancel the existing POS Opening Entry before cancelling this POS Closing Entry."
-msgstr ""
+msgstr "Profil maloprodaje - {0} je trenutno otvoren. Zatvorite maloprodaju ili otkažite postojeći unos početnog stanja maloprodaje pre nego što otkažete ovaj unos zatvaranja maloprodaje."
 
 #. Name of a DocType
 #: erpnext/accounts/doctype/pos_profile_user/pos_profile_user.json
@@ -35222,7 +35222,7 @@ msgstr "Matično skladište"
 
 #: erpnext/accounts/doctype/bank_statement_import/bank_statement_import.py:132
 msgid "Parsed file is not in valid MT940 format or contains no transactions."
-msgstr ""
+msgstr "Parsirani fajl nije u važećem MT940 formatu ili ne sadrži transakcije."
 
 #: erpnext/edi/doctype/code_list/code_list_import.py:39
 msgid "Parsing Error"
@@ -36354,11 +36354,11 @@ msgstr "Plaćanja"
 
 #: erpnext/accounts/doctype/pos_invoice/pos_invoice.js:330
 msgid "Payments could not be updated."
-msgstr ""
+msgstr "Uplate nije bilo moguće ažurirati."
 
 #: erpnext/accounts/doctype/pos_invoice/pos_invoice.js:324
 msgid "Payments updated."
-msgstr ""
+msgstr "Uplate su ažurirane."
 
 #. Option for the 'Reference Type' (Select) field in DocType 'Journal Entry
 #. Account'
@@ -36859,7 +36859,7 @@ msgstr "Izaberi ručno"
 #. Consumed Item'
 #: erpnext/assets/doctype/asset_repair_consumed_item/asset_repair_consumed_item.json
 msgid "Pick Serial / Batch"
-msgstr ""
+msgstr "Izaberi seriju / šaržu"
 
 #. Label of the pick_serial_and_batch_based_on (Select) field in DocType 'Stock
 #. Settings'
@@ -38427,7 +38427,7 @@ msgstr "Datum knjiženja će se promeniti na današnji dan jer opcija za izmenu 
 
 #: erpnext/controllers/buying_controller.py:93
 msgid "Posting Date {0} cannot be before Purchase Order Posting Date {1}"
-msgstr ""
+msgstr "Datum knjiženja {0} ne može biti pre datuma knjiženja nabavne porudžbine {1}"
 
 #. Label of the posting_datetime (Datetime) field in DocType 'Stock Closing
 #. Balance'
@@ -53008,7 +53008,7 @@ msgstr "Sistem će automatski kreirati brojeve serije / šarže za gotov proizvo
 #: erpnext/accounts/doctype/accounts_settings/accounts_settings.json
 msgid "System will do an implicit conversion using the pegged currency. <br>\n"
 "Ex: Instead of AED -&gt; INR, system will do AED -&gt; USD -&gt; INR using the pegged exchange rate of AED against USD."
-msgstr ""
+msgstr "Sistem će izvršiti implicitnu konverziju koristeći fiksnu valutu. <br> Na primer: Umesto AED -&gt; INR, sistem će izvršiti AED -&gt; USD -&gt; INR koristeći fiksni kurs AED prema USD."
 
 #. Description of the 'Invoice Limit' (Int) field in DocType 'Payment
 #. Reconciliation'
@@ -54325,7 +54325,7 @@ msgstr "Valuta fakture {} ({}) se razlikuje od valute u ovoj opomeni ({})."
 
 #: erpnext/selling/page/point_of_sale/pos_controller.js:209
 msgid "The current POS opening entry is outdated. Please close it and create a new one."
-msgstr ""
+msgstr "Trenutni unosi početnog stanja maloprodaje je zastareo. Zatvorite ga i kreirajte novi."
 
 #: erpnext/manufacturing/doctype/work_order/work_order.js:1022
 msgid "The default BOM for that item will be fetched by the system. You can also change the BOM."
@@ -54573,7 +54573,7 @@ msgstr "Ukupna količina izdavanja / prenosa {0} u zahtevu za nabavku {1} ne mo�
 
 #: erpnext/accounts/doctype/bank_statement_import/bank_statement_import.py:121
 msgid "The uploaded file does not appear to be in valid MT940 format."
-msgstr ""
+msgstr "Otpremljeni fajl nije u važećem MT940 formatu."
 
 #: erpnext/edi/doctype/code_list/code_list_import.py:48
 msgid "The uploaded file does not match the selected Code List."
@@ -54776,7 +54776,7 @@ msgstr "Ovaj filter će biti primenjen na nalog knjiženja."
 
 #: erpnext/accounts/doctype/pos_invoice/pos_invoice.py:812
 msgid "This invoice has already been paid."
-msgstr ""
+msgstr "Ova faktura je već plaćena."
 
 #: erpnext/manufacturing/doctype/bom/bom.js:219
 msgid "This is a Template BOM and will be used to make the work order for {0} of the item {1}"
@@ -57983,7 +57983,7 @@ msgstr "Koristi vrednovanje po šaržama"
 #. Import'
 #: erpnext/accounts/doctype/bank_statement_import/bank_statement_import.json
 msgid "Use CSV Sniffer"
-msgstr ""
+msgstr "Koristi CSV Sniffer"
 
 #. Label of the use_company_roundoff_cost_center (Check) field in DocType
 #. 'Purchase Invoice'
@@ -60657,7 +60657,7 @@ msgstr "Ne možete uređivati korenski čvor."
 
 #: erpnext/accounts/doctype/accounts_settings/accounts_settings.py:151
 msgid "You cannot enable both the settings '{0}' and '{1}'."
-msgstr ""
+msgstr "Ne možete omogućiti oba podešavanja '{0}' i '{1}'."
 
 #: erpnext/selling/page/point_of_sale/pos_payment.js:608
 msgid "You cannot redeem more than {0}."
@@ -61399,7 +61399,7 @@ msgstr "{0} je na čekanju do {1}"
 
 #: erpnext/accounts/doctype/pos_opening_entry/pos_opening_entry.py:58
 msgid "{0} is open. Close the POS or cancel the existing POS Opening Entry to create a new POS Opening Entry."
-msgstr ""
+msgstr "{0} je otvoren. Zatvorite maloprodaju ili otkažite postojeći unos početnog stanja maloprodaje da biste kreirali novi unos početnog stanja maloprodaje."
 
 #: erpnext/accounts/doctype/gl_entry/gl_entry.py:130
 #: erpnext/accounts/doctype/pricing_rule/pricing_rule.py:172
