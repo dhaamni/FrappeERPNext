@@ -91,7 +91,12 @@ def doc_has_references(doctype: str | None = None, docname: str | None = None):
 
 		count += frappe.db.count(
 			"Advance Payment Ledger Entry",
-			filters={"delinked": 0, "voucher_no": docname, "voucher_type": doctype},
+			filters={
+				"delinked": 0,
+				"voucher_no": docname,
+				"voucher_type": doctype,
+				"unadjusted_amount": ["<", 0],
+			},
 		)
 
 	return count
@@ -185,6 +190,7 @@ def get_advance_linked_payments_for_doc(
 		.where(ple.voucher_no == docname)
 		.where(ple.voucher_type == doctype)
 		.where(ple.company == company)
+		.where(ple.unadjusted_amount < 0)
 		.groupby(ple.against_voucher_no)
 	)
 

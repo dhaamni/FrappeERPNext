@@ -11,6 +11,7 @@
   "against_voucher_type",
   "against_voucher_no",
   "amount",
+  "unadjusted_amount",
   "currency",
   "event",
   "delinked"
@@ -76,13 +77,20 @@
    "fieldtype": "Check",
    "label": "DeLinked",
    "read_only": 1
+  },
+  {
+   "description": "Amount which is yet to be adjusted",
+   "fieldname": "unadjusted_amount",
+   "fieldtype": "Currency",
+   "label": "Unadjusted Amount",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-01 18:43:34.964275",
+ "modified": "2025-07-05 14:30:09.030494",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Advance Payment Ledger Entry",

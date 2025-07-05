@@ -619,6 +619,8 @@ def update_reference_in_journal_entry(d, journal_entry, do_not_save=False):
 	"""
 	Updates against document, if partial amount splits into rows
 	"""
+
+	# TODO: Update unadjusted amount for advance doctype
 	jv_detail = journal_entry.get("accounts", {"name": d["voucher_detail_no"]})[0]
 
 	rev_dr_or_cr = (
@@ -700,6 +702,10 @@ def update_reference_in_payment_entry(
 		"dimensions": d.dimensions,
 	}
 
+	advance_payment_doctypes = frappe.get_hooks("advance_payment_receivable_doctypes") + frappe.get_hooks(
+		"advance_payment_payable_doctypes"
+	)
+
 	# Update Reconciliation effect date in reference
 	reconciliation_takes_effect_on = frappe.get_cached_value(
 		"Company", payment_entry.company, "reconciliation_takes_effect_on"
@@ -732,6 +738,16 @@ def update_reference_in_payment_entry(
 			for field in list(reference_details):
 				new_row.set(field, reference_details[field])
 			row = new_row
+
+			if existing_row.reference_doctype in advance_payment_doctypes:
+				update_unadjusted_amount_in_advance_entry(
+					existing_row.parenttype,
+					existing_row.parent,
+					existing_row.reference_doctype,
+					existing_row.reference_name,
+					d.allocated_amount,
+				)
+
 	else:
 		new_row = payment_entry.append("references")
 		new_row.docstatus = 1
@@ -769,6 +785,24 @@ def update_reference_in_payment_entry(
 		payment_entry.save(ignore_permissions=True)
 
 	return row
+
+
+def update_unadjusted_amount_in_advance_entry(
+	voucher_type, voucher_no, against_voucher_type, against_voucher_no, adj_amount
+):
+	adv = frappe.qb.DocType("Advance Payment Ledger Entry")
+
+	(
+		frappe.qb.update(adv)
+		.set(adv.unadjusted_amount, adv.unadjusted_amount + adj_amount)
+		.where(
+			(adv.voucher_type == voucher_type)
+			& (adv.voucher_no == voucher_no)
+			& (adv.against_voucher_type == against_voucher_type)
+			& (adv.against_voucher_no == against_voucher_no)
+		)
+		.run()
+	)
 
 
 def cancel_exchange_gain_loss_journal(
@@ -1845,26 +1879,31 @@ def get_payment_ledger_entries(gl_entries, cancel=0):
 
 				if is_advance_doctype:
 					# create advance entry
-					adv = frappe._dict(
-						doctype="Advance Payment Ledger Entry",
-						company=gle.company,
-						voucher_type=gle.voucher_type,
-						voucher_no=gle.voucher_no,
-						voucher_detail_no=gle.voucher_detail_no,
-						against_voucher_type=gle.against_voucher_type,
-						against_voucher_no=gle.against_voucher,
-						currency=gle.account_currency,
-						amount=dr_or_cr_account_currency,
-						event="Cancel" if cancel else "Submit",
-						delinked=cancel,
-						remarks=gle.remarks,
-					)
+					adv = get_advance_ledger_entry(gle, cancel, dr_or_cr_account_currency)
 
 					ple_map.append(adv)
 
 				ple_map.append(ple)
 
 	return ple_map
+
+
+def get_advance_ledger_entry(gle, cancel, amount):
+	return frappe._dict(
+		doctype="Advance Payment Ledger Entry",
+		company=gle.company,
+		voucher_type=gle.voucher_type,
+		voucher_no=gle.voucher_no,
+		voucher_detail_no=gle.voucher_detail_no,
+		against_voucher_type=gle.against_voucher_type,
+		against_voucher_no=gle.against_voucher,
+		currency=gle.account_currency,
+		amount=amount,
+		unadjusted_amount=amount,
+		event="Cancel" if cancel else "Submit",
+		delinked=cancel,
+		remarks=gle.remarks,
+	)
 
 
 def create_payment_ledger_entry(
