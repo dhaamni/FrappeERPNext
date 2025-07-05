@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: hello@frappe.io\n"
 "POT-Creation-Date: 2025-06-29 09:36+0000\n"
-"PO-Revision-Date: 2025-07-04 05:34\n"
+"PO-Revision-Date: 2025-07-05 05:36\n"
 "Last-Translator: hello@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -17998,7 +17998,7 @@ msgstr "Dokument "
 #. 'Accounts Settings'
 #: erpnext/accounts/doctype/accounts_settings/accounts_settings.json
 msgid "Documents Processed on each trigger. Queue Size should be between 5 and 100"
-msgstr "Dokument Behandlade vid varje utlösare. Kö Storlek ska vara mellan 5 och 100"
+msgstr "Dokument Behandlade vid varje körning. Kö Storlek ska vara mellan 5 och 100"
 
 #: erpnext/accounts/doctype/repost_accounting_ledger/repost_accounting_ledger.py:233
 msgid "Documents: {0} have deferred revenue/expense enabled for them. Cannot repost."
