@@ -504,36 +504,9 @@ class TestPOSInvoiceMergeLog(unittest.TestCase):
 			pos_inv3.load_from_db()
 			self.assertTrue(frappe.db.exists("Sales Invoice", pos_inv3.consolidated_invoice))
 
-<<<<<<< HEAD
 			self.assertTrue(pos_inv2.consolidated_invoice == pos_inv3.consolidated_invoice)
 
 		finally:
 			frappe.set_user("Administrator")
 			frappe.db.sql("delete from `tabPOS Profile`")
 			frappe.db.sql("delete from `tabPOS Invoice`")
-=======
-		self.assertTrue(pos_inv2.consolidated_invoice == pos_inv3.consolidated_invoice)
-
-	def test_company_in_pos_invoice_merge_log(self):
-		"""
-		Test if the company is fetched from POS Closing Entry
-		"""
-		test_user, pos_profile = init_user_and_profile()
-		opening_entry = create_opening_entry(pos_profile, test_user.name)
-
-		pos_inv = create_pos_invoice(rate=300, do_not_submit=1)
-		pos_inv.append("payments", {"mode_of_payment": "Cash", "account": "Cash - _TC", "amount": 300})
-		pos_inv.save()
-		pos_inv.submit()
-
-		closing_entry = make_closing_entry_from_opening(opening_entry)
-		closing_entry.insert()
-		closing_entry.submit()
-
-		self.assertTrue(frappe.db.exists("POS Invoice Merge Log", {"pos_closing_entry": closing_entry.name}))
-
-		pos_merge_log_company = frappe.db.get_value(
-			"POS Invoice Merge Log", {"pos_closing_entry": closing_entry.name}, "company"
-		)
-		self.assertEqual(pos_merge_log_company, closing_entry.company)
->>>>>>> 9548f341bf (test: test company fetching from POS Closing Entry)
