@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: hello@frappe.io\n"
 "POT-Creation-Date: 2025-06-29 09:36+0000\n"
-"PO-Revision-Date: 2025-07-05 05:36\n"
+"PO-Revision-Date: 2025-07-06 05:43\n"
 "Last-Translator: hello@frappe.io\n"
 "Language-Team: Serbian (Latin)\n"
 "MIME-Version: 1.0\n"
@@ -39818,7 +39818,7 @@ msgstr "Napredak"
 #: erpnext/projects/doctype/task/task.py:148
 #, python-format
 msgid "Progress % for a task cannot be more than 100."
-msgstr "Procenat (% f) napretka za zadatak ne može biti veći od 100."
+msgstr "Procenat % napretka za zadatak ne može biti veći od 100."
 
 #: erpnext/projects/report/delayed_tasks_summary/delayed_tasks_summary.py:94
 msgid "Progress (%)"
