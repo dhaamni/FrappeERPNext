@@ -153,35 +153,9 @@ class MaterialRequest(BuyingController):
 		self.reset_default_field_value("set_warehouse", "items", "warehouse")
 		self.reset_default_field_value("set_from_warehouse", "items", "from_warehouse")
 
-<<<<<<< HEAD
-=======
-		self.validate_pp_qty()
-
 		if not self.price_list:
 			self.price_list = frappe.defaults.get_defaults().buying_price_list
 
-	def validate_pp_qty(self):
-		items_from_pp = [item for item in self.items if item.material_request_plan_item]
-		if items_from_pp:
-			items_mr_plan_items = [item.material_request_plan_item for item in items_from_pp]
-			table = frappe.qb.DocType("Material Request Plan Item")
-			query = (
-				frappe.qb.from_(table)
-				.select(table.name, (table.quantity - table.requested_qty).as_("available_qty"))
-				.where(table.name.isin(items_mr_plan_items))
-			)
-			result = query.run(as_dict=True)
-
-			for item in items_from_pp:
-				row = next(r for r in result if r.name == item.material_request_plan_item)
-				if item.qty > row.available_qty:
-					frappe.throw(
-						_("Quantity cannot be greater than {0} for Item {1}").format(
-							row.available_qty, item.item_code
-						)
-					)
-
->>>>>>> f4c6bdf204 (feat: add price list field to material request)
 	def before_update_after_submit(self):
 		self.validate_schedule_date()
 
