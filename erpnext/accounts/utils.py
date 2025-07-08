@@ -629,6 +629,7 @@ def update_reference_in_journal_entry(d, journal_entry, do_not_save=False):
 
 	# Update Advance Paid in SO/PO since they might be getting unlinked
 	update_advance_paid = []
+
 	if jv_detail.get("reference_type") in ["Sales Order", "Purchase Order"]:
 		update_advance_paid.append((jv_detail.reference_type, jv_detail.reference_name))
 
@@ -2261,6 +2262,15 @@ def create_gain_loss_journal(
 
 def get_party_types_from_account_type(account_type):
 	return frappe.db.get_all("Party Type", {"account_type": account_type}, pluck="name")
+
+
+def get_advance_payment_doctypes():
+	"""
+	Get list of advance payment doctypes based on type.
+	:param type: Optional, can be "receivable" or "payable". If not provided, returns both.
+	"""
+
+	return frappe.get_hooks("advance_payment_doctypes")
 
 
 def run_ledger_health_checks():
