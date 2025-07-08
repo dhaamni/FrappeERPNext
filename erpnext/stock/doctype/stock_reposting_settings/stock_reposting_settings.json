@@ -87,12 +87,7 @@
    "write": 1
   }
  ],
-<<<<<<< HEAD
  "sort_field": "modified",
-=======
- "row_format": "Dynamic",
- "sort_field": "creation",
->>>>>>> e342b1f7bd (refactor: remove do_reposting_for_each_stock_transaction feature)
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1
