@@ -224,12 +224,7 @@
    "role": "Stock User"
   }
  ],
-<<<<<<< HEAD
  "sort_field": "modified",
-=======
- "row_format": "Dynamic",
- "sort_field": "creation",
->>>>>>> 8aac6a6b18 (fix: fetch from parent optional in inventory dimension)
  "sort_order": "DESC",
  "states": []
 }
