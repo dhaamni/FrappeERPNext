@@ -937,19 +937,6 @@ def remove_ref_doc_link_from_pe(
 
 	reference_rows = query.run(as_dict=True)
 
-<<<<<<< HEAD
-		for pe in linked_pe:
-			try:
-				pe_doc = frappe.get_doc("Payment Entry", pe)
-				pe_doc.set_amounts()
-				pe_doc.clear_unallocated_reference_document_rows()
-				pe_doc.validate_payment_type_with_outstanding()
-			except Exception:
-				msg = _("There were issues unlinking payment entry {0}.").format(pe_doc.name)
-				msg += "<br>"
-				msg += _("Please cancel payment entry manually first")
-				frappe.throw(msg, exc=PaymentEntryUnlinkError, title=_("Payment Unlink Error"))
-=======
 	if not reference_rows:
 		return
 
@@ -959,7 +946,6 @@ def remove_ref_doc_link_from_pe(
 	for row in reference_rows:
 		linked_pe.add(row.parent)
 		row_names.add(row.name)
->>>>>>> 8098229b55 (fix: update payment request outstanding on unreconciliation)
 
 	from erpnext.accounts.doctype.payment_request.payment_request import (
 		update_payment_requests_as_per_pe_references,
