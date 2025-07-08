@@ -629,12 +629,8 @@ def update_reference_in_journal_entry(d, journal_entry, do_not_save=False):
 
 	# Update Advance Paid in SO/PO since they might be getting unlinked
 	update_advance_paid = []
-<<<<<<< HEAD
-	if jv_detail.get("reference_type") in ["Sales Order", "Purchase Order"]:
-=======
 
-	if jv_detail.get("reference_type") in get_advance_payment_doctypes():
->>>>>>> 48e8e85617 (refactor: function to fetch advance payment doctypes)
+	if jv_detail.get("reference_type") in ["Sales Order", "Purchase Order"]:
 		update_advance_paid.append((jv_detail.reference_type, jv_detail.reference_name))
 
 	rev_dr_or_cr = (
@@ -741,11 +737,7 @@ def update_reference_in_payment_entry(
 		existing_row = payment_entry.get("references", {"name": d["voucher_detail_no"]})[0]
 
 		# Update Advance Paid in SO/PO since they are getting unlinked
-<<<<<<< HEAD
 		if existing_row.get("reference_doctype") in ["Sales Order", "Purchase Order"]:
-=======
-		if existing_row.get("reference_doctype") in get_advance_payment_doctypes():
->>>>>>> 48e8e85617 (refactor: function to fetch advance payment doctypes)
 			update_advance_paid.append((existing_row.reference_doctype, existing_row.reference_name))
 
 		if d.allocated_amount <= existing_row.allocated_amount:
@@ -2265,17 +2257,13 @@ def get_party_types_from_account_type(account_type):
 	return frappe.db.get_all("Party Type", {"account_type": account_type}, pluck="name")
 
 
-def get_advance_payment_doctypes(payment_type=None):
+def get_advance_payment_doctypes():
 	"""
 	Get list of advance payment doctypes based on type.
 	:param type: Optional, can be "receivable" or "payable". If not provided, returns both.
 	"""
-	if payment_type:
-		return frappe.get_hooks(f"advance_payment_{payment_type}_doctypes") or []
 
-	return (frappe.get_hooks("advance_payment_receivable_doctypes") or []) + (
-		frappe.get_hooks("advance_payment_payable_doctypes") or []
-	)
+	return frappe.get_hooks("advance_payment_doctypes")
 
 
 def run_ledger_health_checks():

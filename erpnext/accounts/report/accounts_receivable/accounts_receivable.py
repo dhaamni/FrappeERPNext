@@ -66,9 +66,7 @@ class ReceivablePayableReport:
 			frappe.db.get_single_value("Accounts Settings", "receivable_payable_fetch_method")
 			or "Buffered Cursor"
 		)  # Fail Safe
-		self.advance_payment_doctypes = frappe.get_hooks(
-			"advance_payment_receivable_doctypes"
-		) + frappe.get_hooks("advance_payment_payable_doctypes")
+		self.advance_payment_doctypes = get_advance_payment_doctypes()
 
 	def run(self, args):
 		self.filters.update(args)
