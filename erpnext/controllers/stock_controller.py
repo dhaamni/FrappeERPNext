@@ -1665,14 +1665,6 @@ def is_reposting_pending():
 def future_sle_exists(args, sl_entries=None):
 	from erpnext.stock.utils import get_combine_datetime
 
-<<<<<<< HEAD
-	if allow_force_reposting and frappe.db.get_single_value(
-		"Stock Reposting Settings", "do_reposting_for_each_stock_transaction"
-	):
-		return True
-
-=======
->>>>>>> e342b1f7bd (refactor: remove do_reposting_for_each_stock_transaction feature)
 	key = (args.voucher_type, args.voucher_no)
 	if not hasattr(frappe.local, "future_sle"):
 		frappe.local.future_sle = {}
