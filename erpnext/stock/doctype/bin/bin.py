@@ -202,8 +202,7 @@ def update_qty(bin_name, args):
 	sle = frappe.qb.DocType("Stock Ledger Entry")
 
 	# actual qty is not up to date in case of backdated transaction
-<<<<<<< HEAD
-	if future_sle_exists(args, allow_force_reposting=False):
+	if future_sle_exists(args):
 		last_sle_qty = (
 			frappe.qb.from_(sle)
 			.select(sle.qty_after_transaction)
@@ -221,10 +220,6 @@ def update_qty(bin_name, args):
 		actual_qty = 0.0
 		if last_sle_qty:
 			actual_qty = last_sle_qty[0][0]
-=======
-	if future_sle_exists(args):
-		actual_qty = get_actual_qty(args.get("item_code"), args.get("warehouse"))
->>>>>>> e342b1f7bd (refactor: remove do_reposting_for_each_stock_transaction feature)
 
 	ordered_qty = flt(bin_details.ordered_qty) + flt(args.get("ordered_qty"))
 	reserved_qty = flt(bin_details.reserved_qty) + flt(args.get("reserved_qty"))
