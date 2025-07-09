@@ -138,8 +138,12 @@ class ReceivablePayableReport:
 		self.init_and_run_sql_procedures()
 =======
 		elif self.ple_fetch_method == "Raw SQL":
+<<<<<<< HEAD
 			self.init_and_run_sql_procedures()
 >>>>>>> e90c6a33bd (refactor: call procedures based on config)
+=======
+			self.fetch_ple_in_sql_procedures()
+>>>>>>> fc8ca7d82c (chore: rename method)
 
 		# Build delivery note map against all sales invoices
 		self.build_delivery_note_map()
@@ -336,7 +340,7 @@ class ReceivablePayableReport:
 				row.paid -= amount
 				row.paid_in_account_currency -= amount_in_account_currency
 
-	def init_and_run_sql_procedures(self):
+	def fetch_ple_in_sql_procedures(self):
 		self.proc = InitSQLProceduresForAR()
 
 		build_balance = f"""
