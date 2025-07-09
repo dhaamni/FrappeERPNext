@@ -12,6 +12,7 @@ from frappe.utils.data import comma_and
 
 from erpnext.accounts.utils import (
 	cancel_exchange_gain_loss_journal,
+	get_advance_payment_doctypes,
 	unlink_ref_doc_from_payment_entries,
 	update_voucher_outstanding,
 )
