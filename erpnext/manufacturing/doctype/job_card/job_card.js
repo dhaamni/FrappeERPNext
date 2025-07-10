@@ -30,21 +30,21 @@ frappe.ui.form.on("Job Card", {
 				return doc.status === "Complete" ? "green" : "orange";
 			}
 		});
-		
+
 		frm.set_query("employee", () => ({
 			filters: {
-				status: "Active"
-			}
+				status: "Active",
+			},
 		}));
 
 		frm.set_query("employee", "time_logs", function (doc, cdt, cdn) {
 			const row = locals[cdt][cdn];
 			return {
 				filters: {
-					status: "Active"
-				}
+					status: "Active",
+				},
 			};
-		});	
+		});
 	},
 
 	make_fields_read_only(frm) {
