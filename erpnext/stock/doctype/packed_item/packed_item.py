@@ -340,8 +340,13 @@ def on_doctype_update():
 
 
 @frappe.whitelist()
+<<<<<<< HEAD
 def get_items_from_product_bundle(row, price_list):
 	row, items = json.loads(row), []
+=======
+def get_items_from_product_bundle(row):
+	row, items = ItemDetailsCtx(json.loads(row)), []
+>>>>>>> adb9a6bc15 (fix: field name of price_list in material request)
 
 	bundled_items = get_product_bundle_items(row["item_code"])
 	for item in bundled_items:
@@ -350,7 +355,6 @@ def get_items_from_product_bundle(row, price_list):
 				"item_code": item.item_code,
 				"qty": flt(row["quantity"]) * flt(item.qty),
 				"conversion_rate": 1,
-				"price_list": price_list,
 				"currency": frappe.defaults.get_defaults().currency,
 			}
 		)
