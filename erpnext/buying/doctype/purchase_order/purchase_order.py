@@ -8,7 +8,7 @@ import frappe
 from frappe import _, msgprint
 from frappe.desk.notifications import clear_doctype_notifications
 from frappe.model.mapper import get_mapped_doc
-from frappe.utils import cint, cstr, flt, get_link_to_form
+from frappe.utils import cint, cstr, flt, format_date, get_link_to_form, getdate
 
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import (
 	unlink_inter_company_doc,
@@ -208,6 +208,7 @@ class PurchaseOrder(BuyingController):
 		self.validate_schedule_date()
 		validate_for_items(self)
 		self.check_on_hold_or_closed_status()
+		self.validate_posting_date_with_mr()
 
 		self.validate_uom_is_integer("uom", "qty")
 		self.validate_uom_is_integer("stock_uom", "stock_qty")
@@ -444,6 +445,40 @@ class PurchaseOrder(BuyingController):
 			):
 				check_list.append(d.material_request)
 				check_on_hold_or_closed_status("Material Request", d.material_request)
+
+	def validate_posting_date_with_mr(self):
+		mr_list = {x.material_request for x in self.items if x.material_request}
+
+		if not mr_list:
+			return
+
+		invalid_mr = []
+		mr_dates = frappe._dict(
+			frappe.get_all(
+				"Material Request",
+				filters={"name": ["in", mr_list]},
+				fields=["name", "transaction_date"],
+				as_list=True,
+			)
+		)
+
+		for mr in mr_list:
+			mr_date = mr_dates[mr]
+			if getdate(mr_date) > getdate(self.transaction_date):
+				invalid_mr.append((get_link_to_form("Material Request", mr), format_date(mr_date)))
+
+		if not invalid_mr:
+			return
+
+		msg = _(
+			"<p>Transaction Date {0} cannot be before Material Request date for the following:</p><ul>"
+		).format(frappe.bold(format_date(self.transaction_date)))
+
+		for mr, date in invalid_mr:
+			msg += f"<li>{mr} ({date})</li>"
+		msg += "</ul>"
+
+		frappe.throw(_(msg))
 
 	def update_ordered_qty(self, po_item_rows=None):
 		"""update requested qty (before ordered_qty is updated)"""
