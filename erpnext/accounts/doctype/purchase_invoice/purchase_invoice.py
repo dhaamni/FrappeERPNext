@@ -971,6 +971,10 @@ class PurchaseInvoice(BuyingController):
 		if provisional_accounting_for_non_stock_items:
 			self.get_provisional_accounts()
 
+		self.has_distributed_discount_set = any(
+			item.distributed_discount_amount for item in self.get("items")
+		)
+
 		for item in self.get("items"):
 			if flt(item.base_net_amount):
 				if item.item_code:

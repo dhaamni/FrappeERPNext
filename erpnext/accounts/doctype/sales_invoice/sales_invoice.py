@@ -1549,6 +1549,9 @@ class SalesInvoice(SellingController):
 		enable_discount_accounting = cint(
 			frappe.get_single_value("Selling Settings", "enable_discount_accounting")
 		)
+		self.has_distributed_discount_set = any(
+			item.distributed_discount_amount for item in self.get("items")
+		)
 
 		for item in self.get("items"):
 			if flt(item.base_net_amount, item.precision("base_net_amount")) or item.is_fixed_asset:
