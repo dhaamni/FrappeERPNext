@@ -142,6 +142,7 @@
    "fieldname": "production_capacity",
    "fieldtype": "Int",
    "label": "Job Capacity",
+   "non_negative": 1,
    "reqd": 1
   },
   {
@@ -245,10 +246,14 @@
  "image_field": "on_status_image",
  "links": [],
 <<<<<<< HEAD
+<<<<<<< HEAD
  "modified": "2024-06-20 14:17:13.806609",
 =======
  "modified": "2025-07-13 14:34:49.637231",
 >>>>>>> a2bb557570 (feat: Add non-negative constraint to workstation cost fields)
+=======
+ "modified": "2025-07-13 16:02:13.615001",
+>>>>>>> 92a12d7fea (fix: Add non-negative constraint to job capacity field in workstation)
  "modified_by": "Administrator",
  "module": "Manufacturing",
  "name": "Workstation",
