@@ -1667,7 +1667,9 @@ class AccountsController(TransactionBase):
 								self.name,
 								arg.get("referenced_row"),
 							):
-								posting_date = arg.get("difference_posting_date") or frappe.db.get_value(
+								# if gain/loss journal is created from payment reconciliation, then use the reconcile date
+								# else use the difference posting date or the posting date of the voucher
+								posting_date = arg.get("reconcile_date") or arg.get("difference_posting_date") or frappe.db.get_value(
 									arg.voucher_type, arg.voucher_no, "posting_date"
 								)
 								je = create_gain_loss_journal(

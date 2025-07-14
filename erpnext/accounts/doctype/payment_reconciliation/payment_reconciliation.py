@@ -472,7 +472,54 @@ class PaymentReconciliation(Document):
 
 		self.set("allocation", [])
 		for entry in entries:
+			# Update Reconcile Date in the Allocation table based on the reconciliation takes effect on field in company.
+			entry.reconcile_date = nowdate()
 			if entry["allocated_amount"] != 0:
+				if entry.get("reference_type") == "Journal Entry":
+					ref_date = frappe.db.get_value(
+						entry.get("reference_type"),
+						entry.get("reference_name"),
+						"posting_date",
+					)
+					inv_date = frappe.db.get_value(
+						entry.get("invoice_type"),
+						entry.get("invoice_number"),
+						"posting_date",
+					)
+					if ref_date >= inv_date:
+						entry.reconcile_date = ref_date
+					else:
+						entry.reconcile_date = inv_date
+
+				if entry.get("reference_type") == "Payment Entry":
+					ref_date = (
+						frappe.db.get_value(
+							entry.get("reference_type"),
+							entry.get("reference_name"),
+							["posting_date"],
+						)
+						or None
+					)
+					advance_reco_effect_on = (
+						frappe.db.get_value(
+							"Company", self.company, "reconciliation_takes_effect_on"
+						)
+						or None
+					)
+					if advance_reco_effect_on in [
+						"Oldest Of Invoice Or Advance",
+						"Advance Payment Date",
+					]:
+						inv_date = frappe.db.get_value(
+							entry.get("invoice_type"),
+							entry.get("invoice_number"),
+							"posting_date",
+						)
+						if ref_date >= inv_date:
+							entry.reconcile_date = ref_date
+						else:
+							entry.reconcile_date = inv_date
+
 				row = self.append("allocation", {})
 				row.update(entry)
 
@@ -577,6 +624,7 @@ class PaymentReconciliation(Document):
 				"difference_account": row.get("difference_account"),
 				"difference_posting_date": row.get("gain_loss_posting_date"),
 				"cost_center": row.get("cost_center"),
+				"reconcile_date": row.get("reconcile_date"),
 			}
 		)
 
@@ -826,7 +874,7 @@ def reconcile_dr_cr_note(dr_cr_notes, company, active_dimensions=None):
 
 			create_gain_loss_journal(
 				company,
-				inv.difference_posting_date,
+				inv.get("reconcile_date") or inv.difference_posting_date,
 				inv.party_type,
 				inv.party,
 				inv.account,
