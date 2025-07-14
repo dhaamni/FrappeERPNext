@@ -340,13 +340,8 @@ def on_doctype_update():
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def get_items_from_product_bundle(row, price_list):
-	row, items = json.loads(row), []
-=======
 def get_items_from_product_bundle(row):
-	row, items = ItemDetailsCtx(json.loads(row)), []
->>>>>>> adb9a6bc15 (fix: field name of price_list in material request)
+	row, items = json.loads(row), []
 
 	bundled_items = get_product_bundle_items(row["item_code"])
 	for item in bundled_items:
