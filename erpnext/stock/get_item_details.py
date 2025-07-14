@@ -202,7 +202,7 @@ def update_stock(ctx, out, doc=None):
 				"item_code": ctx.item_code,
 				"warehouse": ctx.warehouse,
 				"based_on": frappe.get_single_value("Stock Settings", "pick_serial_and_batch_based_on"),
-				"sabb_voucher_no": ctx.name,
+				"sabb_voucher_no": doc.name if doc and doc.name else ctx.name,
 				"sabb_voucher_detail_no": ctx.child_docname,
 				"sabb_voucher_type": ctx.doctype,
 			}
@@ -220,10 +220,10 @@ def update_stock(ctx, out, doc=None):
 			batches = get_available_batches(kwargs)
 			if doc:
 				filter_batches(batches, doc)
-
+			price_list = doc.selling_price_list if doc and doc.selling_price_list else ctx.selling_price_list
 			for batch_no, batch_qty in batches.items():
 				rate = get_batch_based_item_price(
-					{"price_list": doc.get("selling_price_list"), "uom": out.uom, "batch_no": batch_no},
+					{"price_list": price_list, "uom": out.uom, "batch_no": batch_no},
 					out.item_code,
 				)
 				if batch_qty >= qty:
@@ -241,13 +241,15 @@ def update_stock(ctx, out, doc=None):
 		if out.has_serial_no and out.has_batch_no and has_incorrect_serial_nos(ctx, out):
 			kwargs["batches"] = [ctx.get("batch_no")] if ctx.get("batch_no") else [out.get("batch_no")]
 			serial_nos = get_serial_nos_for_outward(kwargs)
-			serial_nos = get_filtered_serial_nos(serial_nos, doc)
+			if doc:
+				serial_nos = get_filtered_serial_nos(serial_nos, doc)
 
 			out["serial_no"] = "\n".join(serial_nos[: cint(out.stock_qty)])
 
 		elif out.has_serial_no and not ctx.get("serial_no"):
 			serial_nos = get_serial_nos_for_outward(kwargs)
-			serial_nos = get_filtered_serial_nos(serial_nos, doc)
+			if doc:
+				serial_nos = get_filtered_serial_nos(serial_nos, doc)
 
 			out["serial_no"] = "\n".join(serial_nos[: cint(out.stock_qty)])
 
