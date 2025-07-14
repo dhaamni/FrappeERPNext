@@ -153,15 +153,8 @@ class MaterialRequest(BuyingController):
 		self.reset_default_field_value("set_warehouse", "items", "warehouse")
 		self.reset_default_field_value("set_from_warehouse", "items", "from_warehouse")
 
-<<<<<<< HEAD
-		if not self.price_list:
-			self.price_list = frappe.defaults.get_defaults().buying_price_list
-=======
-		self.validate_pp_qty()
-
 		if not self.buying_price_list:
 			self.buying_price_list = frappe.defaults.get_defaults().buying_price_list
->>>>>>> adb9a6bc15 (fix: field name of price_list in material request)
 
 	def before_update_after_submit(self):
 		self.validate_schedule_date()
