@@ -15,6 +15,7 @@ class PaymentGatewayAccount(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		company: DF.Link
 		currency: DF.ReadOnly | None
 		is_default: DF.Check
 		message: DF.SmallText | None
@@ -24,7 +25,8 @@ class PaymentGatewayAccount(Document):
 	# end: auto-generated types
 
 	def autoname(self):
-		self.name = self.payment_gateway + " - " + self.currency
+		abbr = frappe.db.get_value("Company", self.company, "abbr")
+		self.name = self.payment_gateway + " - " + abbr
 
 	def validate(self):
 		self.currency = frappe.get_cached_value("Account", self.payment_account, "account_currency")
