@@ -487,6 +487,7 @@ class TestAsset(AssetSetup):
 		self.assertEqual(new_asset.gross_purchase_amount, 24000)
 		self.assertEqual(new_asset.opening_accumulated_depreciation, 4000)
 		self.assertEqual(new_asset.split_from, asset.name)
+		self.assertEqual(new_asset.value_after_depreciation, 16000)
 		self.assertEqual(depr_schedule_of_new_asset[0].depreciation_amount, 4000)
 		self.assertEqual(depr_schedule_of_new_asset[1].depreciation_amount, 4000)
 
