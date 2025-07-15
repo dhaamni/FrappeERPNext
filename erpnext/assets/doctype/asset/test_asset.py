@@ -1707,6 +1707,9 @@ def create_asset(**args):
 			"is_composite_asset": args.is_composite_asset or 0,
 			"asset_quantity": args.get("asset_quantity") or 1,
 			"depr_entry_posting_status": args.depr_entry_posting_status or "",
+			"value_after_depreciation": (
+				(args.gross_purchase_amount or 100000) - (args.opening_accumulated_depreciation or 0)
+			),
 		}
 	)
 
