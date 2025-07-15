@@ -466,6 +466,8 @@ class DeliveryNote(SellingController):
 			self.make_bundle_for_sales_purchase_return(table_name)
 			self.make_bundle_using_old_serial_batch_fields(table_name)
 
+		self.validate_standalone_serial_nos_customer()
+
 		# Updating stock ledger should always be called after updating prevdoc status,
 		# because updating reserved qty in bin depends upon updated delivered qty in SO
 		self.update_stock_ledger()
