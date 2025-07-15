@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Optional
 import frappe
 import frappe.defaults
 from frappe import _, qb, throw
+from frappe.desk.reportview import build_match_conditions
 from frappe.model.meta import get_field_precision
 from frappe.query_builder import AliasedQuery, Criterion, Table
 from frappe.query_builder.functions import Round, Sum
@@ -2191,3 +2192,19 @@ def run_ledger_health_checks():
 					doc.general_and_payment_ledger_mismatch = True
 					doc.checked_on = run_date
 					doc.save()
+
+
+def build_qb_match_conditions(doctype, user=None) -> list:
+	match_filters = build_match_conditions(doctype, user, False)
+	criterion = []
+	if match_filters:
+		from frappe import qb
+
+		_dt = qb.DocType(doctype)
+
+		for filter in match_filters:
+			for d, names in filter.items():
+				fieldname = d.lower().replace(" ", "_")
+				criterion.append(_dt[fieldname].isin(names))
+
+	return criterion
