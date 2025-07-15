@@ -88,6 +88,7 @@ class WorkOrder(Document):
 		company: DF.Link
 		corrective_operation_cost: DF.Currency
 		description: DF.SmallText | None
+		disassembled_qty: DF.Float
 		expected_delivery_date: DF.Date | None
 		fg_warehouse: DF.Link
 		from_wip_warehouse: DF.Check
@@ -389,7 +390,7 @@ class WorkOrder(Document):
 			if qty > completed_qty:
 				frappe.throw(
 					_("{0} ({1}) cannot be greater than planned quantity ({2}) in Work Order {3}").format(
-						self.meta.get_label(fieldname), qty, completed_qty, self.name
+						_(self.meta.get_label(fieldname)), qty, completed_qty, self.name
 					),
 					StockOverProductionError,
 				)
@@ -405,6 +406,18 @@ class WorkOrder(Document):
 		if self.production_plan:
 			self.set_produced_qty_for_sub_assembly_item()
 			self.update_production_plan_status()
+
+	def update_disassembled_qty(self, qty, is_cancel=False):
+		if is_cancel:
+			self.disassembled_qty = max(0, self.disassembled_qty - qty)
+		else:
+			if self.docstatus == 1:
+				self.disassembled_qty += qty
+
+		if not is_cancel and self.disassembled_qty > self.produced_qty:
+			frappe.throw(_("Cannot disassemble more than produced quantity."))
+
+		self.db_set("disassembled_qty", self.disassembled_qty)
 
 	def get_transferred_or_manufactured_qty(self, purpose):
 		table = frappe.qb.DocType("Stock Entry")
@@ -1064,7 +1077,7 @@ class WorkOrder(Document):
 			self.transfer_material_against = "Work Order"
 		if not self.transfer_material_against:
 			frappe.throw(
-				_("Setting {} is required").format(self.meta.get_label("transfer_material_against")),
+				_("Setting {0} is required").format(_(self.meta.get_label("transfer_material_against"))),
 				title=_("Missing value"),
 			)
 
@@ -1475,7 +1488,7 @@ def make_stock_entry(work_order_id, purpose, qty=None, target_warehouse=None):
 		stock_entry.to_warehouse = target_warehouse or work_order.source_warehouse
 
 	stock_entry.set_stock_entry_type()
-	stock_entry.get_items()
+	stock_entry.get_items(qty, work_order.production_item)
 
 	if purpose != "Disassemble":
 		stock_entry.set_serial_no_batch_for_finished_good()
