@@ -466,6 +466,12 @@ class DeliveryNote(SellingController):
 			self.make_bundle_for_sales_purchase_return(table_name)
 			self.make_bundle_using_old_serial_batch_fields(table_name)
 
+<<<<<<< HEAD
+=======
+		self.validate_standalone_serial_nos_customer()
+		self.update_stock_reservation_entries()
+
+>>>>>>> e073075834 (fix: system was allowing credit notes with serial numbers for any customer)
 		# Updating stock ledger should always be called after updating prevdoc status,
 		# because updating reserved qty in bin depends upon updated delivered qty in SO
 		self.update_stock_ledger()
