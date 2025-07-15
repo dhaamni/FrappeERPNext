@@ -1289,7 +1289,8 @@ def create_new_asset_after_split(asset, split_qty):
 	new_asset.asset_quantity = split_qty
 	new_asset.split_from = asset.name
 	new_asset.value_after_depreciation = flt(
-		(asset.value_after_depreciation * split_qty) / asset.asset_quantity, asset.precision("gross_purchase_amount")
+		(asset.value_after_depreciation * split_qty) / asset.asset_quantity,
+		asset.precision("gross_purchase_amount"),
 	)
 
 	for row in new_asset.get("finance_books"):
