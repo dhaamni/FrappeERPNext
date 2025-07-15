@@ -6,14 +6,7 @@ from collections import OrderedDict
 
 import frappe
 from frappe import _, qb, query_builder, scrub
-<<<<<<< HEAD
-=======
 from frappe.database.schema import get_definition
-<<<<<<< HEAD
-from frappe.desk.reportview import build_match_conditions
->>>>>>> 9d0ebe3427 (refactor: dynamic DB field types)
-=======
->>>>>>> 7efeed54de (refactor: build and pass match conditions as qb criterion)
 from frappe.query_builder import Criterion
 from frappe.query_builder.functions import Date, Substring, Sum
 from frappe.utils import cint, cstr, flt, getdate, nowdate
@@ -22,16 +15,10 @@ from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
 	get_accounting_dimensions,
 	get_dimension_with_children,
 )
-<<<<<<< HEAD
-from erpnext.accounts.utils import get_currency_precision
-=======
 from erpnext.accounts.utils import (
 	build_qb_match_conditions,
-	get_advance_payment_doctypes,
 	get_currency_precision,
-	get_party_types_from_account_type,
 )
->>>>>>> 7efeed54de (refactor: build and pass match conditions as qb criterion)
 
 #  This report gives a summary of all Outstanding Invoices considering the following
 
@@ -108,9 +95,6 @@ class ReceivablePayableReport:
 	def get_data(self):
 		self.get_sales_invoices_or_customers_based_on_sales_person()
 
-		# Build delivery note map against all sales invoices
-		self.build_delivery_note_map()
-
 		# Get invoice details like bill_no, due_date etc for all invoices
 		self.get_invoice_details()
 
@@ -131,33 +115,16 @@ class ReceivablePayableReport:
 			self.fetch_ple_in_buffered_cursor()
 		elif self.ple_fetch_method == "UnBuffered Cursor":
 			self.fetch_ple_in_unbuffered_cursor()
-<<<<<<< HEAD
-
-<<<<<<< HEAD
-=======
-		self.init_and_run_sql_procedures()
-=======
 		elif self.ple_fetch_method == "Raw SQL":
-<<<<<<< HEAD
-			self.init_and_run_sql_procedures()
->>>>>>> e90c6a33bd (refactor: call procedures based on config)
-=======
 			self.fetch_ple_in_sql_procedures()
->>>>>>> fc8ca7d82c (chore: rename method)
 
 		# Build delivery note map against all sales invoices
 		self.build_delivery_note_map()
 
->>>>>>> e5920c57aa (refactor: using sql procedures for AR report)
 		self.build_data()
 
 	def fetch_ple_in_buffered_cursor(self):
-<<<<<<< HEAD
-		query, param = self.ple_query.walk()
-		self.ple_entries = frappe.db.sql(query, param, as_dict=True)
-=======
 		self.ple_entries = self.ple_query.run(as_dict=True)
->>>>>>> 7efeed54de (refactor: build and pass match conditions as qb criterion)
 
 		for ple in self.ple_entries:
 			self.init_voucher_balance(ple)  # invoiced, paid, credit_note, outstanding
@@ -170,10 +137,6 @@ class ReceivablePayableReport:
 
 	def fetch_ple_in_unbuffered_cursor(self):
 		self.ple_entries = []
-<<<<<<< HEAD
-		query, param = self.ple_query.walk()
-=======
->>>>>>> 7efeed54de (refactor: build and pass match conditions as qb criterion)
 		with frappe.db.unbuffered_cursor():
 			for ple in self.ple_query.run(as_dict=True, as_iterator=True):
 				self.init_voucher_balance(ple)  # invoiced, paid, credit_note, outstanding
@@ -953,12 +916,9 @@ class ReceivablePayableReport:
 			else:
 				query = query.select(ple.remarks)
 
-<<<<<<< HEAD
-=======
 		if match_conditions := build_qb_match_conditions("Payment Ledger Entry"):
 			query = query.where(Criterion.all(match_conditions))
 
->>>>>>> 7efeed54de (refactor: build and pass match conditions as qb criterion)
 		if self.filters.get("group_by_party"):
 			query = query.orderby(self.ple.party, self.ple.posting_date)
 		else:
