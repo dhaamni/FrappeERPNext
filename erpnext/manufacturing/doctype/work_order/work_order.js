@@ -444,7 +444,7 @@ frappe.ui.form.on("Work Order", {
 				frm.doc.material_transferred_for_manufacturing -
 				frm.doc.produced_qty -
 				frm.doc.process_loss_qty;
-			if (pending_complete) {
+			if (pending_complete > 0) {
 				var width = (pending_complete / frm.doc.qty) * 100 - added_min;
 				title = __("{0} items in progress", [pending_complete]);
 				bars.push({
@@ -888,37 +888,53 @@ erpnext.work_order = {
 	show_prompt_for_qty_input: function (frm, purpose) {
 		let max = this.get_max_transferable_qty(frm, purpose);
 
-		let fields = [
-			{
-				fieldtype: "Float",
-				label: __("Qty for {0}", [__(purpose)]),
-				fieldname: "qty",
-				description: __("Max: {0}", [max]),
-				default: max,
-			},
-		];
-
-		if (purpose === "Disassemble") {
-			fields.push({
-				fieldtype: "Link",
-				options: "Warehouse",
-				fieldname: "target_warehouse",
-				label: __("Target Warehouse"),
-				default: frm.doc.source_warehouse || frm.doc.wip_warehouse,
-				get_query() {
-					return {
-						filters: {
-							company: frm.doc.company,
-							is_group: 0,
-						},
-					};
-				},
-			});
-		}
-
 		return new Promise((resolve, reject) => {
-			frappe.prompt(
-				fields,
+			let d = frappe.prompt(
+				[
+					{
+						fieldtype: "Float",
+						label: __("Qty for {0}", [__(purpose)]),
+						fieldname: "qty",
+						description: __("Max: {0}", [max]),
+						default: max,
+					},
+					...(purpose === "Disassemble"
+						? [
+								{
+									fieldtype: "Link",
+									options: "Warehouse",
+									fieldname: "target_warehouse",
+									label: __("Target Warehouse"),
+									default: frm.doc.source_warehouse || frm.doc.wip_warehouse,
+									get_query() {
+										return {
+											filters: {
+												company: frm.doc.company,
+												is_group: 0,
+											},
+										};
+									},
+								},
+						  ]
+						: []),
+					...(purpose === "Manufacture"
+						? [
+								{
+									fieldtype: "Check",
+									label: __("Consider Process Loss"),
+									fieldname: "consider_process_loss",
+									default: 0,
+									onchange: function () {
+										if (this.value) {
+											d.set_value("qty", max - frm.doc.process_loss_qty);
+										} else {
+											d.set_value("qty", max);
+										}
+									},
+								},
+						  ]
+						: []),
+				],
 				(data) => {
 					max += (frm.doc.qty * (frm.doc.__onload.overproduction_percentage || 0.0)) / 100;
 
