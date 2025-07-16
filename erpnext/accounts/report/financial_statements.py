@@ -642,7 +642,9 @@ def get_cost_centers_with_children(cost_centers):
 	return list(set(all_cost_centers))
 
 
-def get_columns(periodicity, period_list, accumulated_values=1, company=None, cash_flow=False):
+def get_columns(
+	periodicity, period_list, accumulated_values=1, company=None, cash_flow=False, carry_forward_opening=False
+):
 	columns = [
 		{
 			"fieldname": "account" if not cash_flow else "section",
@@ -691,7 +693,7 @@ def get_columns(periodicity, period_list, accumulated_values=1, company=None, ca
 				"width": 150,
 			}
 		)
-	if periodicity != "Yearly":
+	if periodicity != "Yearly" and not carry_forward_opening:
 		if not accumulated_values:
 			columns.append(
 				{

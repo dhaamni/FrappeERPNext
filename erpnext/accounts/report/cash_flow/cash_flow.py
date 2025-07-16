@@ -2,9 +2,11 @@
 # For license information, please see license.txt
 
 
+from datetime import timedelta
+
 import frappe
 from frappe import _
-from frappe.utils import cstr
+from frappe.utils import cstr, flt
 
 from erpnext.accounts.report.financial_statements import (
 	get_columns,
@@ -12,6 +14,7 @@ from erpnext.accounts.report.financial_statements import (
 	get_data,
 	get_filtered_list_for_consolidated_report,
 	get_period_list,
+	set_gl_entries_by_account,
 )
 from erpnext.accounts.report.profit_and_loss_statement.profit_and_loss_statement import (
 	get_net_profit_loss,
@@ -119,10 +122,21 @@ def execute(filters=None):
 			filters,
 		)
 
-	add_total_row_account(
+	net_change_in_cash = add_total_row_account(
 		data, data, _("Net Change in Cash"), period_list, company_currency, summary_data, filters
 	)
-	columns = get_columns(filters.periodicity, period_list, filters.accumulated_values, filters.company, True)
+
+	if filters.carry_forward_opening:
+		add_closing_balance(data, period_list, company_currency, net_change_in_cash, filters)
+
+	columns = get_columns(
+		filters.periodicity,
+		period_list,
+		filters.accumulated_values,
+		filters.company,
+		True,
+		filters.carry_forward_opening,
+	)
 
 	chart = get_chart_data(columns, data, company_currency)
 
@@ -255,6 +269,124 @@ def add_total_row_account(out, data, label, period_list, currency, summary_data,
 	out.append(total_row)
 	out.append({})
 
+	return total_row
+
+
+def add_closing_balance(out, period_list, currency, net_change_in_cash, filters):
+	opening_balance = {
+		"section_name": "Opening",
+		"section": "Opening",
+		"currency": currency,
+	}
+	closing_balance = {
+		"section_name": "Closing (Opening + Total)",
+		"section": "Closing (Opening + Total)",
+		"currency": currency,
+	}
+
+	opening_amount = get_opening_balance(filters.company, period_list, filters) or 0.0
+	running_total = opening_amount
+
+	for i, period in enumerate(period_list):
+		key = period["key"]
+		change = net_change_in_cash.get(key, 0.0)
+
+		opening_balance[key] = opening_amount if i == 0 else running_total
+		running_total += change
+		closing_balance[key] = running_total
+
+	out.extend([opening_balance, closing_balance, {}])
+
+
+def get_opening_balance(company, period_list, filters):
+	from copy import deepcopy
+
+	cash_value = {}
+	account_types = get_cash_flow_accounts()
+
+	local_filters = deepcopy(filters)
+	local_filters.start_date, local_filters.end_date = get_opening_range_using_fiscal_year(
+		company, period_list
+	)
+
+	for section in account_types:
+		section_name = section.get("section_name")
+		cash_value.setdefault(section_name, 0.0)
+
+		if section_name == "Operations":
+			cash_value[section_name] += get_net_income(company, period_list, local_filters)
+
+		for account in section.get("account_types", []):
+			account_type = account.get("account_type")
+			local_filters.account_type = account_type
+
+			amount = get_account_type_based_gl_data(company, local_filters) or 0.0
+
+			if account_type == "Depreciation":
+				cash_value[section_name] += -amount
+			else:
+				cash_value[section_name] += amount
+
+	return sum(cash_value.values())
+
+
+def get_net_income(company, period_list, filters):
+	gl_entries_by_account_for_income = {}
+	gl_entries_by_account_for_expense = {}
+	income, expense = 0.0, 0.0
+	from_date, to_date = get_opening_range_using_fiscal_year(company, period_list)
+	for root_type in ["Income", "Expense"]:
+		for root in frappe.db.sql(
+			"""select lft, rgt from tabAccount
+				where root_type=%s and ifnull(parent_account, '') = ''""",
+			root_type,
+			as_dict=1,
+		):
+			set_gl_entries_by_account(
+				company,
+				from_date,
+				to_date,
+				filters,
+				gl_entries_by_account_for_income
+				if root_type == "Income"
+				else gl_entries_by_account_for_expense,
+				root.lft,
+				root.rgt,
+				root_type=root_type,
+			)
+
+	for entries in gl_entries_by_account_for_income.values():
+		for entry in entries:
+			if entry.posting_date <= to_date:
+				income += (flt(entry.debit, 3) - flt(entry.credit, 3)) * -1
+
+	for entries in gl_entries_by_account_for_expense.values():
+		for entry in entries:
+			if entry.posting_date <= to_date:
+				expense += flt(entry.debit, 3) - flt(entry.credit, 3)
+
+	return income - expense
+
+
+def get_opening_range_using_fiscal_year(company, period_list):
+	first_from_date = period_list[0]["from_date"]
+	previous_day = first_from_date - timedelta(days=1)
+
+	# Get the earliest fiscal year for the company
+	earliest_fy = frappe.db.get_all(
+		"Fiscal Year",
+		filters={"company": company},
+		fields=["year_start_date"],
+		order_by="year_start_date asc",
+		limit=1,
+	)
+
+	if earliest_fy:
+		company_start_date = earliest_fy[0]["year_start_date"]
+	else:
+		company_start_date = None
+	return company_start_date, previous_day
+
 
 def get_report_summary(summary_data, currency):
 	report_summary = []
@@ -275,7 +407,7 @@ def get_chart_data(columns, data, currency):
 		for section in data
 		if section.get("parent_section") is None and section.get("currency")
 	]
-	datasets = datasets[:-1]
+	datasets = datasets[:-2]
 
 	chart = {"data": {"labels": labels, "datasets": datasets}, "type": "bar"}
 
