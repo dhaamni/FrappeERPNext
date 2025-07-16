@@ -759,11 +759,12 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 		frappe.model.round_floats_in(item, ["price_list_rate", "discount_percentage"]);
 
 		// check if child doctype is Sales Order Item/Quotation Item and calculate the rate
-		if (in_list(["Quotation Item", "Sales Order Item", "Delivery Note Item", "Sales Invoice Item", "POS Invoice Item", "Purchase Invoice Item", "Purchase Order Item", "Purchase Receipt Item"]), cdt)
+		if (in_list(["Quotation Item", "Sales Order Item", "Delivery Note Item", "Sales Invoice Item", "POS Invoice Item", "Purchase Invoice Item", "Purchase Order Item", "Purchase Receipt Item"], cdt)){
 			this.apply_pricing_rule_on_item(item);
-		else
+		}else{
 			item.rate = flt(item.price_list_rate * (1 - item.discount_percentage / 100.0),
 				precision("rate", item));
+		}
 
 		this.calculate_taxes_and_totals();
 	}
@@ -1262,7 +1263,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 	}
 
 	set_margin_amount_based_on_currency(exchange_rate) {
-		if (in_list(["Quotation", "Sales Order", "Delivery Note", "Sales Invoice", "Purchase Invoice", "Purchase Order", "Purchase Receipt"]), this.frm.doc.doctype) {
+		if (in_list(["Quotation", "Sales Order", "Delivery Note", "Sales Invoice", "Purchase Invoice", "Purchase Order", "Purchase Receipt"], this.frm.doc.doctype)) {
 			var me = this;
 			$.each(this.frm.doc.items || [], function(i, d) {
 				if(d.margin_type == "Amount") {
@@ -1869,7 +1870,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 				});
 
 				// if doctype is Quotation Item / Sales Order Iten then add Margin Type and rate in item_list
-				if (in_list(["Quotation Item", "Sales Order Item", "Delivery Note Item", "Sales Invoice Item",  "Purchase Invoice Item", "Purchase Order Item", "Purchase Receipt Item"]), d.doctype) {
+				if (in_list(["Quotation Item", "Sales Order Item", "Delivery Note Item", "Sales Invoice Item",  "Purchase Invoice Item", "Purchase Order Item", "Purchase Receipt Item"], d.doctype)) {
 					item_list[0]["margin_type"] = d.margin_type;
 					item_list[0]["margin_rate_or_amount"] = d.margin_rate_or_amount;
 				}
