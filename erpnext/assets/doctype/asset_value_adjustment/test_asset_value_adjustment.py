@@ -267,6 +267,7 @@ class TestAssetValueAdjustment(unittest.TestCase):
 		asset_doc.calculate_depreciation = 1
 		asset_doc.available_for_use_date = "2023-01-15"
 		asset_doc.purchase_date = "2023-01-15"
+		asset_doc.value_after_depreciation = 54000.0
 
 		asset_doc.append(
 			"finance_books",
