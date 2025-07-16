@@ -191,7 +191,7 @@ class TestCostCenterAllocation(ERPNextTestSuite):
 		coa2.cancel()
 		jv.cancel()
 
-	@IntegrationTestCase.change_settings("System Settings", {"rounding_method": "Commercial Rounding"})
+	@ERPNextTestSuite.change_settings("System Settings", {"rounding_method": "Commercial Rounding"})
 	def test_debit_credit_on_cost_center_allocation_for_commercial_rounding(self):
 		from erpnext.accounts.doctype.sales_invoice.test_sales_invoice import create_sales_invoice
 

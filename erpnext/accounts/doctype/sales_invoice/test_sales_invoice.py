@@ -840,7 +840,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 		w = self.make()
 		self.assertEqual(w.outstanding_amount, w.base_rounded_total)
 
-	@IntegrationTestCase.change_settings(
+	@ERPNextTestSuite.change_settings(
 		"Accounts Settings",
 		{"add_taxes_from_item_tax_template": 0, "add_taxes_from_taxes_and_charges_template": 0},
 	)
@@ -3403,7 +3403,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 		si.posting_date = getdate()
 		si.submit()
 
-	@IntegrationTestCase.change_settings("Accounts Settings", {"over_billing_allowance": 0})
+	@ERPNextTestSuite.change_settings("Accounts Settings", {"over_billing_allowance": 0})
 	def test_over_billing_case_against_delivery_note(self):
 		"""
 		Test a case where duplicating the item with qty = 1 in the invoice

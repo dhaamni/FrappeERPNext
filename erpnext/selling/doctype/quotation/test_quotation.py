@@ -177,7 +177,7 @@ class TestQuotation(ERPNextTestSuite):
 		sales_order.delivery_date = nowdate()
 		sales_order.insert()
 
-	@IntegrationTestCase.change_settings(
+	@ERPNextTestSuite.change_settings(
 		"Accounts Settings",
 		{"add_taxes_from_item_tax_template": 0, "add_taxes_from_taxes_and_charges_template": 0},
 	)
@@ -720,7 +720,7 @@ class TestQuotation(ERPNextTestSuite):
 		quotation.items[0].conversion_factor = 2.23
 		self.assertRaises(frappe.ValidationError, quotation.save)
 
-	@IntegrationTestCase.change_settings(
+	@ERPNextTestSuite.change_settings(
 		"Accounts Settings",
 		{"add_taxes_from_item_tax_template": 1, "add_taxes_from_taxes_and_charges_template": 0},
 	)

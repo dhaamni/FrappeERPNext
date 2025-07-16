@@ -1320,7 +1320,7 @@ class TestPurchaseOrder(ERPNextTestSuite):
 		self.assertFalse(po.per_billed)
 		self.assertEqual(po.status, "To Receive and Bill")
 
-	@IntegrationTestCase.change_settings("Buying Settings", {"maintain_same_rate": 0})
+	@ERPNextTestSuite.change_settings("Buying Settings", {"maintain_same_rate": 0})
 	def test_purchase_invoice_creation_with_partial_qty(self):
 		po = create_purchase_order(qty=100, rate=10)
 

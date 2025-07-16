@@ -3,7 +3,7 @@
 import unittest
 
 import frappe
-from frappe.utils import add_months, flt, get_first_day, nowdate, nowtime, today
+from frappe.utils import add_days, add_months, flt, get_first_day, nowdate, nowtime, today
 
 from erpnext.assets.doctype.asset.asset import (
 	get_asset_account,
