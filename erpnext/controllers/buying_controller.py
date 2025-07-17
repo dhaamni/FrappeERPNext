@@ -332,6 +332,7 @@ class BuyingController(SubcontractingController):
 					if not posting_time and self.doctype == "Purchase Order":
 						posting_time = nowtime()
 
+<<<<<<< HEAD
 					outgoing_rate = get_incoming_rate(
 						{
 							"item_code": d.item_code,
@@ -375,6 +376,15 @@ class BuyingController(SubcontractingController):
 						d.discount_percentage = 0.0
 						d.discount_amount = 0.0
 						d.margin_rate_or_amount = 0.0
+=======
+				d.sales_incoming_rate = flt(outgoing_rate * (d.conversion_factor or 1))
+			else:
+				field = "incoming_rate" if self.get("is_internal_supplier") else "rate"
+				d.sales_incoming_rate = flt(
+					frappe.db.get_value(ref_doctype, d.get(frappe.scrub(ref_doctype)), field)
+					* (d.conversion_factor or 1)
+				)
+>>>>>>> 7b99275ceb (fix: precision issue for Sales Incoming Rate)
 
 	def validate_for_subcontracting(self):
 		if self.is_subcontracted and self.get("is_old_subcontracting_flow"):
