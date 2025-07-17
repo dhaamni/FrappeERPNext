@@ -77,6 +77,7 @@
   "referral_sales_partner",
   "sec_tax_breakup",
   "other_charges_calculation",
+  "item_wise_tax_details",
   "bundle_items_section",
   "packed_items",
   "pricing_rule_details",
@@ -1099,13 +1100,20 @@
    "hidden": 1,
    "label": "Has Unit Price Items",
    "no_copy": 1
+  },
+  {
+   "fieldname": "item_wise_tax_details",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Item Wise Tax Details",
+   "options": "Item Wise Tax Detail"
   }
  ],
  "icon": "fa fa-shopping-cart",
  "idx": 82,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-05-27 16:04:39.208077",
+ "modified": "2025-07-17 18:08:24.635135",
  "modified_by": "Administrator",
  "module": "Selling",
  "name": "Quotation",

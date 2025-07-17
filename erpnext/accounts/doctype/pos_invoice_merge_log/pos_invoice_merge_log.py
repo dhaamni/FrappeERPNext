@@ -17,7 +17,6 @@ from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
 	get_checks_for_pl_and_bs_accounts,
 )
 from erpnext.controllers.sales_and_purchase_return import get_sales_invoice_item_from_consolidated_invoice
-from erpnext.controllers.taxes_and_totals import ItemWiseTaxDetail
 
 
 class POSInvoiceMergeLog(Document):
@@ -207,7 +206,7 @@ class POSInvoiceMergeLog(Document):
 		return return_invoices
 
 	def merge_pos_invoice_into(self, invoice, data):
-		items, payments, taxes = [], [], []
+		items, payments, taxes, item_tax_details = [], [], [], []
 
 		loyalty_amount_sum, loyalty_points_sum = 0, 0
 
@@ -217,6 +216,8 @@ class POSInvoiceMergeLog(Document):
 		loyalty_amount_sum, loyalty_points_sum, idx = 0, 0, 1
 
 		for doc in data:
+			old_new_item_map = frappe._dict()
+			old_new_tax_map = frappe._dict()
 			map_doc(doc, invoice, table_map={"doctype": invoice.doctype})
 
 			if doc.get("posting_date"):
@@ -235,6 +236,7 @@ class POSInvoiceMergeLog(Document):
 				item.base_amount = item.base_net_amount
 				item.price_list_rate = 0
 				si_item = map_child_doc(item, invoice, {"doctype": "Sales Invoice Item"})
+				si_item.set_new_name()
 				si_item.pos_invoice = doc.name
 				si_item.pos_invoice_item = item.name
 				if doc.is_return:
@@ -244,6 +246,7 @@ class POSInvoiceMergeLog(Document):
 				if item.serial_and_batch_bundle:
 					si_item.serial_and_batch_bundle = item.serial_and_batch_bundle
 				items.append(si_item)
+				old_new_item_map[item.name] = si_item.name
 
 			for tax in doc.get("taxes"):
 				found = False
@@ -253,9 +256,10 @@ class POSInvoiceMergeLog(Document):
 						t.base_tax_amount = flt(t.base_tax_amount) + flt(
 							tax.base_tax_amount_after_discount_amount
 						)
-						update_item_wise_tax_detail(t, tax)
+						old_new_tax_map[t.name] = tax.name
 						found = True
 				if not found:
+					tax.set_new_name()
 					tax.charge_type = "Actual"
 					tax.idx = idx
 					tax.row_id = None
@@ -263,8 +267,9 @@ class POSInvoiceMergeLog(Document):
 					tax.included_in_print_rate = 0
 					tax.tax_amount = tax.tax_amount_after_discount_amount
 					tax.base_tax_amount = tax.base_tax_amount_after_discount_amount
-					tax.item_wise_tax_detail = tax.item_wise_tax_detail
+
 					taxes.append(tax)
+					old_new_tax_map[tax.name] = tax.name
 
 			for payment in doc.get("payments"):
 				found = False
@@ -281,6 +286,11 @@ class POSInvoiceMergeLog(Document):
 			base_rounding_adjustment += doc.base_rounding_adjustment
 			base_rounded_total += doc.base_rounded_total
 
+			for row in doc.get("item_tax_details"):
+				row.item_row = old_new_item_map[row.item_row]
+				row.tax_row = old_new_tax_map[row.tax_row]
+				item_tax_details.append(row)
+
 		if loyalty_points_sum:
 			invoice.redeem_loyalty_points = 1
 			invoice.loyalty_points = loyalty_points_sum
@@ -293,6 +303,7 @@ class POSInvoiceMergeLog(Document):
 		invoice.set("base_rounding_adjustment", base_rounding_adjustment)
 		invoice.set("rounded_total", rounded_total)
 		invoice.set("base_rounded_total", base_rounded_total)
+		invoice.set("item_tax_details", item_tax_details)
 		invoice.additional_discount_percentage = 0
 		invoice.discount_amount = 0.0
 		invoice.taxes_and_charges = None
@@ -412,24 +423,6 @@ class POSInvoiceMergeLog(Document):
 			si = frappe.get_doc("Sales Invoice", si_name)
 			si.flags.ignore_validate = True
 			si.cancel()
-
-
-def update_item_wise_tax_detail(consolidate_tax_row, tax_row):
-	consolidated_tax_detail = json.loads(consolidate_tax_row.item_wise_tax_detail)
-	tax_row_detail = json.loads(tax_row.item_wise_tax_detail)
-
-	if not consolidated_tax_detail:
-		consolidated_tax_detail = {}
-
-	for item_code, tax_data in tax_row_detail.items():
-		tax_data = ItemWiseTaxDetail(**tax_data)
-		if consolidated_tax_detail.get(item_code):
-			consolidated_tax_detail[item_code]["tax_amount"] += tax_data.tax_amount
-			consolidated_tax_detail[item_code]["net_amount"] += tax_data.net_amount
-		else:
-			consolidated_tax_detail.update({item_code: tax_data})
-
-	consolidate_tax_row.item_wise_tax_detail = json.dumps(consolidated_tax_detail)
 
 
 def get_all_unconsolidated_invoices():

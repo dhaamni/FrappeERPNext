@@ -100,6 +100,7 @@
   "discount_amount",
   "sec_tax_breakup",
   "other_charges_calculation",
+  "item_wise_tax_details",
   "address_and_contact_tab",
   "section_addresses",
   "supplier_address",
@@ -1307,6 +1308,13 @@
    "label": "Dispatch Address Details",
    "print_hide": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "item_wise_tax_details",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Item Wise Tax Details",
+   "options": "Item Wise Tax Detail"
   }
  ],
  "grid_page_length": 50,
@@ -1314,7 +1322,7 @@
  "idx": 105,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-09 16:54:08.836106",
+ "modified": "2025-07-17 18:05:06.754879",
  "modified_by": "Administrator",
  "module": "Buying",
  "name": "Purchase Order",

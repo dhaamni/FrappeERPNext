@@ -110,6 +110,7 @@
   "tax_withheld_vouchers",
   "sec_tax_breakup",
   "other_charges_calculation",
+  "item_wise_tax_details",
   "pricing_rule_details",
   "pricing_rules",
   "raw_materials_supplied",
@@ -1651,6 +1652,13 @@
    "label": "Select Dispatch Address ",
    "options": "Address",
    "print_hide": 1
+  },
+  {
+   "fieldname": "item_wise_tax_details",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Item Wise Tax Details",
+   "options": "Item Wise Tax Detail"
   }
  ],
  "grid_page_length": 50,
@@ -1658,7 +1666,7 @@
  "idx": 204,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-09 16:49:22.175081",
+ "modified": "2025-07-17 18:04:09.083407",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Purchase Invoice",

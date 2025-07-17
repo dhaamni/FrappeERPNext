@@ -31,6 +31,7 @@ class PurchaseReceipt(BuyingController):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		from erpnext.accounts.doctype.item_wise_tax_detail.item_wise_tax_detail import ItemWiseTaxDetail
 		from erpnext.accounts.doctype.pricing_rule_detail.pricing_rule_detail import PricingRuleDetail
 		from erpnext.accounts.doctype.purchase_taxes_and_charges.purchase_taxes_and_charges import (
 			PurchaseTaxesandCharges,
@@ -83,6 +84,7 @@ class PurchaseReceipt(BuyingController):
 		is_old_subcontracting_flow: DF.Check
 		is_return: DF.Check
 		is_subcontracted: DF.Check
+		item_wise_tax_details: DF.Table[ItemWiseTaxDetail]
 		items: DF.Table[PurchaseReceiptItem]
 		language: DF.Data | None
 		letter_head: DF.Link | None

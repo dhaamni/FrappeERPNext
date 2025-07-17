@@ -87,6 +87,7 @@
   "taxes",
   "sec_tax_breakup",
   "other_charges_calculation",
+  "item_wise_tax_details",
   "section_break_43",
   "base_total_taxes_and_charges",
   "column_break_47",
@@ -1568,12 +1569,19 @@
    "label": "Company Contact Person",
    "options": "Contact",
    "print_hide": 1
+  },
+  {
+   "fieldname": "item_wise_tax_details",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Item Wise Tax Details",
+   "options": "Item Wise Tax Detail"
   }
  ],
  "icon": "fa fa-file-text",
  "is_submittable": 1,
  "links": [],
- "modified": "2025-06-24 12:13:28.242649",
+ "modified": "2025-07-17 18:07:38.389886",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "POS Invoice",

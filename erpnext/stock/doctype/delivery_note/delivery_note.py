@@ -25,6 +25,7 @@ class DeliveryNote(SellingController):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		from erpnext.accounts.doctype.item_wise_tax_detail.item_wise_tax_detail import ItemWiseTaxDetail
 		from erpnext.accounts.doctype.pricing_rule_detail.pricing_rule_detail import PricingRuleDetail
 		from erpnext.accounts.doctype.sales_taxes_and_charges.sales_taxes_and_charges import (
 			SalesTaxesandCharges,
@@ -82,6 +83,7 @@ class DeliveryNote(SellingController):
 		is_internal_customer: DF.Check
 		is_return: DF.Check
 		issue_credit_note: DF.Check
+		item_wise_tax_details: DF.Table[ItemWiseTaxDetail]
 		items: DF.Table[DeliveryNoteItem]
 		language: DF.Link | None
 		letter_head: DF.Link | None
@@ -95,7 +97,6 @@ class DeliveryNote(SellingController):
 		per_billed: DF.Percent
 		per_installed: DF.Percent
 		per_returned: DF.Percent
-		pick_list: DF.Link | None
 		plc_conversion_rate: DF.Float
 		po_date: DF.Date | None
 		po_no: DF.SmallText | None
