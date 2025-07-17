@@ -128,8 +128,8 @@ def execute(filters=None):
 		data, data, _("Net Change in Cash"), period_list, company_currency, summary_data, filters
 	)
 
-	if filters.carry_forward_opening:
-		add_closing_balance(data, period_list, company_currency, net_change_in_cash, filters)
+	if filters.show_opening_and_closing_balance:
+		show_opening_and_closing_balance(data, period_list, company_currency, net_change_in_cash, filters)
 
 	columns = get_columns(
 		filters.periodicity,
@@ -137,7 +137,6 @@ def execute(filters=None):
 		filters.accumulated_values,
 		filters.company,
 		True,
-		filters.carry_forward_opening,
 	)
 
 	chart = get_chart_data(columns, data, company_currency)
@@ -274,7 +273,7 @@ def add_total_row_account(out, data, label, period_list, currency, summary_data,
 	return total_row
 
 
-def add_closing_balance(out, period_list, currency, net_change_in_cash, filters):
+def show_opening_and_closing_balance(out, period_list, currency, net_change_in_cash, filters):
 	opening_balance = {
 		"section_name": "Opening",
 		"section": "Opening",
@@ -285,6 +284,8 @@ def add_closing_balance(out, period_list, currency, net_change_in_cash, filters)
 		"section": "Closing (Opening + Total)",
 		"currency": currency,
 	}
+	net_change_in_cash["section_name"] = "'" + _("{0}").format("Total Net Change in Cash") + "'"
+	net_change_in_cash["section"] = "'" + _("{0}").format("Total Net Change in Cash") + "'"
 
 	opening_amount = get_opening_balance(filters.company, period_list, filters) or 0.0
 	running_total = opening_amount
@@ -297,7 +298,10 @@ def add_closing_balance(out, period_list, currency, net_change_in_cash, filters)
 		running_total += change
 		closing_balance[key] = running_total
 
-	out.extend([opening_balance, closing_balance, {}])
+	opening_balance["total"] = opening_balance[period_list[0]["key"]]
+	closing_balance["total"] = closing_balance[period_list[-1]["key"]]
+
+	out.extend([opening_balance, net_change_in_cash, closing_balance, {}])
 
 
 def get_opening_balance(company, period_list, filters):
