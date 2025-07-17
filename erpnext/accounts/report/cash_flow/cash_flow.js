@@ -22,8 +22,8 @@ frappe.query_reports["Cash Flow"]["filters"].push(
 		default: 1,
 	},
 	{
-		fieldname: "carry_forward_opening",
-		label: __("Carry forward Opening"),
+		fieldname: "show_opening_and_closing_balance",
+		label: __("Show Opening and Closing Balance"),
 		fieldtype: "Check",
 	}
 );
