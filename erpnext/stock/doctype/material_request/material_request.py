@@ -163,7 +163,7 @@ class MaterialRequest(BuyingController):
 
 		self.validate_pp_qty()
 
-		if not self.buying_price_list:
+		if not self.buying_price_list and self.docstatus == 0:
 			self.buying_price_list = frappe.defaults.get_defaults().buying_price_list
 
 	def validate_pp_qty(self):
