@@ -284,8 +284,6 @@ def show_opening_and_closing_balance(out, period_list, currency, net_change_in_c
 		"section": "Closing (Opening + Total)",
 		"currency": currency,
 	}
-	net_change_in_cash["section_name"] = "'" + _("Total Net Change in Cash") + "'"
-	net_change_in_cash["section"] = "'" + _("Total Net Change in Cash") + "'"
 
 	opening_amount = get_opening_balance(filters.company, period_list, filters) or 0.0
 	running_total = opening_amount
