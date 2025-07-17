@@ -26,7 +26,7 @@ class PaymentGatewayAccount(Document):
 
 	def autoname(self):
 		abbr = frappe.db.get_value("Company", self.company, "abbr")
-		self.name = self.payment_gateway + " - " + abbr
+		self.name = self.payment_gateway + " - " + self.currency + " - " + abbr
 
 	def validate(self):
 		self.currency = frappe.get_cached_value("Account", self.payment_account, "account_currency")
