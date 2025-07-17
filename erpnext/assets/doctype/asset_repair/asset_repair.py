@@ -293,6 +293,28 @@ class AssetRepair(AccountsController):
 			frappe.get_doc("Purchase Invoice", self.purchase_invoice).items[0].expense_account
 		)
 
+<<<<<<< HEAD
+=======
+		for pi in self.invoices:
+			debit_against_account.add(pi.expense_account)
+			gl_entries.append(
+				self.get_gl_dict(
+					{
+						"account": pi.expense_account,
+						"credit": pi.repair_cost,
+						"credit_in_account_currency": pi.repair_cost,
+						"against": fixed_asset_account,
+						"voucher_type": self.doctype,
+						"voucher_no": self.name,
+						"cost_center": self.cost_center,
+						"posting_date": self.completion_date,
+						"company": self.company,
+					},
+					item=self,
+				)
+			)
+		debit_against_account = ", ".join(debit_against_account)
+>>>>>>> da8f7b29c1 (fix: post gl entry on completion date instead of current date)
 		gl_entries.append(
 			self.get_gl_dict(
 				{
@@ -303,7 +325,7 @@ class AssetRepair(AccountsController):
 					"voucher_type": self.doctype,
 					"voucher_no": self.name,
 					"cost_center": self.cost_center,
-					"posting_date": getdate(),
+					"posting_date": self.completion_date,
 					"against_voucher_type": "Purchase Invoice",
 					"against_voucher": self.purchase_invoice,
 					"company": self.company,
@@ -356,7 +378,7 @@ class AssetRepair(AccountsController):
 							"voucher_type": self.doctype,
 							"voucher_no": self.name,
 							"cost_center": self.cost_center,
-							"posting_date": getdate(),
+							"posting_date": self.completion_date,
 							"company": self.company,
 						},
 						item=self,
@@ -373,7 +395,7 @@ class AssetRepair(AccountsController):
 							"voucher_type": self.doctype,
 							"voucher_no": self.name,
 							"cost_center": self.cost_center,
-							"posting_date": getdate(),
+							"posting_date": self.completion_date,
 							"against_voucher_type": "Stock Entry",
 							"against_voucher": stock_entry.name,
 							"company": self.company,
