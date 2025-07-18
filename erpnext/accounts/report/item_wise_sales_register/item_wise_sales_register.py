@@ -13,7 +13,6 @@ from pypika import Order
 
 from erpnext.accounts.report.sales_register.sales_register import get_mode_of_payments
 from erpnext.accounts.report.utils import get_values_for_columns
-from erpnext.controllers.taxes_and_totals import ItemWiseTaxDetail
 from erpnext.selling.report.item_wise_sales_history.item_wise_sales_history import (
 	get_customer_details,
 )
@@ -612,7 +611,7 @@ def get_tax_accounts(
 				for item_code, tax_data in item_wise_tax_detail.items():
 					itemised_tax.setdefault(item_code, frappe._dict())
 
-					tax_data = ItemWiseTaxDetail(**tax_data)
+					tax_data = frappe._dict(**tax_data)
 
 					if charge_type == "Actual" and not tax_data.tax_rate:
 						tax_data.tax_rate = "NA"
