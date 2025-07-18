@@ -1334,7 +1334,7 @@ def make_purchase_invoice(source_name, target_doc=None, args=None):
 		doc.run_method("set_missing_values")
 
 		if args and args.get("merge_taxes"):
-			merge_taxes(source.get("taxes") or [], doc)
+			merge_taxes(source or [], doc)
 
 		doc.run_method("calculate_taxes_and_totals")
 		doc.set_payment_schedule()
@@ -1347,6 +1347,7 @@ def make_purchase_invoice(source_name, target_doc=None, args=None):
 			target_doc.conversion_factor, target_doc.precision("conversion_factor")
 		)
 		returned_qty_map[source_doc.name] = returned_qty
+		target_doc._old_name = source_doc.name
 
 	def get_pending_qty(item_row):
 		qty = item_row.qty

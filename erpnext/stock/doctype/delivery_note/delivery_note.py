@@ -841,7 +841,7 @@ def make_sales_invoice(source_name, target_doc=None, args=None):
 			frappe.throw(_("All these items have already been Invoiced/Returned"))
 
 		if args and args.get("merge_taxes"):
-			merge_taxes(source.get("taxes") or [], target)
+			merge_taxes(source, target)
 
 		target.run_method("calculate_taxes_and_totals")
 
@@ -857,6 +857,7 @@ def make_sales_invoice(source_name, target_doc=None, args=None):
 
 	def update_item(source_doc, target_doc, source_parent):
 		target_doc.qty = to_make_invoice_qty_map[source_doc.name]
+		target_doc._old_name = source_doc.name
 
 	def get_pending_qty(item_row):
 		pending_qty = item_row.qty - invoiced_qty_map.get(item_row.name, 0)

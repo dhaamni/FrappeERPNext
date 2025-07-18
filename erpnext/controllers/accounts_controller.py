@@ -4075,35 +4075,48 @@ def check_if_child_table_updated(child_table_before_update, child_table_after_up
 	return False
 
 
-def merge_taxes(source_taxes, target_doc):
-	from erpnext.accounts.doctype.pos_invoice_merge_log.pos_invoice_merge_log import (
-		update_item_wise_tax_detail,
-	)
-
+def merge_taxes(source_doc, target_doc):
 	existing_taxes = target_doc.get("taxes") or []
-	idx = 1
-	for tax in source_taxes:
+	for tax in source_doc.get("taxes") or []:
 		found = False
 		for t in existing_taxes:
 			if t.account_head == tax.account_head and t.cost_center == tax.cost_center:
 				t.tax_amount = flt(t.tax_amount) + flt(tax.tax_amount_after_discount_amount)
 				t.base_tax_amount = flt(t.base_tax_amount) + flt(tax.base_tax_amount_after_discount_amount)
-				update_item_wise_tax_detail(t, tax)
+				t._old_name = tax.name
 				found = True
 
 		if not found:
 			tax.charge_type = "Actual"
-			tax.idx = idx
-			idx += 1
 			tax.included_in_print_rate = 0
 			tax.dont_recompute_tax = 1
 			tax.row_id = ""
 			tax.tax_amount = tax.tax_amount_after_discount_amount
 			tax.base_tax_amount = tax.base_tax_amount_after_discount_amount
 			tax.item_wise_tax_detail = tax.item_wise_tax_detail
+			tax._old_name = tax.name
 			existing_taxes.append(tax)
 
+	print("Existing Taxes", existing_taxes)
 	target_doc.set("taxes", existing_taxes)
+
+	item_map = {d._old_name: d for d in target_doc.get("items") if d._old_name}
+	tax_map = {d._old_name: d for d in target_doc.get("taxes") if d._old_name}
+
+	item_tax_details = target_doc.get("_item_wise_tax_details") or []
+	for row in source_doc.get("item_wise_tax_details"):
+		item_tax_details.append(
+			frappe._dict(
+				item=item_map.get(row.item_row),
+				tax=tax_map.get(row.tax_row),
+				amount=row.amount,
+				rate=row.rate,
+				taxable_amount=row.taxable_amount,
+				dont_recompute_tax=1
+			)
+		)
+
+	target_doc._item_wise_tax_details = item_tax_details
 
 
 @erpnext.allow_regional
