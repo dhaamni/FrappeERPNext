@@ -2083,13 +2083,14 @@ class AccountsController(TransactionBase):
 			row["max_allowed_amt"] = max_allowed_amt
 			total_overbilled_amt += overbill_amt
 
-			if overbill_amt > precision_allowance and not is_overbilling_allowed:
-				if self.doctype != "Purchase Invoice" or not cint(
-					frappe.db.get_single_value(
-						"Buying Settings", "bill_for_rejected_quantity_in_purchase_invoice"
-					)
-				):
-					overbilled_items.append(row)
+			if (
+				overbill_amt > precision_allowance
+				and not is_overbilling_allowed
+				and not frappe.db.get_single_value(
+					"Buying Settings", "set_landed_cost_based_on_purchase_invoice_rate"
+				)
+			):
+				overbilled_items.append(row)
 
 		if overbilled_items:
 			self.throw_overbill_exception(overbilled_items, precision)
@@ -2113,6 +2114,16 @@ class AccountsController(TransactionBase):
 			)
 		)
 
+	def get_rejected_amount(self, reference_names):
+		return frappe._dict(
+			frappe.get_all(
+				"Purchase Receipt Item",
+				filters={"name": ("in", reference_names)},
+				fields=["name", "(rejected_qty * rate) as rejected_amount"],
+				as_list=1,
+			)
+		)
+
 	def get_reference_wise_billed_amt(self, ref_dt, item_ref_dn, based_on):
 		"""
 		Returns Sum of Amount of
@@ -2128,6 +2139,14 @@ class AccountsController(TransactionBase):
 		ref_wise_billed_amount = {}
 		precision = self.precision(based_on, "items")
 		reference_details = self.get_billing_reference_details(reference_names, ref_dt + " Item", based_on)
+
+		if ref_dt == "Purchase Receipt" and frappe.get_single_value(
+			"Buying Settings", "bill_for_rejected_quantity_in_purchase_invoice"
+		):
+			reference_details_for_rejected_qty = self.get_rejected_amount(reference_names)
+			for reference in reference_details:
+				reference_details[reference] += reference_details_for_rejected_qty[reference]
+
 		already_billed = self.get_already_billed_amount(reference_names, item_ref_dn, based_on)
 
 		for item in self.items:

@@ -2855,13 +2855,11 @@ class TestPurchaseInvoice(IntegrationTestCase, StockTestMixin):
 
 		self.assertEqual(invoice.grand_total, 300)
 
+	@IntegrationTestCase.change_settings("Buying Settings", {"maintain_same_rate": 0})
 	def test_pr_pi_over_billing(self):
 		from erpnext.stock.doctype.purchase_receipt.purchase_receipt import (
 			make_purchase_invoice as make_purchase_invoice_from_pr,
 		)
-
-		# Configure Buying Settings to allow rate change
-		frappe.db.set_single_value("Buying Settings", "maintain_same_rate", 0)
 
 		pr = make_purchase_receipt(qty=10, rate=10)
 		pi = make_purchase_invoice_from_pr(pr.name)
@@ -2869,7 +2867,7 @@ class TestPurchaseInvoice(IntegrationTestCase, StockTestMixin):
 		pi.items[0].rate = 12
 
 		# Test 1 - This will fail because over billing is not allowed
-		self.assertRaises(frappe.ValidationError, pi.submit)
+		self.assertRaises(frappe.ValidationError, pi.save)
 
 		frappe.db.set_single_value("Buying Settings", "set_landed_cost_based_on_purchase_invoice_rate", 1)
 		# Test 2 - This will now submit because over billing allowance is ignored when set_landed_cost_based_on_purchase_invoice_rate is checked
@@ -2890,7 +2888,7 @@ class TestPurchaseInvoice(IntegrationTestCase, StockTestMixin):
 		pi.items[0].rate = 13
 
 		# Test 4 - Since this PI is overbilled by 130% and only 120% is allowed, it will fail
-		self.assertRaises(frappe.ValidationError, pi.submit)
+		self.assertRaises(frappe.ValidationError, pi.save)
 
 	def test_discount_percentage_not_set_when_amount_is_manually_set(self):
 		pi = make_purchase_invoice(do_not_save=True)

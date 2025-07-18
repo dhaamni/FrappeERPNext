@@ -1226,10 +1226,6 @@ def update_billing_percentage(pr_doc, update_modified=True, adjust_incoming_rate
 		if pr_doc.get("is_return") and not total_amount and total_billed_amount:
 			total_amount = total_billed_amount
 
-		amount = item.amount
-		if frappe.db.get_single_value("Buying Settings", "bill_for_rejected_quantity_in_purchase_invoice"):
-			amount += flt(item.rejected_qty * item.rate, item.precision("amount"))
-
 		if adjust_incoming_rate:
 			adjusted_amt = 0.0
 
