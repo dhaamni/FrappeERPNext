@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: hello@frappe.io\n"
 "POT-Creation-Date: 2025-07-14 19:51+0000\n"
-"PO-Revision-Date: 2025-07-16 11:32\n"
+"PO-Revision-Date: 2025-07-18 12:39\n"
 "Last-Translator: hello@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -16912,7 +16912,7 @@ msgstr "شرح"
 #. Label of the description_of_content (Small Text) field in DocType 'Shipment'
 #: erpnext/stock/doctype/shipment/shipment.json
 msgid "Description of Content"
-msgstr "شرح مطالب"
+msgstr "شرح محتوا"
 
 #. Name of a DocType
 #. Label of the designation_name (Data) field in DocType 'Designation'
@@ -19824,7 +19824,7 @@ msgstr "گسترش همه"
 
 #: erpnext/accounts/report/deferred_revenue_and_expense/deferred_revenue_and_expense.py:444
 msgid "Expected"
-msgstr "انتظار می رود"
+msgstr "مورد انتظار"
 
 #. Label of the expected_amount (Currency) field in DocType 'POS Closing Entry
 #. Detail'
@@ -19886,7 +19886,7 @@ msgstr "تاریخ پایان مورد انتظار باید کمتر یا مس�
 #: erpnext/projects/doctype/timesheet_detail/timesheet_detail.json
 #: erpnext/public/js/projects/timer.js:16
 msgid "Expected Hrs"
-msgstr "ساعت پیش‌بینی شده"
+msgstr "ساعات مورد انتظار"
 
 #. Label of the expected_start_date (Datetime) field in DocType 'Job Card'
 #. Label of the expected_start_date (Date) field in DocType 'Project'
@@ -23851,7 +23851,7 @@ msgstr "نادیده گرفتن تراز اختتامیه"
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.json
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.json
 msgid "Ignore Default Payment Terms Template"
-msgstr "الگوی شرایط پرداخت پیش‌فرض را نادیده بگیرید"
+msgstr "نادیده گرفتن الگوی شرایط پرداخت پیش‌فرض"
 
 #. Label of the ignore_employee_time_overlap (Check) field in DocType 'Projects
 #. Settings'
@@ -43867,7 +43867,7 @@ msgstr "لاگ خطای ارسال مجدد"
 #. Name of a DocType
 #: erpnext/stock/doctype/repost_item_valuation/repost_item_valuation.json
 msgid "Repost Item Valuation"
-msgstr "ارسال مجدد ارزش گذاری مورد"
+msgstr "ارسال مجدد ارزش گذاری آیتم"
 
 #. Name of a DocType
 #: erpnext/accounts/doctype/repost_payment_ledger/repost_payment_ledger.json
@@ -51885,7 +51885,7 @@ msgstr "فاکتورهای تولید شده را ارسال کنید"
 #. Settings'
 #: erpnext/accounts/doctype/accounts_settings/accounts_settings.json
 msgid "Submit Journal Entries"
-msgstr "ارسال مطالب دفتر روزنامه"
+msgstr "ارسال ثبت‌های دفتر روزنامه"
 
 #: erpnext/manufacturing/doctype/work_order/work_order.js:178
 msgid "Submit this Work Order for further processing."
