@@ -538,9 +538,11 @@ class calculate_taxes_and_totals:
 
 	def set_item_wise_tax(self, item, tax, tax_rate, current_tax_amount, current_net_amount):
 		# store tax breakup for each item
-		item_wise_tax_amount = current_tax_amount * self.doc.conversion_rate
+		item_wise_tax_amount = flt(current_tax_amount * self.doc.conversion_rate, tax.precision("tax_amount"))
 		if tax.charge_type != "On Item Quantity":
-			item_wise_taxable_amount = current_net_amount * self.doc.conversion_rate
+			item_wise_taxable_amount = flt(
+				current_net_amount * self.doc.conversion_rate, tax.precision("net_amount")
+			)
 		else:
 			item_wise_taxable_amount = 0.0
 			item_wise_tax_amount = flt(item_wise_tax_amount, tax.precision("tax_amount"))
