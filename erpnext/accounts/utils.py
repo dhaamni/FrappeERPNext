@@ -2248,7 +2248,7 @@ def create_gain_loss_journal(
 			"reference_type": ref2_dt,
 			"reference_name": ref2_dn,
 			"reference_detail_no": ref2_detail_no,
-			reverse_dr_or_cr + "_in_account_currency": 0,
+			reverse_dr_or_cr + "_in_account_currency": abs(exc_gain_loss),
 			reverse_dr_or_cr: abs(exc_gain_loss),
 		}
 	)
