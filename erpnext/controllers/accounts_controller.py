@@ -4097,7 +4097,6 @@ def merge_taxes(source_doc, target_doc):
 			tax._old_name = tax.name
 			existing_taxes.append(tax)
 
-	print("Existing Taxes", existing_taxes)
 	target_doc.set("taxes", existing_taxes)
 
 	item_map = {d._old_name: d for d in target_doc.get("items") if d._old_name}
