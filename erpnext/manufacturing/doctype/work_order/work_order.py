@@ -234,17 +234,25 @@ class WorkOrder(Document):
 		if all([not op.sequence_id for op in self.operations]):
 			for op in self.operations:
 				op.sequence_id = op.idx
-			return
-
-		sequence_id = 1
-		for op in self.operations:
-			if op.sequence_id != sequence_id:
-				frappe.throw(
-					_("Row #{0}: Sequence ID must be {1} for Operation {2}.").format(
-						op.idx, frappe.bold(sequence_id), frappe.bold(op.operation)
+		else:
+			sequence_id = 1
+			for op in self.operations:
+				if op.idx == 1 and op.sequence_id != 1:
+					frappe.throw(
+						_("Row #1: Sequence ID must be 1 for Operation {0}.").format(
+							frappe.bold(op.operation)
+						)
 					)
-				)
-			sequence_id += 1
+				elif op.sequence_id != sequence_id and op.sequence_id != sequence_id + 1:
+					frappe.throw(
+						_("Row #{0}: Sequence ID must be {1} or {2} for Operation {3}.").format(
+							op.idx,
+							frappe.bold(sequence_id),
+							frappe.bold(sequence_id + 1),
+							frappe.bold(op.operation),
+						)
+					)
+				sequence_id = op.sequence_id
 
 	def set_warehouses(self):
 		for row in self.required_items:
