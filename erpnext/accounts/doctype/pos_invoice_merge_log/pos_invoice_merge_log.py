@@ -236,7 +236,6 @@ class POSInvoiceMergeLog(Document):
 				item.base_amount = item.base_net_amount
 				item.price_list_rate = 0
 				si_item = map_child_doc(item, invoice, {"doctype": "Sales Invoice Item"})
-				si_item.set_new_name()
 				si_item.pos_invoice = doc.name
 				si_item.pos_invoice_item = item.name
 				if doc.is_return:
@@ -246,7 +245,7 @@ class POSInvoiceMergeLog(Document):
 				if item.serial_and_batch_bundle:
 					si_item.serial_and_batch_bundle = item.serial_and_batch_bundle
 				items.append(si_item)
-				old_new_item_map[item.name] = si_item.name
+				old_new_item_map[item.name] = si_item
 
 			for tax in doc.get("taxes"):
 				found = False
@@ -256,10 +255,9 @@ class POSInvoiceMergeLog(Document):
 						t.base_tax_amount = flt(t.base_tax_amount) + flt(
 							tax.base_tax_amount_after_discount_amount
 						)
-						old_new_tax_map[t.name] = tax.name
+						old_new_tax_map[tax.name] = t
 						found = True
 				if not found:
-					tax.set_new_name()
 					tax.charge_type = "Actual"
 					tax.idx = idx
 					tax.row_id = None
@@ -267,9 +265,8 @@ class POSInvoiceMergeLog(Document):
 					tax.included_in_print_rate = 0
 					tax.tax_amount = tax.tax_amount_after_discount_amount
 					tax.base_tax_amount = tax.base_tax_amount_after_discount_amount
-
 					taxes.append(tax)
-					old_new_tax_map[tax.name] = tax.name
+					old_new_tax_map[tax.name] = tax
 
 			for payment in doc.get("payments"):
 				found = False
@@ -286,9 +283,15 @@ class POSInvoiceMergeLog(Document):
 			base_rounding_adjustment += doc.base_rounding_adjustment
 			base_rounded_total += doc.base_rounded_total
 
-			for row in doc.get("item_tax_details"):
-				row.item_row = old_new_item_map[row.item_row]
-				row.tax_row = old_new_tax_map[row.tax_row]
+			for d in doc.get("item_wise_tax_details"):
+				row = frappe._dict(
+					item=old_new_item_map[d.item_row],
+					tax=old_new_tax_map[d.tax_row],
+					amount=d.amount,
+					rate=d.rate,
+					taxable_amount=d.taxable_amount,
+					dont_recompute_tax=1,
+				)
 				item_tax_details.append(row)
 
 		if loyalty_points_sum:
@@ -303,7 +306,6 @@ class POSInvoiceMergeLog(Document):
 		invoice.set("base_rounding_adjustment", base_rounding_adjustment)
 		invoice.set("rounded_total", rounded_total)
 		invoice.set("base_rounded_total", base_rounded_total)
-		invoice.set("item_tax_details", item_tax_details)
 		invoice.additional_discount_percentage = 0
 		invoice.discount_amount = 0.0
 		invoice.taxes_and_charges = None
@@ -353,6 +355,7 @@ class POSInvoiceMergeLog(Document):
 		invoice.set("sales_partner", None)
 		invoice.set("commission_rate", 0)
 		invoice.set("total_commission", 0)
+		invoice._item_wise_tax_details = item_tax_details
 
 		return invoice
 

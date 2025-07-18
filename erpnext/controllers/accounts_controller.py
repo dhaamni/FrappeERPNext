@@ -167,10 +167,14 @@ class AccountsController(TransactionBase):
 					"amount": row.amount,
 					"rate": row.rate,
 					"taxable_amount": row.taxable_amount,
+					"dont_recompute_tax": row.dont_recompute_tax,
 				},
 			)
 			doc.set_new_name()
 			docs.append(doc)
+
+		# unset the _item_wise_tax_details to avoid duplicate entries
+		self._item_wise_tax_details = []
 
 		bulk_insert("Item Wise Tax Detail", docs)
 		if self.meta.get_field("other_charges_calculation"):

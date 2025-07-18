@@ -34,7 +34,6 @@ class calculate_taxes_and_totals:
 			)
 
 		self._items = self.filter_rows() if self.doc.doctype == "Quotation" else self.doc.get("items")
-		doc._item_wise_tax_details = []
 		get_round_off_applicable_accounts(self.doc.company, frappe.flags.round_off_applicable_accounts)
 		self.calculate()
 
@@ -242,9 +241,7 @@ class calculate_taxes_and_totals:
 			doc.set("base_" + f, val)
 
 	def initialize_taxes(self):
-		self.doc.item_wise_tax_details = [
-			d for d in self.doc.get("item_wise_tax_details") if d.get("dont_recompute_tax")
-		]
+		self.update_item_wise_tax_details()
 		for tax in self.doc.get("taxes"):
 			if not self.discount_amount_applied:
 				validate_taxes_and_charges(tax)
@@ -268,6 +265,16 @@ class calculate_taxes_and_totals:
 				tax.set(fieldname, 0.0)
 
 			self.doc.round_floats_in(tax)
+
+	def update_item_wise_tax_details(self):
+		self.doc.item_wise_tax_details = [
+			d for d in self.doc.get("item_wise_tax_details") if d.get("dont_recompute_tax")
+		]
+
+		if self.doc.get("is_consolidated"):
+			return
+
+		self.doc._item_wise_tax_details = []
 
 	def determine_exclusive_rate(self):
 		if not any(cint(tax.included_in_print_rate) for tax in self.doc.get("taxes")):
@@ -539,7 +546,7 @@ class calculate_taxes_and_totals:
 			item_wise_tax_amount = flt(item_wise_tax_amount, tax.precision("tax_amount"))
 			item_wise_taxable_amount = flt(item_wise_taxable_amount, tax.precision("net_amount"))
 
-		# currently storing tax and item row object as names are not present
+		# storing tax and item row object as names are not present
 		self.doc._item_wise_tax_details.append(
 			frappe._dict(
 				item=item,
@@ -547,6 +554,7 @@ class calculate_taxes_and_totals:
 				rate=tax_rate,
 				amount=item_wise_tax_amount,
 				taxable_amount=item_wise_taxable_amount,
+				dont_recompute_tax=0,
 			)
 		)
 
