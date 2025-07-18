@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: hello@frappe.io\n"
 "POT-Creation-Date: 2025-07-14 19:51+0000\n"
-"PO-Revision-Date: 2025-07-15 10:38\n"
+"PO-Revision-Date: 2025-07-18 12:39\n"
 "Last-Translator: hello@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -36816,7 +36816,7 @@ msgstr "Kontinuerlig Lager Hantering erfordras för bolag {0} om man ska kunna s
 #. Label of the personal_details (Tab Break) field in DocType 'Employee'
 #: erpnext/setup/doctype/employee/employee.json
 msgid "Personal Details"
-msgstr "Personliga Detaljer"
+msgstr "Personligt"
 
 #. Option for the 'Preferred Contact Email' (Select) field in DocType
 #. 'Employee'
