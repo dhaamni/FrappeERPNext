@@ -168,40 +168,7 @@ class WorkOrder(Document):
 		validate_uom_is_integer(self, "stock_uom", ["required_qty"])
 
 		self.set_required_items(reset_only_qty=len(self.get("required_items")))
-<<<<<<< HEAD
-=======
-		self.enable_auto_reserve_stock()
 		self.validate_operations_sequence()
-
-	def validate_dates(self):
-		if self.actual_start_date and self.actual_end_date:
-			if self.actual_end_date < self.actual_start_date:
-				frappe.throw(_("Actual End Date cannot be before Actual Start Date"))
-
-	def validate_fg_warehouse_for_reservation(self):
-		if self.reserve_stock and self.sales_order:
-			warehouses = frappe.get_all(
-				"Sales Order Item",
-				filters={"parent": self.sales_order, "item_code": self.production_item},
-				pluck="warehouse",
-			)
-
-			if self.fg_warehouse not in warehouses:
-				frappe.throw(
-					_("Warehouse {0} is not allowed for Sales Order {1}, it should be {2}").format(
-						self.fg_warehouse, self.sales_order, warehouses[0]
-					),
-					title=_("Target Warehouse Reservation Error"),
-				)
-
-	def set_reserve_stock(self):
-		for row in self.required_items:
-			row.reserve_stock = self.reserve_stock
-
-	def enable_auto_reserve_stock(self):
-		if self.is_new() and frappe.db.get_single_value("Stock Settings", "auto_reserve_stock"):
-			self.reserve_stock = 1
->>>>>>> 4174269091 (fix: job card linter error (#47561))
 
 	def validate_operations_sequence(self):
 		if all([not op.sequence_id for op in self.operations]):
