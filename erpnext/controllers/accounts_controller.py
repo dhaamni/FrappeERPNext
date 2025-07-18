@@ -7,6 +7,7 @@ from collections import defaultdict
 
 import frappe
 from frappe import _, bold, qb, throw
+from frappe.model.document import bulk_insert
 from frappe.model.workflow import get_workflow_name, is_transition_condition_satisfied
 from frappe.query_builder import Criterion, DocType
 from frappe.query_builder.custom import ConstantColumn
@@ -135,6 +136,9 @@ class AccountsController(TransactionBase):
 			if self.doctype in relevant_docs:
 				self.set_payment_schedule()
 
+	def on_update(self):
+		self.update_item_wise_tax_details()
+
 	def remove_bundle_for_non_stock_invoices(self):
 		has_sabb = False
 		if self.doctype in ("Sales Invoice", "Purchase Invoice") and not self.update_stock:
@@ -145,6 +149,38 @@ class AccountsController(TransactionBase):
 
 		if has_sabb:
 			self.remove_serial_and_batch_bundle()
+
+	def update_item_wise_tax_details(self):
+		if not self.meta.get_field("item_wise_tax_details"):
+			return
+
+		if not self.get("_item_wise_tax_details"):
+			return
+
+		docs = []
+		for row in self.get("_item_wise_tax_details"):
+			doc = self.append(
+				"item_wise_tax_details",
+				{
+					"item_row": row.item.name,
+					"tax_row": row.tax.name,
+					"amount": row.amount,
+					"rate": row.rate,
+					"taxable_amount": row.taxable_amount,
+				},
+			)
+			doc.set_new_name()
+			docs.append(doc)
+
+		bulk_insert("Item Wise Tax Detail", docs)
+		if self.meta.get_field("other_charges_calculation"):
+			from erpnext.controllers.taxes_and_totals import get_itemised_tax_breakup_html
+
+			tax_breakup = get_itemised_tax_breakup_html(self)
+			self.other_charges_calculation = tax_breakup
+			frappe.db.set_value(
+				self.doctype, self.name, "other_charges_calculation", tax_breakup, update_modified=False
+			)
 
 	def ensure_supplier_is_not_blocked(self):
 		is_supplier_payment = self.doctype == "Payment Entry" and self.party_type == "Supplier"
@@ -1158,7 +1194,6 @@ class AccountsController(TransactionBase):
 		if self.get("taxes_and_charges"):
 			if not tax_master_doctype:
 				tax_master_doctype = self.meta.get_field("taxes_and_charges").options
-
 			self.extend("taxes", get_taxes_and_charges(tax_master_doctype, self.get("taxes_and_charges")))
 
 	def append_taxes_from_item_tax_template(self):

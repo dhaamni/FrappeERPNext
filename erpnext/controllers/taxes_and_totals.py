@@ -21,8 +21,6 @@ from erpnext.deprecation_dumpster import deprecated
 from erpnext.stock.get_item_details import ItemDetailsCtx, _get_item_tax_template, get_item_tax_map
 from erpnext.utilities.regional import temporary_flag
 
-ItemWiseTaxDetail = frappe._dict
-
 
 class calculate_taxes_and_totals:
 	def __init__(self, doc: Document):
@@ -36,7 +34,7 @@ class calculate_taxes_and_totals:
 			)
 
 		self._items = self.filter_rows() if self.doc.doctype == "Quotation" else self.doc.get("items")
-
+		doc._item_wise_tax_details = []
 		get_round_off_applicable_accounts(self.doc.company, frappe.flags.round_off_applicable_accounts)
 		self.calculate()
 
@@ -69,7 +67,7 @@ class calculate_taxes_and_totals:
 			self.calculate_total_advance()
 
 		if self.doc.meta.get_field("other_charges_calculation"):
-			self.set_item_wise_tax_breakup()
+			self.other_charges_calculation = ""
 
 	def _calculate(self):
 		self.validate_conversion_rate()
@@ -83,7 +81,6 @@ class calculate_taxes_and_totals:
 		self.calculate_taxes()
 		self.adjust_grand_total_for_inclusive_tax()
 		self.calculate_totals()
-		self._cleanup()
 		self.calculate_total_net_weight()
 
 	def calculate_tax_withholding_net_total(self):
@@ -245,13 +242,13 @@ class calculate_taxes_and_totals:
 			doc.set("base_" + f, val)
 
 	def initialize_taxes(self):
+		self.doc.item_wise_tax_details = [
+			d for d in self.doc.get("item_wise_tax_details") if d.get("dont_recompute_tax")
+		]
 		for tax in self.doc.get("taxes"):
 			if not self.discount_amount_applied:
 				validate_taxes_and_charges(tax)
 				validate_inclusive_tax(tax, self.doc)
-
-			if not (self.doc.get("is_consolidated") or tax.get("dont_recompute_tax")):
-				tax.item_wise_tax_detail = {}
 
 			tax_fields = [
 				"net_amount",
@@ -534,34 +531,24 @@ class calculate_taxes_and_totals:
 
 	def set_item_wise_tax(self, item, tax, tax_rate, current_tax_amount, current_net_amount):
 		# store tax breakup for each item
-		key = item.item_code or item.item_name
 		item_wise_tax_amount = current_tax_amount * self.doc.conversion_rate
 		if tax.charge_type != "On Item Quantity":
-			item_wise_net_amount = current_net_amount * self.doc.conversion_rate
+			item_wise_taxable_amount = current_net_amount * self.doc.conversion_rate
 		else:
-			item_wise_net_amount = 0.0
-		if frappe.flags.round_row_wise_tax:
+			item_wise_taxable_amount = 0.0
 			item_wise_tax_amount = flt(item_wise_tax_amount, tax.precision("tax_amount"))
-			item_wise_net_amount = flt(item_wise_net_amount, tax.precision("net_amount"))
-			if tax_data := tax.item_wise_tax_detail.get(key):
-				item_wise_tax_amount += flt(tax_data.tax_amount, tax.precision("tax_amount"))
-				item_wise_net_amount += flt(tax_data.net_amount, tax.precision("net_amount"))
-			else:
-				tax.item_wise_tax_detail[key] = ItemWiseTaxDetail(
-					tax_rate=tax_rate,
-					tax_amount=flt(item_wise_tax_amount, tax.precision("tax_amount")),
-					net_amount=flt(item_wise_net_amount, tax.precision("net_amount")),
-				)
-		else:
-			if tax_data := tax.item_wise_tax_detail.get(key):
-				item_wise_tax_amount += tax_data.tax_amount
-				item_wise_net_amount += tax_data.net_amount
+			item_wise_taxable_amount = flt(item_wise_taxable_amount, tax.precision("net_amount"))
 
-			tax.item_wise_tax_detail[key] = ItemWiseTaxDetail(
-				tax_rate=tax_rate,
-				tax_amount=item_wise_tax_amount,
-				net_amount=item_wise_net_amount,
+		# currently storing tax and item row object as names are not present
+		self.doc._item_wise_tax_details.append(
+			frappe._dict(
+				item=item,
+				tax=tax,
+				rate=tax_rate,
+				amount=item_wise_tax_amount,
+				taxable_amount=item_wise_taxable_amount,
 			)
+		)
 
 	def round_off_totals(self, tax):
 		if tax.account_head in frappe.flags.round_off_applicable_accounts:
@@ -697,12 +684,6 @@ class calculate_taxes_and_totals:
 			)
 
 			self._set_in_company_currency(self.doc, ["rounding_adjustment", "rounded_total"])
-
-	def _cleanup(self):
-		if not self.doc.get("is_consolidated"):
-			for tax in self.doc.get("taxes"):
-				if not tax.get("dont_recompute_tax"):
-					tax.item_wise_tax_detail = json.dumps(tax.item_wise_tax_detail)
 
 	def set_discount_amount(self):
 		if self.doc.additional_discount_percentage:
@@ -1037,9 +1018,6 @@ class calculate_taxes_and_totals:
 
 		return rate_with_margin, base_rate_with_margin
 
-	def set_item_wise_tax_breakup(self):
-		self.doc.other_charges_calculation = get_itemised_tax_breakup_html(self.doc)
-
 	def set_total_amount_to_default_mop(self, total_amount_to_pay):
 		total_paid_amount = 0
 		for payment in self.doc.get("payments"):
@@ -1125,30 +1103,45 @@ def get_itemised_tax_breakup_header(item_doctype, tax_accounts):
 
 @erpnext.allow_regional
 def get_itemised_tax_breakup_data(doc):
-	itemised_tax = get_itemised_tax(doc.taxes)
+	itemised_tax = get_itemised_tax(doc)
 	itemised_tax_data = []
 	for item_code, taxes in itemised_tax.items():
-		taxable_amount = next(iter(taxes.values())).get("net_amount")
+		taxable_amount = next(iter(taxes.values())).get("taxable_amount")
 		itemised_tax_data.append(frappe._dict({"item": item_code, "taxable_amount": taxable_amount, **taxes}))
 
 	return itemised_tax_data
 
 
-def get_itemised_tax(taxes, with_tax_account=False):
+# TODO: Handle same item with different tax rates
+def get_itemised_tax(doc, with_tax_account=False):
 	itemised_tax = {}
-	for tax in taxes:
+	item_row_map = {item.name: item for item in doc.get("items")}
+	tax_row_map = {tax.name: tax for tax in doc.get("taxes")}
+	precision = doc.precision("tax_amount", "taxes")
+
+	for row in doc.get("item_wise_tax_details"):
+		item = item_row_map.get(row.item_row)
+		item_code = item.item_code or item.item_name
+		tax = tax_row_map.get(row.tax_row)
 		if getattr(tax, "category", None) and tax.category == "Valuation":
 			continue
 
-		item_tax_map = json.loads(tax.item_wise_tax_detail) if tax.item_wise_tax_detail else {}
-		if item_tax_map:
-			for item_code, tax_data in item_tax_map.items():
-				tax_data = ItemWiseTaxDetail(**tax_data)
-				itemised_tax.setdefault(item_code, frappe._dict())
-				itemised_tax[item_code][tax.description] = tax_data
+		tax_info = itemised_tax.setdefault(item_code, frappe._dict()).setdefault(
+			tax.description,
+			frappe._dict(
+				{
+					"tax_amount": 0.0,
+					"taxable_amount": 0.0,
+					"tax_rate": row.rate,
+				}
+			),
+		)
 
-				if with_tax_account:
-					itemised_tax[item_code][tax.description].tax_account = tax.account_head
+		tax_info.tax_amount += flt(row.amount, precision)
+		tax_info.taxable_amount += flt(row.taxable_amount, precision)
+
+		if with_tax_account:
+			tax_info.tax_account = tax.account_head
 
 	return itemised_tax
 
