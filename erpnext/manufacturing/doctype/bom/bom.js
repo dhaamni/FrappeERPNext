@@ -914,6 +914,16 @@ frappe.ui.form.on("BOM Operation", {
 });
 
 frappe.ui.form.on("BOM", {
+	validate(frm) {
+		frm.doc.operations.forEach((d) => {
+			if (flt(d.hour_rate) < 0) {
+				frappe.throw(__("Hourly Rate cannot be negative"));
+			}
+			if (flt(d.time_in_mins) < 0) {
+				frappe.throw(__("Operation Time cannot be negative"));
+			}
+		});
+	},
 	_prompt_for_raw_materials(frm, row) {
 		let fields = frm.events.get_fields_for_prompt(frm, row);
 		frm._bom_rm_dialog = new frappe.ui.Dialog({
