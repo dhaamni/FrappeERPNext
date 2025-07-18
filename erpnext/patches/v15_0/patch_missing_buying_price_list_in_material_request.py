@@ -4,7 +4,7 @@ import frappe.defaults
 
 def execute():
 	if frappe.db.has_column("Material Request", "buying_price_list") and (
-		default_buying_price_list := frappe.defaults.get_default("buying_price_list")
+		default_buying_price_list := frappe.defaults.get_defaults().buying_price_list
 	):
 		docs = frappe.get_all(
 			"Material Request", filters={"buying_price_list": ["is", "not set"], "docstatus": 1}, pluck="name"
