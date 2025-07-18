@@ -76,6 +76,7 @@
    "fieldname": "hour_rate",
    "fieldtype": "Currency",
    "label": "Hour Rate",
+   "non_negative": 1,
    "oldfieldname": "hour_rate",
    "oldfieldtype": "Currency",
    "options": "currency",
@@ -90,6 +91,7 @@
    "fieldtype": "Float",
    "in_list_view": 1,
    "label": "Operation Time",
+   "non_negative": 1,
    "oldfieldname": "time_in_mins",
    "oldfieldtype": "Currency",
    "reqd": 1

@@ -42,6 +42,7 @@
    "fieldtype": "Float",
    "in_list_view": 1,
    "label": "Qty",
+   "non_negative": 1,
    "reqd": 1
   },
   {
@@ -49,6 +50,7 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Rate",
+   "non_negative": 1,
    "options": "currency"
   },
   {
