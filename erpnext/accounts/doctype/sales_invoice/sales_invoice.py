@@ -1252,6 +1252,87 @@ class SalesInvoice(SellingController):
 				)
 
 			self.calculate_billing_amount_for_timesheet()
+			self.add_timesheet_items()
+
+	def add_timesheet_items(self):
+		"""Add line items based on timesheet data and activity type mapping"""
+		if not self.timesheets:
+			return
+
+		# Get activity type to item mapping
+		activity_item_map = {}
+		for timesheet in self.timesheets:
+			if timesheet.activity_type and timesheet.activity_type not in activity_item_map:
+				item_code = frappe.db.get_value("Activity Type", timesheet.activity_type, "item")
+				if item_code:
+					activity_item_map[timesheet.activity_type] = item_code
+
+		if not activity_item_map:
+			return
+
+		# Check if we should sum similar timesheets
+		sum_similar = frappe.db.get_single_value("Selling Settings", "sum_similar_timesheets_in_sales_invoice")
+		allow_multiple_items = frappe.db.get_single_value("Selling Settings", "allow_multiple_items")
+
+		if sum_similar:
+			self._add_grouped_timesheet_items(activity_item_map)
+		else:
+			self._add_individual_timesheet_items(activity_item_map, allow_multiple_items)
+
+	def _add_grouped_timesheet_items(self, activity_item_map):
+		"""Add grouped timesheet items (sum similar items with same rate)"""
+		grouped_items = {}
+
+		for timesheet in self.timesheets:
+			if timesheet.activity_type in activity_item_map:
+				item_code = activity_item_map[timesheet.activity_type]
+				rate = timesheet.billing_amount / timesheet.billing_hours if timesheet.billing_hours else 0
+				
+				# Create a key for grouping (item_code + rate)
+				group_key = f"{item_code}_{rate}"
+				
+				if group_key not in grouped_items:
+					grouped_items[group_key] = {
+						"item_code": item_code,
+						"qty": 0,
+						"rate": rate,
+						"description": f"Timesheet hours for {timesheet.activity_type}",
+						"uom": "Hour"
+					}
+				
+				grouped_items[group_key]["qty"] += timesheet.billing_hours
+
+		# Add grouped items to sales invoice
+		for item_data in grouped_items.values():
+			if item_data["qty"] > 0:
+				self.append("items", item_data)
+
+	def _add_individual_timesheet_items(self, activity_item_map, allow_multiple_items):
+		"""Add individual timesheet items"""
+		added_items = set()
+
+		for timesheet in self.timesheets:
+			if timesheet.activity_type in activity_item_map:
+				item_code = activity_item_map[timesheet.activity_type]
+				
+				# Check if item already exists (if multiple items not allowed)
+				if not allow_multiple_items and item_code in added_items:
+					# Find existing item and update qty
+					for item in self.items:
+						if item.item_code == item_code:
+							item.qty += timesheet.billing_hours
+							break
+				else:
+					# Add new item
+					rate = timesheet.billing_amount / timesheet.billing_hours if timesheet.billing_hours else 0
+					self.append("items", {
+						"item_code": item_code,
+						"qty": timesheet.billing_hours,
+						"rate": rate,
+						"description": f"Timesheet: {timesheet.description or timesheet.activity_type}",
+						"uom": "Hour"
+					})
+					added_items.add(item_code)
 
 	def calculate_billing_amount_for_timesheet(self):
 		def timesheet_sum(field):

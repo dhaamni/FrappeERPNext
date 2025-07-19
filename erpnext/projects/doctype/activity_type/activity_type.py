@@ -18,6 +18,7 @@ class ActivityType(Document):
 		billing_rate: DF.Currency
 		costing_rate: DF.Currency
 		disabled: DF.Check
+		item: DF.Link | None
 	# end: auto-generated types
 
 	pass

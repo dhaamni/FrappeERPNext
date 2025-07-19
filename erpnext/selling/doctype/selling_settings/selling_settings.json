@@ -36,6 +36,7 @@
   "enable_cutoff_date_on_bulk_delivery_note_creation",
   "allow_zero_qty_in_quotation",
   "allow_zero_qty_in_sales_order",
+  "sum_similar_timesheets_in_sales_invoice",
   "experimental_section",
   "use_server_side_reactivity"
  ],
@@ -236,6 +237,13 @@
    "fieldname": "allow_zero_qty_in_quotation",
    "fieldtype": "Check",
    "label": "Allow Quotation with Zero Quantity"
+  },
+  {
+   "default": "0",
+   "description": "When enabled, similar timesheets (same rate and Item) will be combined into one line item in Sales Invoices",
+   "fieldname": "sum_similar_timesheets_in_sales_invoice",
+   "fieldtype": "Check",
+   "label": "Sum Similar Timesheets in Sales Invoice"
   }
  ],
  "grid_page_length": 50,

@@ -59,6 +59,50 @@ class TestTimesheet(ERPNextTestSuite):
 		self.assertEqual(item.qty, 2.00)
 		self.assertEqual(item.rate, 50.00)
 
+	def test_sales_invoice_from_timesheet_with_activity_item_mapping(self):
+		"""Test automatic item creation based on Activity Type mapping"""
+		# Create test item
+		test_item = frappe.get_doc({
+			"doctype": "Item",
+			"item_code": "_Test Timesheet Item",
+			"item_name": "_Test Timesheet Item",
+			"description": "_Test Timesheet Item",
+			"item_group": "_Test Item Group",
+			"is_sales_item": 1,
+			"is_service_item": 1,
+			"is_purchase_item": 0,
+			"is_stock_item": 0
+		})
+		test_item.insert(ignore_permissions=True)
+
+		# Setup activity type with item mapping
+		activity_type = frappe.get_doc("Activity Type", "_Test Activity Type")
+		activity_type.item = "_Test Timesheet Item"
+		activity_type.save(ignore_permissions=True)
+
+		try:
+			emp = make_employee("test_employee_7@salary.com")
+			timesheet = make_timesheet(emp, simulate=True, is_billable=1)
+			
+			# Create sales invoice without specifying item_code - should auto-create based on mapping
+			sales_invoice = make_sales_invoice(timesheet.name, None, "_Test Customer", currency="INR")
+			sales_invoice.due_date = nowdate()
+			sales_invoice.save()
+
+			# Check that item was automatically added
+			self.assertEqual(len(sales_invoice.items), 1)
+			item = sales_invoice.items[0]
+			self.assertEqual(item.item_code, "_Test Timesheet Item")
+			self.assertEqual(item.qty, 2.00)
+			self.assertEqual(item.rate, 50.00)
+			self.assertEqual(item.uom, "Hour")
+
+		finally:
+			# Cleanup
+			activity_type.item = None
+			activity_type.save(ignore_permissions=True)
+			frappe.delete_doc("Item", "_Test Timesheet Item", ignore_permissions=True)
+
 	@IntegrationTestCase.change_settings("Projects Settings", {"fetch_timesheet_in_sales_invoice": 1})
 	def test_timesheet_billing_based_on_project(self):
 		emp = make_employee("test_employee_6@salary.com")
