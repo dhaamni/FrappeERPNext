@@ -6,7 +6,7 @@ import json
 
 import frappe
 from frappe import _, scrub
-from frappe.model.document import Document
+from frappe.model.document import Document, bulk_insert
 from frappe.utils import cint, flt, round_based_on_smallest_currency_fraction
 
 import erpnext
@@ -241,7 +241,7 @@ class calculate_taxes_and_totals:
 			doc.set("base_" + f, val)
 
 	def initialize_taxes(self):
-		self.update_item_wise_tax_details()
+		self.unset_item_wise_tax_details()
 		for tax in self.doc.get("taxes"):
 			if not self.discount_amount_applied:
 				validate_taxes_and_charges(tax)
@@ -266,11 +266,13 @@ class calculate_taxes_and_totals:
 
 			self.doc.round_floats_in(tax)
 
-	def update_item_wise_tax_details(self):
+	def unset_item_wise_tax_details(self):
+		# Keep only item_wise_tax_details that are inserted with `dont_recompute_tax` set to 1.
 		self.doc.item_wise_tax_details = [
 			d for d in self.doc.get("item_wise_tax_details") if d.get("dont_recompute_tax")
 		]
 
+		# If this is a consolidated document, do not unset item_wise_tax_details(it is manually set in consolidated documents).
 		if self.doc.get("is_consolidated"):
 			return
 
@@ -1172,6 +1174,40 @@ def get_rounded_tax_amount(itemised_tax, precision):
 @frappe.whitelist()
 def get_rounding_tax_settings():
 	return frappe.get_single_value("Accounts Settings", "round_row_wise_tax")
+
+
+def process_item_wise_tax_details(doc):
+	if not doc.meta.get_field("item_wise_tax_details"):
+		return
+
+	if not doc.get("_item_wise_tax_details"):
+		return
+
+	docs = []
+	for row in doc.get("_item_wise_tax_details"):
+		tax_details = doc.append(
+			"item_wise_tax_details",
+			{
+				**row,
+				"item_row": row.item.name,
+				"tax_row": row.tax.name,
+			},
+		)
+		tax_details.set_new_name()
+		docs.append(tax_details)
+
+	# unset the _item_wise_tax_details to avoid duplicate entries
+	doc._item_wise_tax_details = []
+
+	bulk_insert("Item Wise Tax Detail", docs)
+	if doc.meta.get_field("other_charges_calculation"):
+		from erpnext.controllers.taxes_and_totals import get_itemised_tax_breakup_html
+
+		tax_breakup = get_itemised_tax_breakup_html(doc)
+		doc.other_charges_calculation = tax_breakup
+		frappe.db.set_value(
+			doc.doctype, doc.name, "other_charges_calculation", tax_breakup, update_modified=False
+		)
 
 
 class init_landed_taxes_and_totals:

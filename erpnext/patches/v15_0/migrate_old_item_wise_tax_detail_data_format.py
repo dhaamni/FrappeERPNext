@@ -3,8 +3,6 @@ import json
 import frappe
 from frappe.utils import flt
 
-from erpnext.controllers.taxes_and_totals import ItemWiseTaxDetail
-
 
 def execute():
 	# Get all DocTypes that have the 'item_wise_tax_detail' field
@@ -37,7 +35,7 @@ def execute():
 			else:
 				for item, tax_data in item_iterator:
 					if isinstance(tax_data, list) and len(tax_data) == 2:
-						updated_tax_details[item] = ItemWiseTaxDetail(
+						updated_tax_details[item] = frappe._dict(
 							tax_rate=tax_data[0],
 							tax_amount=tax_data[1],
 							# can't be reliably reconstructed since it depends on the tax type
@@ -47,14 +45,14 @@ def execute():
 						needs_update = True
 					# intermediate patch version of the originating PR
 					elif isinstance(tax_data, list) and len(tax_data) == 3:
-						updated_tax_details[item] = ItemWiseTaxDetail(
+						updated_tax_details[item] = frappe._dict(
 							tax_rate=tax_data[0],
 							tax_amount=tax_data[1],
 							net_amount=tax_data[2],
 						)
 						needs_update = True
 					elif isinstance(tax_data, str):
-						updated_tax_details[item] = ItemWiseTaxDetail(
+						updated_tax_details[item] = frappe._dict(
 							tax_rate=flt(tax_data),
 							tax_amount=0.0,
 							net_amount=0.0,

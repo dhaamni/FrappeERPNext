@@ -137,7 +137,9 @@ class AccountsController(TransactionBase):
 				self.set_payment_schedule()
 
 	def on_update(self):
-		self.update_item_wise_tax_details()
+		from erpnext.controllers.taxes_and_totals import process_item_wise_tax_details
+
+		process_item_wise_tax_details(self)
 
 	def remove_bundle_for_non_stock_invoices(self):
 		has_sabb = False
@@ -149,42 +151,6 @@ class AccountsController(TransactionBase):
 
 		if has_sabb:
 			self.remove_serial_and_batch_bundle()
-
-	def update_item_wise_tax_details(self):
-		if not self.meta.get_field("item_wise_tax_details"):
-			return
-
-		if not self.get("_item_wise_tax_details"):
-			return
-
-		docs = []
-		for row in self.get("_item_wise_tax_details"):
-			doc = self.append(
-				"item_wise_tax_details",
-				{
-					"item_row": row.item.name,
-					"tax_row": row.tax.name,
-					"amount": row.amount,
-					"rate": row.rate,
-					"taxable_amount": row.taxable_amount,
-					"dont_recompute_tax": row.dont_recompute_tax,
-				},
-			)
-			doc.set_new_name()
-			docs.append(doc)
-
-		# unset the _item_wise_tax_details to avoid duplicate entries
-		self._item_wise_tax_details = []
-
-		bulk_insert("Item Wise Tax Detail", docs)
-		if self.meta.get_field("other_charges_calculation"):
-			from erpnext.controllers.taxes_and_totals import get_itemised_tax_breakup_html
-
-			tax_breakup = get_itemised_tax_breakup_html(self)
-			self.other_charges_calculation = tax_breakup
-			frappe.db.set_value(
-				self.doctype, self.name, "other_charges_calculation", tax_breakup, update_modified=False
-			)
 
 	def ensure_supplier_is_not_blocked(self):
 		is_supplier_payment = self.doctype == "Payment Entry" and self.party_type == "Supplier"

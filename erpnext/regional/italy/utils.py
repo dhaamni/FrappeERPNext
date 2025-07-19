@@ -6,7 +6,7 @@ from frappe import _
 from frappe.utils import cstr, flt
 from frappe.utils.file_manager import remove_file
 
-from erpnext.controllers.taxes_and_totals import ItemWiseTaxDetail, get_itemised_tax
+from erpnext.controllers.taxes_and_totals import get_itemised_tax
 from erpnext.regional.italy import state_codes
 from erpnext.stock.utils import get_default_stock_uom
 
@@ -217,7 +217,7 @@ def get_invoice_summary(items, taxes):
 			item_wise_tax_detail = json.loads(tax.item_wise_tax_detail)
 			# TODO: with net_amount stored inside item_wise_tax_detail, this entire block seems obsolete and redundant
 			for _item_code, tax_data in item_wise_tax_detail.items():
-				tax_data = ItemWiseTaxDetail(**tax_data)
+				tax_data = frappe._dict(**tax_data)
 				if tax_data.tax_rate != tax.rate:
 					continue
 				key = cstr(tax.rate)

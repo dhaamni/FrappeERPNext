@@ -8,8 +8,6 @@ import frappe
 from frappe import _
 from frappe.utils import formatdate, get_link_to_form
 
-from erpnext.controllers.taxes_and_totals import ItemWiseTaxDetail
-
 
 def execute(filters=None):
 	return VATAuditReport(filters).run()
@@ -128,7 +126,7 @@ class VATAuditReport:
 					else:
 						continue
 					for item_code, tax_data in item_wise_tax_detail.items():
-						tax_data = ItemWiseTaxDetail(**tax_data)
+						tax_data = frappe._dict(**tax_data)
 						is_zero_rated = self.invoice_items.get(parent).get(item_code).get("is_zero_rated")
 						# to skip items with non-zero tax rate in multiple rows
 						if tax_data.tax_rate == 0 and not is_zero_rated:
