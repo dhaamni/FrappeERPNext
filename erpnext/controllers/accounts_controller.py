@@ -4065,8 +4065,8 @@ def merge_taxes(source_doc, target_doc):
 
 	target_doc.set("taxes", existing_taxes)
 
-	item_map = {d._old_name: d for d in target_doc.get("items") if d._old_name}
-	tax_map = {d._old_name: d for d in target_doc.get("taxes") if d._old_name}
+	item_map = {d._old_name: d for d in target_doc.get("items") if d.get("_old_name")}
+	tax_map = {d._old_name: d for d in target_doc.get("taxes") if d.get("_old_name")}
 
 	item_tax_details = target_doc.get("_item_wise_tax_details") or []
 	for row in source_doc.get("item_wise_tax_details"):

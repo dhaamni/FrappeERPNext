@@ -169,13 +169,6 @@ class TestPOSInvoiceMergeLog(IntegrationTestCase):
 			{
 				"item_row": consolidated_invoice.items[0].name,
 				"tax_row": consolidated_invoice.taxes[0].name,
-				"rate": 0.0,
-				"amount": 200.0,
-				"taxable_amount": 100.0,
-			},
-			{
-				"item_row": consolidated_invoice.items[0].name,
-				"tax_row": consolidated_invoice.taxes[1].name,
 				"rate": 9.0,
 				"amount": 9.0,
 				"taxable_amount": 100.0,
@@ -183,13 +176,6 @@ class TestPOSInvoiceMergeLog(IntegrationTestCase):
 			{
 				"item_row": consolidated_invoice.items[1].name,
 				"tax_row": consolidated_invoice.taxes[0].name,
-				"rate": 0.0,
-				"amount": 200.0,
-				"taxable_amount": 100.0,
-			},
-			{
-				"item_row": consolidated_invoice.items[1].name,
-				"tax_row": consolidated_invoice.taxes[1].name,
 				"rate": 5.0,
 				"amount": 5.0,
 				"taxable_amount": 100.0,
