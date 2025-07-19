@@ -462,4 +462,6 @@ def rename_temporarily_named_docs(doctype):
 				f"UPDATE `tab{doctype}` SET name = %s, to_rename = 0, modified = %s where name = %s",
 				(newname, now(), oldname),
 			)
+			for hook in frappe.get_hooks("on_gle_sle_rename"):
+				frappe.get_attr(hook)(newname, oldname)
 		frappe.db.commit()
