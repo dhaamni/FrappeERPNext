@@ -18,7 +18,7 @@ def update_itemised_tax_data(doc):
 	if not meta.has_field("tax_rate"):
 		return
 
-	itemised_tax = get_itemised_tax(doc.taxes)
+	itemised_tax = get_itemised_tax(doc)
 
 	for row in doc.items:
 		tax_rate, tax_amount = 0.0, 0.0
