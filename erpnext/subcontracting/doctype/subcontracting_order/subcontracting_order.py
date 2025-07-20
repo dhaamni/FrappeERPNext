@@ -1,9 +1,13 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+from collections import defaultdict
+
 import frappe
 from frappe import _
 from frappe.model.mapper import get_mapped_doc
+from frappe.query_builder import Case
+from frappe.query_builder.functions import Coalesce, Sum
 from frappe.utils import flt
 
 from erpnext.buying.utils import check_on_hold_or_closed_status
@@ -237,13 +241,81 @@ class SubcontractingOrder(SubcontractingController):
 		return flt(query[0][0]) if query else 0
 
 	def update_reserved_qty_for_subcontracting(self, sco_item_rows=None):
+		items = []
 		for item in self.supplied_items:
 			if sco_item_rows and item.reference_name not in sco_item_rows:
 				continue
 
 			if item.rm_item_code:
+				items.append(item.rm_item_code)
+
+		material_transferred = frappe._dict()
+		if items:
+			material_transferred = self.get_item_wise_materials_transferred(items)
+
+		for item in self.supplied_items:
+			if sco_item_rows and item.reference_name not in sco_item_rows:
+				continue
+
+			if item.rm_item_code:
+				material_transferred_qty = None
+				if item.rm_item_code in material_transferred:
+					material_transferred_qty = material_transferred.get(item.rm_item_code, 0)
+
 				stock_bin = get_bin(item.rm_item_code, item.reserve_warehouse)
-				stock_bin.update_reserved_qty_for_sub_contracting()
+				stock_bin.update_reserved_qty_for_sub_contracting(
+					materials_transferred=material_transferred_qty
+				)
+
+	def get_item_wise_materials_transferred(self, items):
+		se = frappe.qb.DocType("Stock Entry")
+		se_item = frappe.qb.DocType("Stock Entry Detail")
+		subcontract_order = frappe.qb.DocType("Subcontracting Order")
+
+		if frappe.db.field_exists("Stock Entry", "is_return"):
+			qty_field = Case().when(se.is_return == 1, se_item.transfer_qty * -1).else_(se_item.transfer_qty)
+		else:
+			qty_field = se_item.transfer_qty
+
+		conditions = (
+			(se.docstatus == 1)
+			& (se.purpose == "Send to Subcontractor")
+			& (se.name == se_item.parent)
+			& (subcontract_order.docstatus == 1)
+			& (subcontract_order.per_received < 100)
+			& ((se.subcontracting_order.isnotnull()) & (subcontract_order.name == se.subcontracting_order))
+		)
+
+		materials_transferred = (
+			frappe.qb.from_(se)
+			.from_(se_item)
+			.from_(subcontract_order)
+			.select(se_item.item_code, Sum(qty_field).as_("qty"))
+			.where(conditions)
+			.where(se_item.item_code.isin(items) & se_item.item_code.isnotnull())
+			.groupby(se_item.item_code)
+		).run(as_dict=1)
+
+		item_wise_materials_transferred = defaultdict(float)
+		for row in materials_transferred:
+			item_code = row.get("item_code")
+			item_wise_materials_transferred[item_code] += flt(row.get("qty"))
+
+		materials_transferred = (
+			frappe.qb.from_(se)
+			.from_(se_item)
+			.from_(subcontract_order)
+			.select(se_item.original_item, Sum(qty_field).as_("qty"))
+			.where(conditions)
+			.where(se_item.original_item.isin(items) & se_item.original_item.isnotnull())
+			.groupby(se_item.original_item)
+		).run(as_dict=1)
+
+		for row in materials_transferred:
+			item_code = row.get("original_item")
+			item_wise_materials_transferred[item_code] += flt(row.get("qty"))
+
+		return item_wise_materials_transferred
 
 	def populate_items_table(self):
 		items = []
