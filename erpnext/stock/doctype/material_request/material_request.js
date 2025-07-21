@@ -324,6 +324,9 @@ frappe.ui.form.on("Material Request", {
 	},
 
 	get_items_from_bom: function (frm) {
+		if (!frm.doc.company) {
+			frappe.throw(__("Please select company"));
+		}
 		var d = new frappe.ui.Dialog({
 			title: __("Get Items from BOM"),
 			fields: [
@@ -343,6 +346,9 @@ frappe.ui.form.on("Material Request", {
 					label: __("For Warehouse"),
 					options: "Warehouse",
 					reqd: 1,
+					get_query: function () {
+						return { filters: { company: frm.doc.company } };
+					},
 				},
 				{ fieldname: "qty", fieldtype: "Float", label: __("Quantity"), reqd: 1, default: 1 },
 				{
