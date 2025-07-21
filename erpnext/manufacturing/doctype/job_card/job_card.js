@@ -23,6 +23,16 @@ frappe.ui.form.on("Job Card", {
 			};
 		});
 
+		frm.events.setCompanyFilters(frm, "source_warehouse");
+		frm.events.setCompanyFilters(frm, "wip_warehouse");
+		frm.set_query("source_warehouse", "items", () => {
+			return {
+				filters: {
+					company: frm.doc.company,
+				},
+			};
+		});
+
 		frm.set_indicator_formatter("sub_operation", function (doc) {
 			if (doc.status == "Pending") {
 				return "red";
@@ -32,6 +42,66 @@ frappe.ui.form.on("Job Card", {
 		});
 	},
 
+<<<<<<< HEAD
+=======
+	setCompanyFilters(frm, fieldname) {
+		frm.set_query(fieldname, () => {
+			return {
+				filters: {
+					company: frm.doc.company,
+				},
+			};
+		});
+	},
+
+	make_fields_read_only(frm) {
+		if (frm.doc.docstatus === 1) {
+			frm.set_df_property("employee", "read_only", 1);
+			frm.set_df_property("time_logs", "read_only", 1);
+		}
+
+		if (frm.doc.is_subcontracted) {
+			frm.set_df_property("wip_warehouse", "label", __("Supplier Warehouse"));
+		}
+	},
+
+	setup_stock_entry(frm) {
+		if (
+			frm.doc.track_semi_finished_goods &&
+			frm.doc.docstatus === 1 &&
+			!frm.doc.is_subcontracted &&
+			(frm.doc.skip_material_transfer || frm.doc.transferred_qty > 0) &&
+			flt(frm.doc.for_quantity) + flt(frm.doc.process_loss_qty) > flt(frm.doc.manufactured_qty)
+		) {
+			frm.add_custom_button(__("Make Stock Entry"), () => {
+				frappe.confirm(
+					__("Do you want to submit the stock entry?"),
+					() => {
+						frm.events.make_manufacture_stock_entry(frm, 1);
+					},
+					() => {
+						frm.events.make_manufacture_stock_entry(frm, 0);
+					}
+				);
+			}).addClass("btn-primary");
+		}
+	},
+
+	make_manufacture_stock_entry(frm, submit_entry) {
+		frm.call({
+			method: "make_stock_entry_for_semi_fg_item",
+			args: {
+				auto_submit: submit_entry,
+			},
+			doc: frm.doc,
+			freeze: true,
+			callback() {
+				frm.reload_doc();
+			},
+		});
+	},
+
+>>>>>>> b1311ceb30 (fix(job card): company filter)
 	refresh: function (frm) {
 		frappe.flags.pause_job = 0;
 		frappe.flags.resume_job = 0;
