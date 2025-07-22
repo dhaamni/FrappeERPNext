@@ -153,6 +153,7 @@ class POSInvoiceMergeLog(Document):
 		if not sales_invoice.posting_time:
 			sales_invoice.posting_time = get_time(self.posting_time)
 
+		sales_invoice.save()
 		sales_invoice.submit()
 		self.consolidated_invoice = sales_invoice.name
 
@@ -176,6 +177,7 @@ class POSInvoiceMergeLog(Document):
 			credit_note.posting_time = get_time(self.posting_time)
 			# TODO: return could be against multiple sales invoice which could also have been consolidated?
 			# credit_note.return_against = self.consolidated_invoice
+			credit_note.save()
 			credit_note.submit()
 
 			self.consolidated_credit_note = credit_note.name

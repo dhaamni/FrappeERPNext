@@ -1342,7 +1342,7 @@ def make_purchase_invoice(source_name, target_doc=None, args=None):
 		doc.run_method("set_missing_values")
 
 		if args and args.get("merge_taxes"):
-			merge_taxes(source or [], doc)
+			merge_taxes(source, doc)
 
 		doc.run_method("calculate_taxes_and_totals")
 		doc.set_payment_schedule()

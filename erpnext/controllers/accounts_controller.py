@@ -4056,6 +4056,7 @@ def merge_taxes(source_doc, target_doc):
 				t.tax_amount = flt(t.tax_amount) + flt(tax.tax_amount_after_discount_amount)
 				t.base_tax_amount = flt(t.base_tax_amount) + flt(tax.base_tax_amount_after_discount_amount)
 				t._old_name = tax.name
+				t.do_not_recompute_tax = t.charge_type == "Actual"
 				found = True
 
 		if not found:

@@ -267,9 +267,11 @@ class calculate_taxes_and_totals:
 			self.doc.round_floats_in(tax)
 
 	def reset_item_wise_tax_details(self):
-		# Identify taxes that shouldn't be recomputed
+		# Setting flag for adding rows
+		self.doc.update_item_wise_tax_details = True
 		dont_recompute_taxes = [d for d in self.doc.get("taxes") if d.get("dont_recompute_tax")]
 
+		# Identify taxes that shouldn't be recomputed
 		item_wise_tax_details = []
 		# retain tax_breakup for dont_recompute_taxes
 		for row in self.doc.get("_item_wise_tax_details") or []:
@@ -556,7 +558,7 @@ class calculate_taxes_and_totals:
 			item_wise_tax_amount *= -1
 			item_wise_taxable_amount *= -1
 
-		# storing tax and item row object as names are not present
+		# storing tax and item row object as row names are temporary
 		self.doc._item_wise_tax_details.append(
 			frappe._dict(
 				item=item,
@@ -1196,7 +1198,7 @@ def process_item_wise_tax_details(doc):
 	if ignore_item_wise_tax_details(doc):
 		return
 
-	if not doc.get("_item_wise_tax_details"):
+	if not (doc.get("update_item_wise_tax_details") and doc.get("_item_wise_tax_details")):
 		return
 
 	docs = []
@@ -1213,10 +1215,8 @@ def process_item_wise_tax_details(doc):
 		tax_details.set_new_name()
 		docs.append(tax_details)
 
-	# unset the _item_wise_tax_details to avoid duplicate entries
-	doc._item_wise_tax_details = []
-
 	bulk_insert("Item Wise Tax Detail", docs)
+	doc._updated_item_wise_tax_details = False
 
 
 def validate_item_wise_tax_details(doc):
@@ -1235,12 +1235,13 @@ def validate_item_wise_tax_details(doc):
 		if tax.get("add_deduct_tax") == "Deduct":
 			tax_amount *= -1
 		taxes.setdefault(tax.name, frappe._dict({"actual": tax_amount, "breakup": 0.0, "index": tax.idx}))
-		taxes[tax.name]["breakup"] += flt(row.amount, precision)
+		taxes[tax.name]["breakup"] += row.amount
 
 	invalid_tax_rows = False
 	for tax in taxes.values():
-		diff = flt(tax.actual - tax.breakup, precision)
-		if abs(diff) > (1.0 / (10**precision)):
+		diff = flt(tax.actual - flt(tax.breakup, precision), precision)
+		# TODO: handle rounding difference
+		if abs(diff) > (0.5):
 			invalid_tax_rows = True
 			break
 
