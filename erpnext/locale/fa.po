@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: hello@frappe.io\n"
 "POT-Creation-Date: 2025-07-20 09:37+0000\n"
-"PO-Revision-Date: 2025-07-21 12:56\n"
+"PO-Revision-Date: 2025-07-22 12:55\n"
 "Last-Translator: hello@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -47639,7 +47639,7 @@ msgstr "BOM را انتخاب کنید"
 
 #: erpnext/selling/doctype/sales_order/sales_order.js:834
 msgid "Select BOM and Qty for Production"
-msgstr "BOM و مقدار را برای تولید انتخاب کنید"
+msgstr "انتخاب BOM و مقدار برای تولید"
 
 #: erpnext/selling/doctype/sales_order/sales_order.js:985
 msgid "Select BOM, Qty and For Warehouse"
@@ -47762,7 +47762,7 @@ msgstr "تامین کننده احتمالی را انتخاب کنید"
 #: erpnext/manufacturing/doctype/work_order/work_order.js:945
 #: erpnext/stock/doctype/pick_list/pick_list.js:193
 msgid "Select Quantity"
-msgstr "مقدار را انتخاب کنید"
+msgstr "انتخاب مقدار"
 
 #: erpnext/assets/doctype/asset_repair/asset_repair.js:194
 #: erpnext/public/js/utils/sales_common.js:417
