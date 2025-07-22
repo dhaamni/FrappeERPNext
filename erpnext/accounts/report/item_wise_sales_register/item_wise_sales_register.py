@@ -552,13 +552,13 @@ def get_tax_accounts(
 		)
 		.left_join(account)
 		.on(taxes_and_charges.account_head == account.name)
-		.tax_details.where(tax.item_row.isin(invoice_item_row))
+		.where(tax.item_row.isin(invoice_item_row))
 	)
 
 	if doctype == "Purchase Invoice":
 		tax_details = tax_details.where(
-			taxes_and_charges.category.isin(["Total", "Valuation and Total"]),
-			taxes_and_charges.base_tax_amount_after_discount_amount != 0,
+			(taxes_and_charges.category.isin(["Total", "Valuation and Total"]))
+			& (taxes_and_charges.base_tax_amount_after_discount_amount != 0)
 		)
 
 	tax_details = tax_details.run(as_dict=True)
