@@ -310,9 +310,12 @@ class BuyingController(SubcontractingController):
 
 		stock_and_asset_items_qty, stock_and_asset_items_amount = 0, 0
 		last_item_idx = 1
+
+		total_rejected_qty = 0
 		for d in self.get("items"):
 			if d.item_code and d.item_code in stock_and_asset_items:
 				stock_and_asset_items_qty += flt(d.qty)
+				total_rejected_qty += flt(d.get("rejected_qty", 0))
 				stock_and_asset_items_amount += flt(d.base_net_amount)
 				last_item_idx = d.idx
 
@@ -324,12 +327,19 @@ class BuyingController(SubcontractingController):
 
 		valuation_amount_adjustment = total_valuation_amount
 		for i, item in enumerate(self.get("items")):
-			if item.item_code and item.qty and item.item_code in stock_and_asset_items:
-				item_proportion = (
-					flt(item.base_net_amount) / stock_and_asset_items_amount
-					if stock_and_asset_items_amount
-					else flt(item.qty) / stock_and_asset_items_qty
-				)
+			if (
+				item.item_code
+				and (item.qty or item.get("rejected_qty"))
+				and item.item_code in stock_and_asset_items
+			):
+				if stock_and_asset_items_qty:
+					item_proportion = (
+						flt(item.base_net_amount) / stock_and_asset_items_amount
+						if stock_and_asset_items_amount
+						else flt(item.qty) / stock_and_asset_items_qty
+					)
+				elif total_rejected_qty:
+					item_proportion = flt(item.get("rejected_qty")) / flt(total_rejected_qty)
 
 				if i == (last_item_idx - 1):
 					item.item_tax_amount = flt(
