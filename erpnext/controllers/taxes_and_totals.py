@@ -268,30 +268,17 @@ class calculate_taxes_and_totals:
 
 	def reset_item_wise_tax_details(self):
 		# Identify taxes that shouldn't be recomputed
-		dont_recompute_taxes = {
-			tax.name for tax in self.doc.get("taxes", []) if tax.get("dont_recompute_tax")
-		}
+		dont_recompute_taxes = [d for d in self.doc.get("taxes") if d.get("dont_recompute_tax")]
 
-		overridden_tax_rows = set()
-		retained_item_wise_details = []
-
+		item_wise_tax_details = []
 		# retain tax_breakup for dont_recompute_taxes
 		for row in self.doc.get("_item_wise_tax_details") or []:
 			tax = row.get("tax")
-			tax_name = tax.get("name") if tax else None
+			if tax in dont_recompute_taxes:
+				item_wise_tax_details.append(row)
 
-			if tax_name in dont_recompute_taxes:
-				retained_item_wise_details.append(row)
-				overridden_tax_rows.add(tax_name)
-
-		self.doc._item_wise_tax_details = retained_item_wise_details
-
-		# retain row for item_wise_tax_details for dont_recompute_taxes but not overridden
-		self.doc.item_wise_tax_details = [
-			row
-			for row in self.doc.item_wise_tax_details
-			if row.tax_row in dont_recompute_taxes and row.tax_row not in overridden_tax_rows
-		]
+		self.doc._item_wise_tax_details = item_wise_tax_details
+		self.doc.item_wise_tax_details = []
 
 	def determine_exclusive_rate(self):
 		if not any(cint(tax.included_in_print_rate) for tax in self.doc.get("taxes")):
