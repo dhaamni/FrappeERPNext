@@ -1225,7 +1225,7 @@ def validate_item_wise_tax_details(doc):
 
 	taxes = {}
 	precision = doc.precision("base_tax_amount_after_discount_amount", "taxes")
-	for row in doc.get("_item_wise_tax_details"):
+	for row in doc.get("_item_wise_tax_details") or []:
 		tax = row.get("tax")
 		if not tax:
 			continue
@@ -1237,18 +1237,15 @@ def validate_item_wise_tax_details(doc):
 		taxes.setdefault(tax.name, frappe._dict({"actual": tax_amount, "breakup": 0.0, "index": tax.idx}))
 		taxes[tax.name]["breakup"] += flt(row.amount, precision)
 
-	invalid_tax_rows = []
+	invalid_tax_rows = False
 	for tax in taxes.values():
-		diff = tax.actual - tax.breakup
-		if abs(diff) >= (1.0 / (10**precision)):
-			invalid_tax_rows.append(_("Row {0}").format(tax.idx))
+		diff = flt(tax.actual - tax.breakup, precision)
+		if abs(diff) > (1.0 / (10**precision)):
+			invalid_tax_rows = True
+			break
 
 	if invalid_tax_rows:
-		frappe.throw(
-			_("Item Wise Tax Details do not match with Taxes and Charges. Please check the following rows:")
-			+ "<br>"
-			+ "<br>".join(invalid_tax_rows),
-		)
+		frappe.throw(_("Item Wise Tax Details do not match with Taxes and Charges."))
 
 
 class init_landed_taxes_and_totals:
