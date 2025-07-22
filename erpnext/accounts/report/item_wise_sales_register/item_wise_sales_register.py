@@ -539,32 +539,20 @@ def get_tax_accounts(
 ):
 	tax_columns = set()
 	invoice_item_row = {}
-	itemised_tax = {}
 
 	invoice_item_row = [d.name for d in item_list]
+
 	tax = frappe.qb.DocType("Item Wise Tax Detail")
 	taxes_and_charges = frappe.qb.DocType(tax_doctype)
-	account_doctype = frappe.qb.DocType("Account")
-
+	account = frappe.qb.DocType("Account")
 	tax_details = (
-		frappe.qb.from_(tax)
-		.left_join(taxes_and_charges)
-		.on(tax.tax_row == taxes_and_charges.name)
-		.left_join(account_doctype)
-		.on(taxes_and_charges.account_head == account_doctype.name)
-		.select(
-			tax.parent,
-			tax.item_row,
-			tax.rate,
-			tax.amount,
-			tax.taxable_amount,
-			taxes_and_charges.charge_type,
-			taxes_and_charges.account_head,
-			taxes_and_charges.description,
-			account_doctype.account_type,
+		get_tax_details_query(
+			doctype,
+			tax_doctype,
 		)
-		.where(tax.parenttype == doctype)
-		.where(tax.item_row.isin(invoice_item_row))
+		.left_join(account)
+		.on(taxes_and_charges.account_head == account.name)
+		.tax_details.where(tax.item_row.isin(invoice_item_row))
 	)
 
 	if doctype == "Purchase Invoice":
@@ -579,6 +567,7 @@ def get_tax_accounts(
 		get_field_precision(frappe.get_meta(tax_doctype).get_field("tax_amount"), currency=company_currency)
 		or 2
 	)
+	itemised_tax = {}
 	for row in tax_details:
 		description = handle_html(row.description)
 		rate = "NA" if row.rate == 0 else row.rate
@@ -649,6 +638,31 @@ def get_tax_accounts(
 	]
 
 	return itemised_tax, tax_columns
+
+
+def get_tax_details_query(doctype, tax_doctype):
+	tax = frappe.qb.DocType("Item Wise Tax Detail")
+	taxes_and_charges = frappe.qb.DocType(tax_doctype)
+
+	query = (
+		frappe.qb.from_(tax)
+		.left_join(taxes_and_charges)
+		.on(tax.tax_row == taxes_and_charges.name)
+		.select(
+			tax.parent,
+			tax.item_row,
+			tax.rate,
+			tax.amount,
+			tax.taxable_amount,
+			taxes_and_charges.charge_type,
+			taxes_and_charges.account_head,
+			taxes_and_charges.description,
+		)
+		.where(tax.parenttype == doctype)
+		.where(tax.docstatus == 1)
+	)
+
+	return query
 
 
 def add_total_row(
