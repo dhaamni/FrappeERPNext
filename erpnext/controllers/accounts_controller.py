@@ -4048,15 +4048,14 @@ def check_if_child_table_updated(child_table_before_update, child_table_after_up
 
 
 def merge_taxes(source_doc, target_doc):
-	existing_taxes = target_doc.get("taxes") or []
+	tax_map = {}
 	for tax in source_doc.get("taxes") or []:
 		found = False
-		for t in existing_taxes:
+		for t in target_doc.get("taxes") or []:
 			if t.account_head == tax.account_head and t.cost_center == tax.cost_center:
 				t.tax_amount = flt(t.tax_amount) + flt(tax.tax_amount_after_discount_amount)
 				t.base_tax_amount = flt(t.base_tax_amount) + flt(tax.base_tax_amount_after_discount_amount)
-				t._old_name = tax.name
-				t.do_not_recompute_tax = t.charge_type == "Actual"
+				tax_map[tax.name] = t
 				found = True
 
 		if not found:
@@ -4064,16 +4063,12 @@ def merge_taxes(source_doc, target_doc):
 			tax.included_in_print_rate = 0
 			tax.dont_recompute_tax = 1
 			tax.row_id = ""
+			tax.idx = ""
 			tax.tax_amount = tax.tax_amount_after_discount_amount
 			tax.base_tax_amount = tax.base_tax_amount_after_discount_amount
-			tax.item_wise_tax_detail = tax.item_wise_tax_detail
-			tax._old_name = tax.name
-			existing_taxes.append(tax)
-
-	target_doc.set("taxes", existing_taxes)
+			tax_map[tax.name] = target_doc.append("taxes", tax)
 
 	item_map = {d._old_name: d for d in target_doc.get("items") if d.get("_old_name")}
-	tax_map = {d._old_name: d for d in target_doc.get("taxes") if d.get("_old_name")}
 
 	item_tax_details = target_doc.get("_item_wise_tax_details") or []
 	for row in source_doc.get("item_wise_tax_details"):
