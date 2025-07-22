@@ -66,7 +66,7 @@ class calculate_taxes_and_totals:
 			self.calculate_total_advance()
 
 		if self.doc.meta.get_field("other_charges_calculation"):
-			self.other_charges_calculation = ""
+			self.set_item_wise_tax_breakup()
 
 	def _calculate(self):
 		self.validate_conversion_rate()
@@ -1035,6 +1035,9 @@ class calculate_taxes_and_totals:
 
 		return rate_with_margin, base_rate_with_margin
 
+	def set_item_wise_tax_breakup(self):
+		self.doc.other_charges_calculation = get_itemised_tax_breakup_html(self.doc)
+
 	def set_total_amount_to_default_mop(self, total_amount_to_pay):
 		total_paid_amount = 0
 		for payment in self.doc.get("payments"):
@@ -1129,17 +1132,17 @@ def get_itemised_tax_breakup_data(doc):
 	return itemised_tax_data
 
 
-# TODO: Handle same item with different tax rates
 def get_itemised_tax(doc, with_tax_account=False):
 	itemised_tax = {}
-	item_row_map = {item.name: item for item in doc.get("items")}
-	tax_row_map = {tax.name: tax for tax in doc.get("taxes")}
 	precision = doc.precision("tax_amount", "taxes")
 
-	for row in doc.get("item_wise_tax_details"):
-		item = item_row_map.get(row.item_row)
+	for row in doc.get("_item_wise_tax_details"):
+		item = row.get("item")
+		tax = row.get("tax")
+		if not item or not tax:
+			continue
+
 		item_code = item.item_code or item.item_name
-		tax = tax_row_map.get(row.tax_row)
 		if getattr(tax, "category", None) and tax.category == "Valuation":
 			continue
 
@@ -1214,12 +1217,6 @@ def process_item_wise_tax_details(doc):
 	doc._item_wise_tax_details = []
 
 	bulk_insert("Item Wise Tax Detail", docs)
-	if doc.meta.get_field("other_charges_calculation"):
-		tax_breakup = get_itemised_tax_breakup_html(doc)
-		doc.other_charges_calculation = tax_breakup
-		frappe.db.set_value(
-			doc.doctype, doc.name, "other_charges_calculation", tax_breakup, update_modified=False
-		)
 
 
 def validate_item_wise_tax_details(doc):
