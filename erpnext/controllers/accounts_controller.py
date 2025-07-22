@@ -305,6 +305,7 @@ class AccountsController(TransactionBase):
 		if self.doctype != "Material Request" and not self.ignore_pricing_rule:
 			apply_pricing_rule_on_transaction(self)
 
+		self.validate_item_wise_tax_details()
 		self.set_total_in_words()
 		self.set_default_letter_head()
 		self.validate_company_in_accounting_dimension()
@@ -679,6 +680,11 @@ class AccountsController(TransactionBase):
 		):
 			self.calculate_commission()
 			self.calculate_contribution()
+
+	def validate_item_wise_tax_details(self):
+		from erpnext.controllers.taxes_and_totals import validate_item_wise_tax_details
+
+		validate_item_wise_tax_details(self)
 
 	def validate_date_with_fiscal_year(self):
 		if self.meta.get_field("fiscal_year"):

@@ -1181,8 +1181,16 @@ def get_rounding_tax_settings():
 	return frappe.get_single_value("Accounts Settings", "round_row_wise_tax")
 
 
-def process_item_wise_tax_details(doc):
+def ignore_item_wise_tax_details(doc):
+	"""Ignore item wise tax details if the doctype does not have item_wise_tax_details field."""
 	if not doc.meta.get_field("item_wise_tax_details"):
+		return True
+
+	return False
+
+
+def process_item_wise_tax_details(doc):
+	if ignore_item_wise_tax_details(doc):
 		return
 
 	if not doc.get("_item_wise_tax_details"):
@@ -1211,6 +1219,38 @@ def process_item_wise_tax_details(doc):
 		doc.other_charges_calculation = tax_breakup
 		frappe.db.set_value(
 			doc.doctype, doc.name, "other_charges_calculation", tax_breakup, update_modified=False
+		)
+
+
+def validate_item_wise_tax_details(doc):
+	if ignore_item_wise_tax_details(doc):
+		return
+
+	taxes = {}
+	precision = doc.precision("base_tax_amount_after_discount_amount", "taxes")
+	for row in doc.get("_item_wise_tax_details"):
+		tax = row.get("tax")
+		if not tax:
+			continue
+		tax_amount = flt(
+			tax.base_tax_amount_after_discount_amount, tax.precision("base_tax_amount_after_discount_amount")
+		)
+		if tax.get("add_deduct_tax") == "Deduct":
+			tax_amount *= -1
+		taxes.setdefault(tax.name, frappe._dict({"actual": tax_amount, "breakup": 0.0, "index": tax.idx}))
+		taxes[tax.name]["breakup"] += flt(row.amount, precision)
+
+	invalid_tax_rows = []
+	for tax in taxes.values():
+		diff = tax.actual - tax.breakup
+		if abs(diff) >= (1.0 / (10**precision)):
+			invalid_tax_rows.append(_("Row {0}").format(tax.idx))
+
+	if invalid_tax_rows:
+		frappe.throw(
+			_("Item Wise Tax Details do not match with Taxes and Charges. Please check the following rows:")
+			+ "<br>"
+			+ "<br>".join(invalid_tax_rows),
 		)
 
 
