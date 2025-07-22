@@ -241,7 +241,7 @@ class calculate_taxes_and_totals:
 			doc.set("base_" + f, val)
 
 	def initialize_taxes(self):
-		self.unset_item_wise_tax_details()
+		self.reset_item_wise_tax_details()
 		for tax in self.doc.get("taxes"):
 			if not self.discount_amount_applied:
 				validate_taxes_and_charges(tax)
@@ -266,17 +266,32 @@ class calculate_taxes_and_totals:
 
 			self.doc.round_floats_in(tax)
 
-	def unset_item_wise_tax_details(self):
-		# Keep only item_wise_tax_details that are inserted with `dont_recompute_tax` set to 1.
+	def reset_item_wise_tax_details(self):
+		# Identify taxes that shouldn't be recomputed
+		dont_recompute_taxes = {
+			tax.name for tax in self.doc.get("taxes", []) if tax.get("dont_recompute_tax")
+		}
+
+		overridden_tax_rows = set()
+		retained_item_wise_details = []
+
+		# retain tax_breakup for dont_recompute_taxes
+		for row in self.doc.get("_item_wise_tax_details") or []:
+			tax = row.get("tax")
+			tax_name = tax.get("name") if tax else None
+
+			if tax_name in dont_recompute_taxes:
+				retained_item_wise_details.append(row)
+				overridden_tax_rows.add(tax_name)
+
+		self.doc._item_wise_tax_details = retained_item_wise_details
+
+		# retain row for item_wise_tax_details for dont_recompute_taxes but not overridden
 		self.doc.item_wise_tax_details = [
-			d for d in self.doc.get("item_wise_tax_details") if d.get("dont_recompute_tax")
+			row
+			for row in self.doc.item_wise_tax_details
+			if row.tax_row in dont_recompute_taxes and row.tax_row not in overridden_tax_rows
 		]
-
-		# If this is a consolidated document, do not unset item_wise_tax_details(it is manually set in consolidated documents).
-		if self.doc.get("is_consolidated"):
-			return
-
-		self.doc._item_wise_tax_details = []
 
 	def determine_exclusive_rate(self):
 		if not any(cint(tax.included_in_print_rate) for tax in self.doc.get("taxes")):
@@ -533,7 +548,7 @@ class calculate_taxes_and_totals:
 			# don't sum current net amount due to the field being a currency field
 			current_tax_amount = tax_rate * item.qty
 
-		if not (self.doc.get("is_consolidated") or tax.get("dont_recompute_tax")):
+		if not tax.get("dont_recompute_tax"):
 			self.set_item_wise_tax(item, tax, tax_rate, current_tax_amount, current_net_amount)
 
 		return current_net_amount, current_tax_amount
@@ -550,6 +565,10 @@ class calculate_taxes_and_totals:
 			item_wise_tax_amount = flt(item_wise_tax_amount, tax.precision("tax_amount"))
 			item_wise_taxable_amount = flt(item_wise_taxable_amount, tax.precision("net_amount"))
 
+		if tax.get("add_deduct_tax") == "Deduct":
+			item_wise_tax_amount *= -1
+			item_wise_taxable_amount *= -1
+
 		# storing tax and item row object as names are not present
 		self.doc._item_wise_tax_details.append(
 			frappe._dict(
@@ -558,7 +577,6 @@ class calculate_taxes_and_totals:
 				rate=tax_rate,
 				amount=item_wise_tax_amount,
 				taxable_amount=item_wise_taxable_amount,
-				dont_recompute_tax=0,
 			)
 		)
 
@@ -1189,6 +1207,7 @@ def process_item_wise_tax_details(doc):
 			"item_wise_tax_details",
 			{
 				**row,
+				"docstatus": 1,
 				"item_row": row.item.name,
 				"tax_row": row.tax.name,
 			},
@@ -1201,8 +1220,6 @@ def process_item_wise_tax_details(doc):
 
 	bulk_insert("Item Wise Tax Detail", docs)
 	if doc.meta.get_field("other_charges_calculation"):
-		from erpnext.controllers.taxes_and_totals import get_itemised_tax_breakup_html
-
 		tax_breakup = get_itemised_tax_breakup_html(doc)
 		doc.other_charges_calculation = tax_breakup
 		frappe.db.set_value(

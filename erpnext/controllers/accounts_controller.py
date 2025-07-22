@@ -4077,7 +4077,6 @@ def merge_taxes(source_doc, target_doc):
 				amount=row.amount,
 				rate=row.rate,
 				taxable_amount=row.taxable_amount,
-				dont_recompute_tax=1,
 			)
 		)
 

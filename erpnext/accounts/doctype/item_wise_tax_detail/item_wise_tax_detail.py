@@ -15,7 +15,6 @@ class ItemWiseTaxDetail(Document):
 		from frappe.types import DF
 
 		amount: DF.Currency
-		dont_recompute_tax: DF.Check
 		item_row: DF.Data
 		parent: DF.Data
 		parentfield: DF.Data

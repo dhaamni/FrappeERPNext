@@ -290,7 +290,6 @@ class POSInvoiceMergeLog(Document):
 					amount=d.amount,
 					rate=d.rate,
 					taxable_amount=d.taxable_amount,
-					dont_recompute_tax=1,
 				)
 				item_tax_details.append(row)
 
