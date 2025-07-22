@@ -324,41 +324,11 @@ class BuyingController(SubcontractingController):
 
 		valuation_amount_adjustment = total_valuation_amount
 		for i, item in enumerate(self.get("items")):
-<<<<<<< HEAD
 			if item.item_code and item.qty and item.item_code in stock_and_asset_items:
 				item_proportion = (
 					flt(item.base_net_amount) / stock_and_asset_items_amount
 					if stock_and_asset_items_amount
 					else flt(item.qty) / stock_and_asset_items_qty
-=======
-			if item.item_code and (item.qty or item.get("rejected_qty")):
-				item_tax_amount, actual_tax_amount = 0.0, 0.0
-				if i == (last_item_idx - 1):
-					item_tax_amount = total_valuation_amount
-					actual_tax_amount = total_actual_tax_amount
-				else:
-					# calculate item tax amount
-					item_tax_amount = self.get_item_tax_amount(item, tax_accounts)
-					total_valuation_amount -= item_tax_amount
-
-					if total_actual_tax_amount:
-						actual_tax_amount = self.get_item_actual_tax_amount(
-							item,
-							total_actual_tax_amount,
-							stock_and_asset_items_amount,
-							stock_and_asset_items_qty,
-						)
-						total_actual_tax_amount -= actual_tax_amount
-
-				# This code is required here to calculate the correct valuation for stock items
-				if item.item_code not in stock_and_asset_items:
-					item.valuation_rate = 0.0
-					continue
-
-				# Item tax amount is the total tax amount applied on that item and actual tax type amount
-				item.item_tax_amount = flt(
-					item_tax_amount + actual_tax_amount, self.precision("item_tax_amount", item)
->>>>>>> b7039cc506 (fix: valuation for rejected materials)
 				)
 
 				if i == (last_item_idx - 1):
