@@ -791,14 +791,32 @@ def get_reconciliation_effect_date(reference, company, posting_date):
 		"Company", company, "reconciliation_takes_effect_on"
 	)
 
+	# initializing reconcile_on with a default value
+	reconcile_on = posting_date
+
 	if reconciliation_takes_effect_on == "Advance Payment Date":
 		reconcile_on = posting_date
 	elif reconciliation_takes_effect_on == "Oldest Of Invoice Or Advance":
 		date_field = "posting_date"
-		if reference.against_voucher_type in ["Sales Order", "Purchase Order"]:
+		
+		# Handle both PaymentEntryReference objects and reconciliation objects
+		if hasattr(reference, 'against_voucher_type'):
+
+			voucher_type = reference.against_voucher_type
+			voucher_no = reference.against_voucher
+		elif hasattr(reference, 'reference_doctype'):
+
+			voucher_type = reference.reference_doctype
+			voucher_no = reference.reference_name
+		else:
+			# Fallback
+			reconcile_on = posting_date
+			return reconcile_on
+		
+		if voucher_type in ["Sales Order", "Purchase Order"]:
 			date_field = "transaction_date"
 		reconcile_on = frappe.db.get_value(
-			reference.against_voucher_type, reference.against_voucher, date_field
+			voucher_type, voucher_no, date_field
 		)
 		if getdate(reconcile_on) < getdate(posting_date):
 			reconcile_on = posting_date
