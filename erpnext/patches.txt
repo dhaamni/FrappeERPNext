@@ -333,6 +333,12 @@ erpnext.patches.v13_0.update_docs_link
 erpnext.patches.v14_0.enable_all_leads
 execute:frappe.db.set_single_value("Accounts Settings", "merge_similar_account_heads", 0)
 erpnext.patches.v14_0.update_reference_type_in_journal_entry_accounts
+<<<<<<< HEAD
+=======
+erpnext.patches.v14_0.update_subscription_details # 23-07-2025
+execute:frappe.delete_doc("Report", "Tax Detail", force=True)
+erpnext.patches.v15_0.enable_all_leads
+>>>>>>> c7b1379a7f (fix: update subscription details patch)
 erpnext.patches.v14_0.update_company_in_ldc
 erpnext.patches.v14_0.set_packed_qty_in_draft_delivery_notes
 erpnext.patches.v14_0.cleanup_workspaces
