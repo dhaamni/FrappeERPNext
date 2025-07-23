@@ -4,7 +4,6 @@
 
 import frappe
 from frappe import _
-from frappe.model.meta import get_field_precision
 from frappe.query_builder import functions as fn
 from frappe.utils import cstr, flt
 from frappe.utils.nestedset import get_descendants_of
@@ -537,39 +536,36 @@ def get_tax_accounts(
 	doctype="Sales Invoice",
 	tax_doctype="Sales Taxes and Charges",
 ):
-	tax_columns = set()
-	invoice_item_row = {}
-
 	invoice_item_row = [d.name for d in item_list]
-
 	tax = frappe.qb.DocType("Item Wise Tax Detail")
 	taxes_and_charges = frappe.qb.DocType(tax_doctype)
 	account = frappe.qb.DocType("Account")
-	tax_details = (
+
+	query = (
 		get_tax_details_query(
 			doctype,
 			tax_doctype,
 		)
 		.left_join(account)
 		.on(taxes_and_charges.account_head == account.name)
+		.select(account.account_type)
 		.where(tax.item_row.isin(invoice_item_row))
 	)
 
 	if doctype == "Purchase Invoice":
-		tax_details = tax_details.where(
+		query = query.where(
 			(taxes_and_charges.category.isin(["Total", "Valuation and Total"]))
 			& (taxes_and_charges.base_tax_amount_after_discount_amount != 0)
 		)
 
-	tax_details = tax_details.run(as_dict=True)
+	tax_details = query.run(as_dict=True)
 
-	precision = (
-		get_field_precision(frappe.get_meta(tax_doctype).get_field("tax_amount"), currency=company_currency)
-		or 2
-	)
+	precision = frappe.get_precision(tax_doctype, "tax_amount", currency=company_currency) or 2
+	tax_columns = set()
 	itemised_tax = {}
+
 	for row in tax_details:
-		description = handle_html(row.description)
+		description = handle_html(row.description) or row.account_head
 		rate = "NA" if row.rate == 0 else row.rate
 		tax_columns.add(description)
 		itemised_tax.setdefault(row.item_row, {}).setdefault(
