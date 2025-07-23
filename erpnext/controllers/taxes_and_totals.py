@@ -480,6 +480,40 @@ class calculate_taxes_and_totals:
 
 			self._set_in_company_currency(tax, ["total"])
 
+		self.adjust_rounding_in_item_wise_tax_details()
+
+	def adjust_rounding_in_item_wise_tax_details(self):
+		if not self.doc.get("_item_wise_tax_details"):
+			return
+
+		# reset temporary attributes
+		for tax in self.doc.taxes:
+			tax._total_tax_breakup = 0
+			tax._last_row_idx = None
+
+		for idx, d in enumerate(self.doc._item_wise_tax_details):
+			tax = d.get("tax")
+			if not tax:
+				continue
+			tax._total_tax_breakup += d.amount or 0
+			tax._last_row_idx = idx
+
+		# Apply rounding difference to the last row
+		for tax in self.doc.taxes:
+			last_idx = tax._last_row_idx
+			if last_idx is None:
+				continue
+
+			multiplier = -1 if tax.get("add_deduct_tax") == "Deduct" else 1
+			expected_amount = tax.base_tax_amount_after_discount_amount * multiplier
+			actual_breakup = tax._total_tax_breakup
+			diff = flt(expected_amount - actual_breakup, 5)
+
+			# TODO: how much diff allowed ??
+			if diff <= 0.5:
+				detail_row = self.doc._item_wise_tax_details[last_idx]
+				detail_row["amount"] = flt(detail_row["amount"] + diff, 5)
+
 	def get_tax_amount_if_for_valuation_or_deduction(self, tax_amount, tax):
 		# if just for valuation, do not add the tax amount in total
 		# if tax/charges is for deduction, multiply by -1
@@ -545,17 +579,16 @@ class calculate_taxes_and_totals:
 	def set_item_wise_tax(self, item, tax, tax_rate, current_tax_amount, current_net_amount):
 		# store tax breakup for each item
 		multiplier = -1 if tax.get("add_deduct_tax") == "Deduct" else 1
-		item_wise_tax_amount = current_tax_amount * self.doc.conversion_rate * multiplier
+		item_wise_tax_amount = flt(
+			current_tax_amount * self.doc.conversion_rate * multiplier, tax.precision("tax_amount")
+		)
 
 		if tax.charge_type != "On Item Quantity":
-			item_wise_taxable_amount = current_net_amount * self.doc.conversion_rate * multiplier
+			item_wise_taxable_amount = flt(
+				current_net_amount * self.doc.conversion_rate * multiplier, tax.precision("tax_amount")
+			)
 		else:
 			item_wise_taxable_amount = 0.0
-
-		if frappe.flags.round_row_wise_tax:
-			item_wise_tax_amount = flt(item_wise_tax_amount, tax.precision("tax_amount"))
-
-			item_wise_taxable_amount = flt(item_wise_taxable_amount, tax.precision("net_amount"))
 
 		# maintaing a temp object with item and tax object because correct name will be available after insertion.
 		self.doc._item_wise_tax_details.append(
@@ -1222,30 +1255,43 @@ def validate_item_wise_tax_details(doc):
 	if ignore_item_wise_tax_details(doc):
 		return
 
-	taxes = {}
-	invalid_tax_rows = False
-	field = "base_tax_amount_after_discount_amount"
-	precision = doc.precision(field, "taxes")
-	tax_details = doc.get("_item_wise_tax_details") or []
+	if not doc.get("_item_wise_tax_details"):
+		return
 
-	for row in tax_details:
-		if not (tax := row.get("tax")):
+	precision = doc.precision("base_tax_amount_after_discount_amount", "taxes")
+
+	# reset temp attributes
+	for tax_row in doc.taxes:
+		tax_row._total_tax_breakup = 0.0
+
+	for d in doc._item_wise_tax_details:
+		if not (tax := d.get("tax")):
 			continue
 
-		multiplier = -1 if tax.get("add_deduct_tax") == "Deduct" else 1
-		tax_amount = flt(tax.get(field) * multiplier, precision)
+		tax._total_tax_breakup += d.amount
 
-		taxes.setdefault(tax.name, frappe._dict({"actual": tax_amount, "breakup": 0.0}))
-		taxes[tax.name]["breakup"] += row.amount
+	# Check each tax row for difference
+	invalid_rows = []
 
-	for d in taxes.values():
-		diff = flt(d.actual - d.breakup, precision)
-		if abs(diff) > (1.0 / (10**precision)):
-			invalid_tax_rows = True
-			break
+	for tax_row in doc.taxes:
+		actual_total = tax_row.get("_total_tax_breakup") or 0
 
-	if invalid_tax_rows:
-		frappe.throw(_("Item Wise Tax Details do not match with Taxes and Charges."))
+		multiplier = -1 if tax_row.get("add_deduct_tax") == "Deduct" else 1
+		expected_total = tax_row.base_tax_amount_after_discount_amount * multiplier
+
+		diff = flt(expected_total - actual_total, precision)
+
+		if abs(diff) > (1 / (10**precision)):
+			invalid_rows.append(f"Row {tax_row.idx} (Difference: {diff})")
+
+	if invalid_rows:
+		message = (
+			_("Item Wise Tax Details do not match with Taxes and Charges at the following rows:")
+			+ "<br>"
+			+ "<br>".join(invalid_rows)
+		)
+
+		frappe.throw(_(message))
 
 
 class init_landed_taxes_and_totals:
