@@ -1106,6 +1106,7 @@
    "fieldtype": "Table",
    "hidden": 1,
    "label": "Item Wise Tax Details",
+   "no_copy": 1,
    "options": "Item Wise Tax Detail"
   }
  ],
@@ -1113,7 +1114,7 @@
  "idx": 82,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-17 18:08:24.635135",
+ "modified": "2025-07-23 02:22:24.650584",
  "modified_by": "Administrator",
  "module": "Selling",
  "name": "Quotation",

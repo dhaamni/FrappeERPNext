@@ -1314,6 +1314,7 @@
    "fieldtype": "Table",
    "hidden": 1,
    "label": "Item Wise Tax Details",
+   "no_copy": 1,
    "options": "Item Wise Tax Detail"
   }
  ],
@@ -1322,7 +1323,7 @@
  "idx": 105,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-17 18:05:06.754879",
+ "modified": "2025-07-23 02:23:25.287971",
  "modified_by": "Administrator",
  "module": "Buying",
  "name": "Purchase Order",

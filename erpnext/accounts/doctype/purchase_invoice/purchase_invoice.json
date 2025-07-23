@@ -1658,6 +1658,7 @@
    "fieldtype": "Table",
    "hidden": 1,
    "label": "Item Wise Tax Details",
+   "no_copy": 1,
    "options": "Item Wise Tax Detail"
   }
  ],
@@ -1666,7 +1667,7 @@
  "idx": 204,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-17 18:04:09.083407",
+ "modified": "2025-07-23 02:23:03.424284",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Purchase Invoice",

@@ -1688,6 +1688,7 @@
    "fieldtype": "Table",
    "hidden": 1,
    "label": "Item Wise Tax Details",
+   "no_copy": 1,
    "options": "Item Wise Tax Detail"
   }
  ],
@@ -1695,7 +1696,7 @@
  "idx": 105,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-17 18:09:11.452464",
+ "modified": "2025-07-23 02:22:00.595544",
  "modified_by": "Administrator",
  "module": "Selling",
  "name": "Sales Order",

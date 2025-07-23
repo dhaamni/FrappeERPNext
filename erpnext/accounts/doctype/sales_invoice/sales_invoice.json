@@ -2226,6 +2226,7 @@
    "fieldtype": "Table",
    "hidden": 1,
    "label": "Item Wise Tax Details",
+   "no_copy": 1,
    "options": "Item Wise Tax Detail"
   }
  ],
@@ -2240,7 +2241,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2025-07-17 18:03:57.925887",
+ "modified": "2025-07-23 02:21:35.579491",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Sales Invoice",
