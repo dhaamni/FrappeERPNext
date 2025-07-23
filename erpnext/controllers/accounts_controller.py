@@ -7,7 +7,6 @@ from collections import defaultdict
 
 import frappe
 from frappe import _, bold, qb, throw
-from frappe.model.document import bulk_insert
 from frappe.model.workflow import get_workflow_name, is_transition_condition_satisfied
 from frappe.query_builder import Criterion, DocType
 from frappe.query_builder.custom import ConstantColumn
