@@ -283,8 +283,11 @@ class StockBalanceReport:
 		)
 
 		for fieldname in ["warehouse", "item_code", "item_group", "warehouse_type"]:
-			if self.filters.get(fieldname):
-				query = query.where(table[fieldname] == self.filters.get(fieldname))
+			if value := self.filters.get(fieldname):
+				if isinstance(value, list | tuple):
+					query = query.where(table[fieldname].isin(value))
+				else:
+					query = query.where(table[fieldname] == value)
 
 		return query.run(as_dict=True)
 
