@@ -4072,10 +4072,15 @@ def merge_taxes(source_doc, target_doc):
 
 	item_tax_details = target_doc.get("_item_wise_tax_details") or []
 	for row in source_doc.get("item_wise_tax_details"):
+		item = (item_map.get(row.item_row),)
+		tax = (tax_map.get(row.tax_row),)
+		if not (item and tax):
+			continue
+
 		item_tax_details.append(
 			frappe._dict(
-				item=item_map.get(row.item_row),
-				tax=tax_map.get(row.tax_row),
+				item=item,
+				tax=tax,
 				amount=row.amount,
 				rate=row.rate,
 				taxable_amount=row.taxable_amount,
