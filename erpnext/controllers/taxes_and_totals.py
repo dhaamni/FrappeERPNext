@@ -544,21 +544,20 @@ class calculate_taxes_and_totals:
 
 	def set_item_wise_tax(self, item, tax, tax_rate, current_tax_amount, current_net_amount):
 		# store tax breakup for each item
-		item_wise_tax_amount = flt(current_tax_amount * self.doc.conversion_rate, tax.precision("tax_amount"))
+		multiplier = -1 if tax.get("add_deduct_tax") == "Deduct" else 1
+		item_wise_tax_amount = current_tax_amount * self.doc.conversion_rate * multiplier
+
 		if tax.charge_type != "On Item Quantity":
-			item_wise_taxable_amount = flt(
-				current_net_amount * self.doc.conversion_rate, tax.precision("net_amount")
-			)
+			item_wise_taxable_amount = current_net_amount * self.doc.conversion_rate * multiplier
 		else:
 			item_wise_taxable_amount = 0.0
+
+		if frappe.flags.round_row_wise_tax:
 			item_wise_tax_amount = flt(item_wise_tax_amount, tax.precision("tax_amount"))
+
 			item_wise_taxable_amount = flt(item_wise_taxable_amount, tax.precision("net_amount"))
 
-		if tax.get("add_deduct_tax") == "Deduct":
-			item_wise_tax_amount *= -1
-			item_wise_taxable_amount *= -1
-
-		# storing tax and item row object as row names are temporary
+		# maintaing a temp object with item and tax object because correct name will be available after insertion.
 		self.doc._item_wise_tax_details.append(
 			frappe._dict(
 				item=item,
@@ -1224,24 +1223,24 @@ def validate_item_wise_tax_details(doc):
 		return
 
 	taxes = {}
-	precision = doc.precision("base_tax_amount_after_discount_amount", "taxes")
-	for row in doc.get("_item_wise_tax_details") or []:
-		tax = row.get("tax")
-		if not tax:
+	invalid_tax_rows = False
+	field = "base_tax_amount_after_discount_amount"
+	precision = doc.precision(field, "taxes")
+	tax_details = doc.get("_item_wise_tax_details") or []
+
+	for row in tax_details:
+		if not (tax := row.get("tax")):
 			continue
-		tax_amount = flt(
-			tax.base_tax_amount_after_discount_amount, tax.precision("base_tax_amount_after_discount_amount")
-		)
-		if tax.get("add_deduct_tax") == "Deduct":
-			tax_amount *= -1
-		taxes.setdefault(tax.name, frappe._dict({"actual": tax_amount, "breakup": 0.0, "index": tax.idx}))
+
+		multiplier = -1 if tax.get("add_deduct_tax") == "Deduct" else 1
+		tax_amount = flt(tax.get(field) * multiplier, precision)
+
+		taxes.setdefault(tax.name, frappe._dict({"actual": tax_amount, "breakup": 0.0}))
 		taxes[tax.name]["breakup"] += row.amount
 
-	invalid_tax_rows = False
-	for tax in taxes.values():
-		diff = flt(tax.actual - flt(tax.breakup, precision), precision)
-		# TODO: handle rounding difference
-		if abs(diff) > (0.5):
+	for d in taxes.values():
+		diff = flt(d.actual - d.breakup, precision)
+		if abs(diff) > (1.0 / (10**precision)):
 			invalid_tax_rows = True
 			break
 
