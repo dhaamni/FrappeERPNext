@@ -171,7 +171,7 @@ class ItemTax:
 				# Actual rows where no item_wise_tax_detail
 				elif charge_type == "Actual":
 					if tax_row.get("is_tax_withholding_account"):
-						if not item.get("apply_tds") or not doc.get("tax_withholding_net_total"):
+						if not item.get("apply_tds") or not doc.get("base_tax_withholding_net_total"):
 							item_proportion = 0
 						else:
 							item_proportion = item.base_net_amount / doc.tax_withholding_net_total
