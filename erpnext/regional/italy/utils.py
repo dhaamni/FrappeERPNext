@@ -152,27 +152,27 @@ def get_invoice_summary(items, taxes, item_wise_tax_details):
 		if tax.charge_type in ["On Previous Row Total", "On Previous Row Amount"]:
 			reference_row = next((row for row in taxes if row.idx == int(tax.row_id or 0)), None)
 			if reference_row:
-				append_reference_row_data(items, tax, reference_row, summary_data)
+				append_row_as_charges(items, tax, reference_row, summary_data)
 
 		for row in taxes_wise_tax_details.get(tax.name) or []:
-			key = cstr(row.rate)
-			update_summary_details(summary_data, tax, key, row.amount, row.taxable_amount)
+			update_summary_details(summary_data, tax, row.rate, row.amount, row.taxable_amount)
 
 		if summary_data == {}:
 			# Implies that Zero VAT has not been set on any item.
-			update_summary_details(summary_data, tax, "0.0", 0, tax.total)
+			update_summary_details(summary_data, tax, 0.0, 0.0, tax.total)
 
 	return summary_data
 
 
-def update_summary_details(summary_data, tax, key, amount, taxable_amount):
+def update_summary_details(summary_data, tax, rate, amount, taxable_amount):
+	key = cstr(rate)
 	summary_data.setdefault(
 		key,
 		{
-			"tax_amount": 0,
-			"taxable_amount": 0,
+			"tax_amount": 0.0,
+			"taxable_amount": 0.0,
 			"tax_exemption_reason": "",
-			"tax_exemption_law": "tax.tax_exemption_law",
+			"tax_exemption_law": "",
 		},
 	)
 
@@ -184,10 +184,10 @@ def update_summary_details(summary_data, tax, key, amount, taxable_amount):
 		summary_data[key]["tax_exemption_law"] = tax.tax_exemption_law
 
 
-def append_reference_row_data(items, tax, reference_row, summary_data):
+def append_row_as_charges(items, tax, reference_row, summary_data):
 	rate = tax.rate
-	amount = ((reference_row.tax_amount * tax.rate) / 100,)
-	taxable_amount = (reference_row.tax_amount,)
+	amount = (reference_row.tax_amount * tax.rate) / 100
+	taxable_amount = reference_row.tax_amount
 	items.append(
 		frappe._dict(
 			idx=len(items) + 1,
@@ -206,8 +206,7 @@ def append_reference_row_data(items, tax, reference_row, summary_data):
 			charges=True,
 		)
 	)
-	key = cstr(rate)
-	update_summary_details(summary_data, tax, key, amount, taxable_amount)
+	update_summary_details(summary_data, tax, rate, amount, taxable_amount)
 
 
 # Preflight for successful e-invoice export.
