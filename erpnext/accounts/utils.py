@@ -517,6 +517,9 @@ def reconcile_against_document(
 					skip_ref_details_update_for_pe=skip_ref_details_update_for_pe,
 					dimensions_dict=dimensions_dict,
 				)
+				if referenced_row.get("outstanding_amount"):
+					referenced_row.outstanding_amount -= flt(entry.allocated_amount)
+
 				reposting_rows.append(referenced_row)
 
 		doc.save(ignore_permissions=True)

@@ -451,7 +451,9 @@ class StockEntry(StockController):
 			additional_cost_amt = additional_costs[0][0] if additional_costs else 0
 
 			amount += additional_cost_amt
-			frappe.db.set_value("Project", self.project, "total_consumed_material_cost", amount)
+			project = frappe.get_doc("Project", self.project)
+			project.total_consumed_material_cost = amount
+			project.save()
 
 	def validate_item(self):
 		stock_items = self.get_stock_items()
@@ -1724,9 +1726,6 @@ class StockEntry(StockController):
 				job_doc.set_transferred_qty_in_job_card_item(self)
 			else:
 				job_doc.set_manufactured_qty()
-
-		if self.job_card and frappe.get_cached_value("Job Card", self.job_card, "finished_good"):
-			return
 
 		if self.work_order:
 			pro_doc = frappe.get_doc("Work Order", self.work_order)

@@ -42,6 +42,10 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 			}
 			item.base_rate_with_margin = item.rate_with_margin * flt(frm.doc.conversion_rate);
 
+			cur_frm.cscript.set_gross_profit(item);
+			cur_frm.cscript.calculate_taxes_and_totals();
+			cur_frm.cscript.calculate_stock_uom_rate(frm, cdt, cdn);
+
 			if (item.item_code && item.rate) {
 				frappe.call({
 					method: "erpnext.stock.get_item_details.get_item_tax_template",
@@ -63,10 +67,6 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 					}
 				});
 			}
-
-			cur_frm.cscript.set_gross_profit(item);
-			cur_frm.cscript.calculate_taxes_and_totals();
-			cur_frm.cscript.calculate_stock_uom_rate(frm, cdt, cdn);
 		});
 
 		frappe.ui.form.on(this.frm.cscript.tax_table, "rate", function(frm, cdt, cdn) {
@@ -1019,7 +1019,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 				}
 
 				var party = me.frm.doc[frappe.model.scrub(party_type)];
-				if(party && me.frm.doc.company && (!me.frm.doc.__onload?.load_after_mapping || !me.frm.doc.get(party_account_field))) {
+				if(party && me.frm.doc.company && (!me.frm.doc.__onload?.load_after_mapping || !me.frm.doc[party_account_field])) {
 					return frappe.call({
 						method: "erpnext.accounts.party.get_party_account",
 						args: {
@@ -1437,6 +1437,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 			]);
 		} else {
 			this.conversion_factor(doc, cdt, cdn, true)
+			this.calculate_taxes_and_totals()
 		}
 	}
 
