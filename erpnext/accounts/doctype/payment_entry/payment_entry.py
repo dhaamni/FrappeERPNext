@@ -1970,7 +1970,7 @@ class PaymentEntry(AccountsController):
 		precision = self.precision("paid_amount")
 		total_positive_outstanding_including_order = 0
 		total_negative_outstanding = 0
-		paid_amount -= sum(flt(d.amount, precision) for d in self.deductions)
+		paid_amount += sum(flt(d.amount, precision) for d in self.deductions)
 
 		for ref in self.references:
 			reference_outstanding_amount = flt(ref.outstanding_amount)
