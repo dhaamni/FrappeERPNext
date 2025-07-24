@@ -33,7 +33,11 @@ def execute():
 		for doctype in doctypes:
 			docnames = frappe.get_all(
 				tax_doctype,
-				filters={"item_wise_tax_detail": ["is", "set"], "docstatus": ["=", 1]},
+				filters={
+					"item_wise_tax_detail": ["is", "set"],
+					"docstatus": ["=", 1],
+					"parenttype": ["=", doctype],
+				},
 				pluck="parent",
 			)
 
@@ -49,9 +53,9 @@ def execute():
 				for index in bar:
 					chunk = docnames[index : index + chunk_size]
 					doc_info = get_doc_details(chunk, doctype)
-					docnames = [d.name for d in doc_info]  # valid invoices
-					taxes = get_taxes_for_docs(docnames, tax_doctype, doctype)
-					items = get_items_for_docs(docnames, doctype)
+					docs = [d.name for d in doc_info]  # valid invoices
+					taxes = get_taxes_for_docs(docs, tax_doctype, doctype)
+					items = get_items_for_docs(docs, doctype)
 					compiled_docs = compile_docs(doc_info, taxes, items, doctype, tax_doctype)
 					rows_to_insert = []
 
