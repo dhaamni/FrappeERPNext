@@ -414,6 +414,98 @@ class TestSubscription(IntegrationTestCase):
 		# First invoice will end at "2018-03-31" instead of "2018-04-14"
 		self.assertEqual(get_date_str(subscription.current_invoice_end), "2018-03-31")
 
+	def test_yearly_subscription_with_follow_calendar_months_validation(self):
+		"""Test that yearly billing interval is allowed with follow_calendar_months"""
+		subscription = frappe.new_doc("Subscription")
+		subscription.company = "_Test Company"
+		subscription.party_type = "Customer"
+		subscription.party = "_Test Customer"
+		subscription.start_date = "2024-03-15"  # Mid-year start
+		subscription.follow_calendar_months = 1
+		subscription.append("plans", {"plan": "_Test Plan Yearly", "qty": 1})
+		
+		# This should NOT throw a validation error (the main fix)
+		subscription.validate()
+		subscription.save()
+		
+		self.assertEqual(subscription.follow_calendar_months, 1)
+		self.assertEqual(subscription.plans[0].plan, "_Test Plan Yearly")
+
+	def test_yearly_subscription_without_end_date_follow_calendar_months(self):
+		"""Test that yearly subscription can be created without end_date when follow_calendar_months=1"""
+		subscription = frappe.new_doc("Subscription")
+		subscription.company = "_Test Company"
+		subscription.party_type = "Customer"
+		subscription.party = "_Test Customer"
+		subscription.start_date = "2024-06-01"
+		subscription.follow_calendar_months = 1
+		# Note: No end_date specified - this should work now
+		subscription.append("plans", {"plan": "_Test Plan Yearly", "qty": 1})
+		
+		# Should validate and save without requiring end_date
+		subscription.validate()
+		subscription.save()
+		
+		# Verify it was created successfully
+		self.assertIsNone(subscription.end_date)
+		self.assertEqual(subscription.follow_calendar_months, 1)
+
+	def test_yearly_subscription_calendar_month_end_dates(self):
+		"""Test that yearly subscriptions generate correct calendar year-end dates"""
+		subscription = create_subscription(
+			start_date="2024-03-15",  # Start mid-year
+			follow_calendar_months=1,
+			plans=[{"plan": "_Test Plan Yearly", "qty": 1}]
+		)
+		
+		# Should end on December 31st of the same year
+		self.assertEqual(get_date_str(subscription.current_invoice_end), "2024-12-31")
+
+	def test_yearly_subscription_subsequent_periods_align_to_calendar(self):
+		"""Test that subsequent yearly periods align to calendar years"""
+		subscription = create_subscription(
+			start_date="2024-08-15",  # Start late in year
+			follow_calendar_months=1,
+			plans=[{"plan": "_Test Plan Yearly", "qty": 1}]
+		)
+		
+		# First period should end Dec 31, 2024
+		self.assertEqual(get_date_str(subscription.current_invoice_end), "2024-12-31")
+		
+		# Process to next period and check dates
+		subscription.process(posting_date="2024-12-31")
+		
+		# Next period should be full calendar year: Jan 1 - Dec 31, 2025
+		self.assertEqual(get_date_str(subscription.current_invoice_start), "2025-01-01")
+		self.assertEqual(get_date_str(subscription.current_invoice_end), "2025-12-31")
+
+	def test_invalid_billing_intervals_still_rejected_with_follow_calendar_months(self):
+		"""Test that non-Month/Year intervals are still rejected with follow_calendar_months"""
+		subscription = frappe.new_doc("Subscription")
+		subscription.company = "_Test Company"
+		subscription.party_type = "Customer"
+		subscription.party = "_Test Customer"
+		subscription.start_date = nowdate()
+		subscription.follow_calendar_months = 1
+		# Use a weekly plan - should fail
+		subscription.append("plans", {"plan": "_Test Plan Name 3", "qty": 1})  # This is a 14-day plan
+		
+		# Should throw validation error
+		with self.assertRaises(frappe.ValidationError):
+			subscription.validate()
+
+	def test_monthly_follow_calendar_months_still_works_after_yearly_fix(self):
+		"""Test that existing monthly functionality is not broken by yearly changes"""
+		subscription = create_subscription(
+			start_date="2024-03-15",
+			follow_calendar_months=1,
+			plans=[{"plan": "_Test Plan Name 4", "qty": 1}]  # This is the 3-month plan
+		)
+		
+		# Monthly should still work as before - end on last day of period
+		# 3-month plan starting March 15 with calendar months should end May 31
+		self.assertEqual(get_date_str(subscription.current_invoice_end), "2024-05-31")
+
 	def test_subscription_generate_invoice_past_due(self):
 		subscription = create_subscription(
 			start_date="2018-01-01",
@@ -557,6 +649,26 @@ class TestSubscription(IntegrationTestCase):
 
 
 def make_plans():
+	# Ensure test company exists
+	if not frappe.db.exists("Company", "_Test Company"):
+		if frappe.db.exists("Company", "Test Company"):
+			# Create the standard _Test Company as an alias
+			company = frappe.new_doc("Company")
+			company.company_name = "_Test Company"
+			company.abbr = "_TC"
+			company.default_currency = "INR"
+			company.country = "India"
+			company.insert(ignore_if_duplicate=True)
+	
+	# Ensure test customer exists
+	if not frappe.db.exists("Customer", "_Test Customer"):
+		if frappe.db.exists("Customer", "Test Member"):
+			# Create the standard _Test Customer
+			customer = frappe.new_doc("Customer")
+			customer.customer_name = "_Test Customer"
+			customer.customer_type = "Individual"
+			customer.insert(ignore_if_duplicate=True)
+	
 	create_plan(plan_name="_Test Plan Name", cost=900, currency="INR")
 	create_plan(plan_name="_Test Plan Name 2", cost=1999, currency="INR")
 	create_plan(
@@ -574,6 +686,13 @@ def make_plans():
 		currency="INR",
 	)
 	create_plan(plan_name="_Test Plan Multicurrency", cost=50, billing_interval="Month", currency="USD")
+	create_plan(
+		plan_name="_Test Plan Yearly",
+		cost=12000,
+		billing_interval="Year",
+		billing_interval_count=1,
+		currency="INR",
+	)
 
 
 def create_plan(**kwargs):

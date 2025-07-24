@@ -789,3 +789,211 @@ def process_all(subscription: str | None = None, posting_date: DateTimeLikeObjec
 		except frappe.ValidationError:
 			frappe.db.rollback()
 			subscription.log_error("Subscription failed")
+
+
+@frappe.whitelist()
+def test_yearly_subscription_validation():
+	"""Test that yearly billing interval is allowed with follow_calendar_months"""
+	try:
+		# Ensure required test data exists
+		create_test_data_if_missing()
+		
+		# Create a subscription with yearly plan
+		subscription = frappe.new_doc("Subscription")
+		subscription.company = "_Test Company"
+		subscription.party_type = "Customer"
+		subscription.party = "_Test Customer"
+		subscription.start_date = "2024-03-15"  # Mid-year start
+		subscription.follow_calendar_months = 1
+		subscription.append("plans", {"plan": "_Test Plan Yearly", "qty": 1})
+		
+		# This should NOT throw a validation error (the main fix)
+		subscription.validate()
+		
+		return {
+			"success": True,
+			"message": "✅ PASS: Yearly subscription validation allows follow_calendar_months",
+			"test_details": {
+				"company": subscription.company,
+				"party": subscription.party,
+				"start_date": subscription.start_date,
+				"follow_calendar_months": subscription.follow_calendar_months,
+				"plan": subscription.plans[0].plan if subscription.plans else None
+			}
+		}
+		
+	except frappe.ValidationError as e:
+		if "Billing Interval in Subscription Plan must be Month or Year" in str(e):
+			return {
+				"success": False,
+				"message": "❌ FAIL: Yearly subscriptions still rejected with follow_calendar_months",
+				"error": str(e)
+			}
+		else:
+			return {
+				"success": False,
+				"message": f"❌ FAIL: Unexpected validation error: {e}",
+				"error": str(e)
+			}
+	except Exception as e:
+		return {
+			"success": False,
+			"message": f"❌ FAIL: Unexpected error: {e}",
+			"error": str(e)
+		}
+
+
+@frappe.whitelist()
+def test_yearly_subscription_comprehensive():
+	"""Comprehensive test of yearly subscription functionality"""
+	results = []
+	
+	try:
+		create_test_data_if_missing()
+		
+		# Test 1: Basic yearly subscription validation
+		subscription = frappe.new_doc("Subscription")
+		subscription.company = "_Test Company"
+		subscription.party_type = "Customer"
+		subscription.party = "_Test Customer"
+		subscription.start_date = "2024-03-15"
+		subscription.follow_calendar_months = 1
+		subscription.append("plans", {"plan": "_Test Plan Yearly", "qty": 1})
+		subscription.validate()
+		results.append("✅ Test 1 PASS: Basic yearly validation")
+		
+		# Test 2: Yearly without end_date (should work)
+		subscription2 = frappe.new_doc("Subscription")
+		subscription2.company = "_Test Company"
+		subscription2.party_type = "Customer"
+		subscription2.party = "_Test Customer"
+		subscription2.start_date = "2024-06-01"
+		subscription2.follow_calendar_months = 1
+		# No end_date specified
+		subscription2.append("plans", {"plan": "_Test Plan Yearly", "qty": 1})
+		subscription2.validate()
+		results.append("✅ Test 2 PASS: Yearly without end_date")
+		
+		# Test 3: Check invoice end date calculation
+		from frappe.utils import getdate, get_last_day
+		expected_end = get_last_day("2024-12-01")  # Should end Dec 31, 2024
+		actual_end = subscription.get_current_invoice_end(subscription.start_date)
+		if getdate(actual_end) == getdate(expected_end):
+			results.append("✅ Test 3 PASS: Invoice end date calculation")
+		else:
+			results.append(f"❌ Test 3 FAIL: Expected {expected_end}, got {actual_end}")
+		
+		# Test 4: Non-yearly plans should still be rejected (Day plan)
+		create_day_plan_if_missing()
+		try:
+			subscription3 = frappe.new_doc("Subscription")
+			subscription3.company = "_Test Company"
+			subscription3.party_type = "Customer"
+			subscription3.party = "_Test Customer"
+			subscription3.start_date = "2024-03-15"
+			subscription3.follow_calendar_months = 1
+			subscription3.append("plans", {"plan": "_Test Plan Daily", "qty": 1})
+			subscription3.validate()
+			results.append("❌ Test 4 FAIL: Daily plan should be rejected")
+		except frappe.ValidationError as e:
+			error_msg = str(e)
+			if ("Billing Interval in Subscription Plan must be Month or Year" in error_msg or 
+			    "Subscription End Date is mandatory to follow calendar months when billing interval is Day" in error_msg):
+				results.append("✅ Test 4 PASS: Daily plan correctly rejected")
+			else:
+				results.append(f"❌ Test 4 FAIL: Wrong error: {e}")
+		
+		return {
+			"success": True,
+			"message": f"Comprehensive tests completed: {len([r for r in results if '✅' in r])}/{len(results)} passed",
+			"results": results
+		}
+		
+	except Exception as e:
+		results.append(f"❌ FAIL: Unexpected error: {e}")
+		return {
+			"success": False,
+			"message": "Comprehensive test failed",
+			"results": results,
+			"error": str(e)
+		}
+
+
+def create_test_data_if_missing():
+	"""Create minimal test data if missing"""
+	
+	# Get the company currency to match
+	company_currency = "EUR"  # Default for this site
+	try:
+		if frappe.db.exists("Company", "_Test Company"):
+			company_currency = frappe.db.get_value("Company", "_Test Company", "default_currency")
+		else:
+			# Create _Test Company if it doesn't exist
+			company = frappe.new_doc("Company")
+			company.company_name = "_Test Company"
+			company.abbr = "_TC"
+			company.default_currency = company_currency
+			company.country = "Netherlands"  # Match the site setup
+			company.insert(ignore_if_duplicate=True)
+	except:
+		pass
+	
+	# Create _Test Customer if it doesn't exist
+	if not frappe.db.exists("Customer", "_Test Customer"):
+		customer = frappe.new_doc("Customer")
+		customer.customer_name = "_Test Customer"
+		customer.customer_type = "Individual"
+		customer.insert(ignore_if_duplicate=True)
+	
+	# Create yearly plan if it doesn't exist
+	if not frappe.db.exists("Subscription Plan", "_Test Plan Yearly"):
+		# First ensure we have a test item
+		if not frappe.db.exists("Item", "_Test Non Stock Item"):
+			item = frappe.new_doc("Item")
+			item.item_code = "_Test Non Stock Item"
+			item.item_name = "_Test Non Stock Item"
+			item.item_group = "All Item Groups"
+			item.is_stock_item = 0
+			item.insert(ignore_if_duplicate=True)
+		
+		plan = frappe.new_doc("Subscription Plan")
+		plan.plan_name = "_Test Plan Yearly"
+		plan.item = "_Test Non Stock Item"
+		plan.price_determination = "Fixed Rate"
+		plan.cost = 12000
+		plan.billing_interval = "Year"
+		plan.billing_interval_count = 1
+		plan.currency = company_currency  # Match company currency
+		plan.insert()
+
+
+def create_day_plan_if_missing():
+	"""Create a daily plan for testing rejection"""
+	# Get the company currency to match
+	company_currency = "EUR"  # Default for this site
+	try:
+		if frappe.db.exists("Company", "_Test Company"):
+			company_currency = frappe.db.get_value("Company", "_Test Company", "default_currency")
+	except:
+		pass
+		
+	# Create daily plan if it doesn't exist
+	if not frappe.db.exists("Subscription Plan", "_Test Plan Daily"):
+		# First ensure we have a test item
+		if not frappe.db.exists("Item", "_Test Non Stock Item"):
+			item = frappe.new_doc("Item")
+			item.item_code = "_Test Non Stock Item"
+			item.item_name = "_Test Non Stock Item"
+			item.item_group = "All Item Groups"
+			item.is_stock_item = 0
+			item.insert(ignore_if_duplicate=True)
+		
+		plan = frappe.new_doc("Subscription Plan")
+		plan.plan_name = "_Test Plan Daily"
+		plan.item = "_Test Non Stock Item"
+		plan.price_determination = "Fixed Rate"
+		plan.cost = 100
+		plan.billing_interval = "Day"
+		plan.billing_interval_count = 1
+		plan.currency = company_currency  # Match company currency
+		plan.insert()
