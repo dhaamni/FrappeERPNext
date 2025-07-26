@@ -3669,7 +3669,7 @@ class TestPurchaseReceipt(FrappeTestCase):
 
 		columns, data = execute(
 			filters=frappe._dict(
-				{"item_code": item_code, "warehouse": pr.items[0].warehouse, "company": pr.company}
+				{"item_code": [item_code], "warehouse": [pr.items[0].warehouse], "company": pr.company}
 			)
 		)
 
