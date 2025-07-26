@@ -86,11 +86,10 @@ erpnext.PointOfSale.ItemSelector = class {
 		const precision = flt(price_list_rate, 2) % 1 != 0 ? 2 : 0;
 		let indicator_color;
 		let qty_to_display = actual_qty;
-
-		// Fix: Format qty_to_display to 3 decimals only if it has a fractional part
-	    if (qty_to_display % 1 !== 0) {
-	        qty_to_display = qty_to_display.toFixed(3);
-	    }
+		
+		if (qty_to_display % 1 !== 0) {
+			qty_to_display = qty_to_display.toFixed(3);
+		}
 
 		if (item.is_stock_item) {
 			indicator_color = actual_qty > 10 ? "green" : actual_qty <= 0 ? "red" : "orange";
