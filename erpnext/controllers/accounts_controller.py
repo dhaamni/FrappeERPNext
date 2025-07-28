@@ -135,6 +135,11 @@ class AccountsController(TransactionBase):
 			if self.doctype in relevant_docs:
 				self.set_payment_schedule()
 
+	def on_update(self):
+		from erpnext.controllers.taxes_and_totals import process_item_wise_tax_details
+
+		process_item_wise_tax_details(self)
+
 	def remove_bundle_for_non_stock_invoices(self):
 		has_sabb = False
 		if self.doctype in ("Sales Invoice", "Purchase Invoice") and not self.update_stock:
@@ -299,6 +304,7 @@ class AccountsController(TransactionBase):
 		if self.doctype != "Material Request" and not self.ignore_pricing_rule:
 			apply_pricing_rule_on_transaction(self)
 
+		self.validate_item_wise_tax_details()
 		self.set_total_in_words()
 		self.set_default_letter_head()
 		self.validate_company_in_accounting_dimension()
@@ -673,6 +679,11 @@ class AccountsController(TransactionBase):
 		):
 			self.calculate_commission()
 			self.calculate_contribution()
+
+	def validate_item_wise_tax_details(self):
+		from erpnext.controllers.taxes_and_totals import validate_item_wise_tax_details
+
+		validate_item_wise_tax_details(self)
 
 	def validate_date_with_fiscal_year(self):
 		if self.meta.get_field("fiscal_year"):
@@ -1158,7 +1169,6 @@ class AccountsController(TransactionBase):
 		if self.get("taxes_and_charges"):
 			if not tax_master_doctype:
 				tax_master_doctype = self.meta.get_field("taxes_and_charges").options
-
 			self.extend("taxes", get_taxes_and_charges(tax_master_doctype, self.get("taxes_and_charges")))
 
 	def append_taxes_from_item_tax_template(self):
@@ -4036,35 +4046,47 @@ def check_if_child_table_updated(child_table_before_update, child_table_after_up
 	return False
 
 
-def merge_taxes(source_taxes, target_doc):
-	from erpnext.accounts.doctype.pos_invoice_merge_log.pos_invoice_merge_log import (
-		update_item_wise_tax_detail,
-	)
-
-	existing_taxes = target_doc.get("taxes") or []
-	idx = 1
-	for tax in source_taxes:
+def merge_taxes(source_doc, target_doc):
+	tax_map = {}
+	for tax in source_doc.get("taxes") or []:
 		found = False
-		for t in existing_taxes:
+		for t in target_doc.get("taxes") or []:
 			if t.account_head == tax.account_head and t.cost_center == tax.cost_center:
 				t.tax_amount = flt(t.tax_amount) + flt(tax.tax_amount_after_discount_amount)
 				t.base_tax_amount = flt(t.base_tax_amount) + flt(tax.base_tax_amount_after_discount_amount)
-				update_item_wise_tax_detail(t, tax)
+				tax_map[tax.name] = t
 				found = True
 
 		if not found:
 			tax.charge_type = "Actual"
-			tax.idx = idx
-			idx += 1
 			tax.included_in_print_rate = 0
 			tax.dont_recompute_tax = 1
 			tax.row_id = ""
+			tax.idx = ""
 			tax.tax_amount = tax.tax_amount_after_discount_amount
 			tax.base_tax_amount = tax.base_tax_amount_after_discount_amount
-			tax.item_wise_tax_detail = tax.item_wise_tax_detail
-			existing_taxes.append(tax)
+			tax_map[tax.name] = target_doc.append("taxes", tax)
 
-	target_doc.set("taxes", existing_taxes)
+	item_map = {d._old_name: d for d in target_doc.get("items") if d.get("_old_name")}
+
+	item_tax_details = target_doc.get("_item_wise_tax_details") or []
+	for row in source_doc.get("item_wise_tax_details"):
+		item = item_map.get(row.item_row)
+		tax = tax_map.get(row.tax_row)
+		if not (item and tax):
+			continue
+
+		item_tax_details.append(
+			frappe._dict(
+				item=item,
+				tax=tax,
+				amount=row.amount,
+				rate=row.rate,
+				taxable_amount=row.taxable_amount,
+			)
+		)
+
+	target_doc._item_wise_tax_details = item_tax_details
 
 
 @erpnext.allow_regional

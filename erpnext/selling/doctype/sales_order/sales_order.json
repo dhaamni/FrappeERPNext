@@ -89,6 +89,7 @@
   "discount_amount",
   "sec_tax_breakup",
   "other_charges_calculation",
+  "item_wise_tax_details",
   "packing_list",
   "packed_items",
   "pricing_rule_details",
@@ -1681,13 +1682,21 @@
    "hidden": 1,
    "label": "Has Unit Price Items",
    "no_copy": 1
+  },
+  {
+   "fieldname": "item_wise_tax_details",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Item Wise Tax Details",
+   "no_copy": 1,
+   "options": "Item Wise Tax Detail"
   }
  ],
  "icon": "fa fa-file-text",
  "idx": 105,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-03 16:49:00.676927",
+ "modified": "2025-07-23 02:22:00.595544",
  "modified_by": "Administrator",
  "module": "Selling",
  "name": "Sales Order",
