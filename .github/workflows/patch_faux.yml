@@ -1,6 +1,7 @@
 # Tests are skipped for these files but github doesn't allow "passing" hence this is required.
 
 name: Skipped Patch Test
+permissions: none
 
 on:
   pull_request:
