@@ -68,10 +68,10 @@ class FiscalYear(Document):
 
 	def on_update(self):
 		check_duplicate_fiscal_year(self)
-		frappe.cache().delete_value("fiscal_years")
+		frappe.cache().delete_key("fiscal_years")
 
 	def on_trash(self):
-		frappe.cache().delete_value("fiscal_years")
+		frappe.cache().delete_key("fiscal_years")
 
 	def validate_overlap(self):
 		existing_fiscal_years = frappe.db.sql(
