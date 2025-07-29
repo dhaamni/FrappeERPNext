@@ -947,11 +947,12 @@ def update_accounting_ledgers_after_reference_removal(
 		.set(adv.delinked, 1)
 		.set(adv.modified, now())
 		.set(adv.modified_by, frappe.session.user)
+		.where(adv.delinked == 0)
 		.where(
-			(adv.against_voucher_type == ref_type) & (adv.against_voucher_no == ref_no) & (adv.delinked == 0)
+			((adv.against_voucher_type == ref_type) & (adv.against_voucher_no == ref_no))
+			| ((adv.voucher_type == ref_type) & (adv.voucher_no == ref_no))
 		)
 	)
-
 	if payment_name:
 		adv_ple = adv_ple.where(adv.voucher_no == payment_name)
 
