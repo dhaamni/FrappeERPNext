@@ -3,6 +3,8 @@ from frappe.model.naming import _generate_random_string
 from frappe.query_builder import Case
 from frappe.utils import now_datetime
 
+from erpnext.accounts.utils import get_advance_payment_doctypes
+
 DOCTYPE = "Advance Payment Ledger Entry"
 
 FIELDS = [
@@ -29,9 +31,7 @@ def execute():
 	Create Advance Payment Ledger Entry for all Payments made against Sales / Purchase Orders
 	"""
 	frappe.db.truncate(DOCTYPE)
-	advance_doctpyes = frappe.get_hooks("advance_payment_receivable_doctypes") + frappe.get_hooks(
-		"advance_payment_payable_doctypes"
-	)
+	advance_doctpyes = get_advance_payment_doctypes()
 	make_advance_ledger_entries_for_payment_entries(advance_doctpyes)
 	make_advance_ledger_entries_for_journal_entries(advance_doctpyes)
 
