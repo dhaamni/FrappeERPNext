@@ -1895,9 +1895,6 @@ def get_advance_ledger_entry(gle, against_voucher_type, against_voucher_no, amou
 		if (against_voucher_type == gle.voucher_type and against_voucher_no == gle.voucher_no)
 		else "Adjustment"
 	)
-	if cancel:
-		event = "Cancel"
-
 	return frappe._dict(
 		doctype="Advance Payment Ledger Entry",
 		company=gle.company,
