@@ -781,7 +781,7 @@ class PurchaseInvoice(BuyingController):
 			self.get_provisional_accounts()
 
 		for item in self.get("items"):
-			if flt(item.base_net_amount):
+			if flt(item.base_net_amount) or (self.get("update_stock") and item.valuation_rate):
 				account_currency = get_account_currency(item.expense_account)
 				if item.item_code:
 					frappe.get_cached_value("Item", item.item_code, "asset_category")
