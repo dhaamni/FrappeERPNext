@@ -27,6 +27,7 @@ from frappe.utils import (
 	nowdate,
 )
 from pypika import Order
+from pypika.functions import Coalesce
 from pypika.terms import ExistsCriterion
 
 import erpnext
@@ -2197,6 +2198,8 @@ def run_ledger_health_checks():
 def build_qb_match_conditions(doctype, user=None) -> list:
 	match_filters = build_match_conditions(doctype, user, False)
 	criterion = []
+	apply_strict_user_permissions = frappe.get_system_settings("apply_strict_user_permissions")
+
 	if match_filters:
 		from frappe import qb
 
@@ -2205,6 +2208,12 @@ def build_qb_match_conditions(doctype, user=None) -> list:
 		for filter in match_filters:
 			for d, names in filter.items():
 				fieldname = d.lower().replace(" ", "_")
-				criterion.append(_dt[fieldname].isin(names))
+				field = _dt[fieldname]
+
+				cond = field.isin(names)
+				if not apply_strict_user_permissions:
+					cond = (Coalesce(field, "") == "") | field.isin(names)
+
+				criterion.append(cond)
 
 	return criterion
