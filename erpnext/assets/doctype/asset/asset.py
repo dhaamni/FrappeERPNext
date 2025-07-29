@@ -249,14 +249,11 @@ class Asset(AccountsController):
 			frappe.throw(_("Purchase Invoice cannot be made against an existing asset {0}").format(self.name))
 
 	def prepare_depreciation_data(self):
+		self.value_after_depreciation = flt(self.gross_purchase_amount) - flt(
+			self.opening_accumulated_depreciation
+		)
 		if self.calculate_depreciation:
-			self.value_after_depreciation = 0
 			self.set_depreciation_rate()
-		else:
-			self.finance_books = []
-			self.value_after_depreciation = flt(self.gross_purchase_amount) - flt(
-				self.opening_accumulated_depreciation
-			)
 
 	def validate_item(self):
 		item = frappe.get_cached_value(
