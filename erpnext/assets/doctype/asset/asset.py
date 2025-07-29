@@ -1303,7 +1303,6 @@ def create_new_asset_after_split(asset, split_qty):
 		)
 
 	new_asset.insert()
-	print(".............")
 	add_asset_activity(
 		new_asset.name,
 		_("Asset created after being split from Asset {0}").format(get_link_to_form("Asset", asset.name)),
