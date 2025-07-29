@@ -84,6 +84,22 @@ frappe.query_reports["Accounts Receivable Summary"] = {
 			},
 		},
 		{
+			fieldname: "party_account",
+			label: __("Receivable Account"),
+			fieldtype: "Link",
+			options: "Account",
+			get_query: () => {
+				var company = frappe.query_report.get_filter_value("company");
+				return {
+					filters: {
+						company: company,
+						account_type: "Receivable",
+						is_group: 0,
+					},
+				};
+			},
+		},
+		{
 			fieldname: "customer_group",
 			label: __("Customer Group"),
 			fieldtype: "Link",

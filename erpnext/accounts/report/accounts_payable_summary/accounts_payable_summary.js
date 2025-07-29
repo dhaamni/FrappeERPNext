@@ -84,6 +84,22 @@ frappe.query_reports["Accounts Payable Summary"] = {
 			},
 		},
 		{
+			fieldname: "party_account",
+			label: __("Payable Account"),
+			fieldtype: "Link",
+			options: "Account",
+			get_query: () => {
+				var company = frappe.query_report.get_filter_value("company");
+				return {
+					filters: {
+						company: company,
+						account_type: "Payable",
+						is_group: 0,
+					},
+				};
+			},
+		},
+		{
 			fieldname: "payment_terms_template",
 			label: __("Payment Terms Template"),
 			fieldtype: "Link",
