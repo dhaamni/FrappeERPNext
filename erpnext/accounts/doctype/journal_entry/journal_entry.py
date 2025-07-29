@@ -1179,49 +1179,65 @@ class JournalEntry(AccountsController):
 					self.transaction_exchange_rate = row.exchange_rate
 					break
 
+		advance_doctypes = get_advance_payment_doctypes()
+
 		for d in self.get("accounts"):
 			if d.debit or d.credit or (self.voucher_type == "Exchange Gain Or Loss"):
 				r = [d.user_remark, self.remark]
 				r = [x for x in r if x]
 				remarks = "\n".join(r)
 
+				row = {
+					"account": d.account,
+					"party_type": d.party_type,
+					"due_date": self.due_date,
+					"party": d.party,
+					"against": d.against_account,
+					"debit": flt(d.debit, d.precision("debit")),
+					"credit": flt(d.credit, d.precision("credit")),
+					"account_currency": d.account_currency,
+					"debit_in_account_currency": flt(
+						d.debit_in_account_currency, d.precision("debit_in_account_currency")
+					),
+					"credit_in_account_currency": flt(
+						d.credit_in_account_currency, d.precision("credit_in_account_currency")
+					),
+					"transaction_currency": self.transaction_currency,
+					"transaction_exchange_rate": self.transaction_exchange_rate,
+					"debit_in_transaction_currency": flt(
+						d.debit_in_account_currency, d.precision("debit_in_account_currency")
+					)
+					if self.transaction_currency == d.account_currency
+					else flt(d.debit, d.precision("debit")) / self.transaction_exchange_rate,
+					"credit_in_transaction_currency": flt(
+						d.credit_in_account_currency, d.precision("credit_in_account_currency")
+					)
+					if self.transaction_currency == d.account_currency
+					else flt(d.credit, d.precision("credit")) / self.transaction_exchange_rate,
+					"against_voucher_type": d.reference_type,
+					"against_voucher": d.reference_name,
+					"remarks": remarks,
+					"voucher_detail_no": d.reference_detail_no,
+					"cost_center": d.cost_center,
+					"project": d.project,
+					"finance_book": self.finance_book,
+					"advance_voucher_type": d.advance_voucher_type,
+					"advance_voucher_no": d.advance_voucher_no,
+				}
+
+				if d.reference_type in advance_doctypes:
+					row.update(
+						{
+							"against_voucher_type": self.doctype,
+							"against_voucher": self.name,
+							"advance_voucher_type": d.reference_type,
+							"advance_voucher_no": d.reference_name,
+						}
+					)
+
 				gl_map.append(
 					self.get_gl_dict(
-						{
-							"account": d.account,
-							"party_type": d.party_type,
-							"due_date": self.due_date,
-							"party": d.party,
-							"against": d.against_account,
-							"debit": flt(d.debit, d.precision("debit")),
-							"credit": flt(d.credit, d.precision("credit")),
-							"account_currency": d.account_currency,
-							"debit_in_account_currency": flt(
-								d.debit_in_account_currency, d.precision("debit_in_account_currency")
-							),
-							"credit_in_account_currency": flt(
-								d.credit_in_account_currency, d.precision("credit_in_account_currency")
-							),
-							"transaction_currency": self.transaction_currency,
-							"transaction_exchange_rate": self.transaction_exchange_rate,
-							"debit_in_transaction_currency": flt(
-								d.debit_in_account_currency, d.precision("debit_in_account_currency")
-							)
-							if self.transaction_currency == d.account_currency
-							else flt(d.debit, d.precision("debit")) / self.transaction_exchange_rate,
-							"credit_in_transaction_currency": flt(
-								d.credit_in_account_currency, d.precision("credit_in_account_currency")
-							)
-							if self.transaction_currency == d.account_currency
-							else flt(d.credit, d.precision("credit")) / self.transaction_exchange_rate,
-							"against_voucher_type": d.reference_type,
-							"against_voucher": d.reference_name,
-							"remarks": remarks,
-							"voucher_detail_no": d.reference_detail_no,
-							"cost_center": d.cost_center,
-							"project": d.project,
-							"finance_book": self.finance_book,
-						},
+						row,
 						item=d,
 					)
 				)
