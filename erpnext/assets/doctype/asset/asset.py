@@ -311,6 +311,9 @@ class Asset(AccountsController):
 				)
 
 	def set_missing_values(self):
+		if not self.calculate_depreciation:
+			return
+
 		if not self.asset_category:
 			self.asset_category = frappe.get_cached_value("Item", self.item_code, "asset_category")
 
@@ -1297,7 +1300,6 @@ def create_new_asset_after_split(asset, split_qty):
 		)
 
 	new_asset.insert()
-
 	add_asset_activity(
 		new_asset.name,
 		_("Asset created after being split from Asset {0}").format(get_link_to_form("Asset", asset.name)),
