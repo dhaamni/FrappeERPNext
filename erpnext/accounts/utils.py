@@ -50,6 +50,7 @@ class PaymentEntryUnlinkError(frappe.ValidationError):
 
 
 GL_REPOSTING_CHUNK = 100
+OUTSTANDING_DOCTYPES = frozenset(["Sales Invoice", "Purchase Invoice", "Fees"])
 
 
 @frappe.whitelist()
@@ -1939,26 +1940,22 @@ def update_voucher_outstanding(voucher_type, voucher_no, account, party_type, pa
 		ref_doc.set_total_advance_paid()
 		return
 
-	if not (voucher_type in ["Sales Invoice", "Purchase Invoice", "Fees"] and party_type and party):
+	if not (voucher_type in OUTSTANDING_DOCTYPES and party_type and party):
 		return
 
 	ple = frappe.qb.DocType("Payment Ledger Entry")
 	vouchers = [frappe._dict({"voucher_type": voucher_type, "voucher_no": voucher_no})]
 	common_filter = []
+	common_filter.append(ple.party_type == party_type)
+	common_filter.append(ple.party == party)
+
 	if account:
 		common_filter.append(ple.account == account)
-
-	if party_type:
-		common_filter.append(ple.party_type == party_type)
-
-	if party:
-		common_filter.append(ple.party == party)
 
 	ple_query = QueryPaymentLedger()
 
 	# on cancellation outstanding can be an empty list
 	voucher_outstanding = ple_query.get_voucher_outstandings(vouchers, common_filter=common_filter)
-
 	if not voucher_outstanding:
 		return
 
