@@ -2225,44 +2225,19 @@ class AccountsController(TransactionBase):
 
 	def set_total_advance_paid(self):
 		advance = self.calculate_total_advance_from_ledger()
-		advance_paid, order_total = 0, 0
+		advance_paid = 0
 
 		if advance:
 			advance = advance[0]
 
 			advance_paid = flt(advance.amount, self.precision("advance_paid"))
-
-			formatted_advance_paid = fmt_money(
-				advance_paid, precision=self.precision("advance_paid"), currency=advance.account_currency
-			)
-
 			if advance.account_currency:
 				frappe.db.set_value(
 					self.doctype, self.name, "party_account_currency", advance.account_currency
 				)
 
-			if advance.account_currency == self.currency:
-				order_total = self.get("rounded_total") or self.grand_total
-
-				precision = "rounded_total" if self.get("rounded_total") else "grand_total"
-
-			else:
-				order_total = self.get("base_rounded_total") or self.base_grand_total
-
-				precision = "base_rounded_total" if self.get("base_rounded_total") else "base_grand_total"
-
-			formatted_order_total = fmt_money(
-				order_total, precision=self.precision(precision), currency=advance.account_currency
-			)
-
-			if self.currency == self.company_currency and advance_paid > order_total:
-				frappe.throw(
-					_(
-						"Total advance ({0}) against Order {1} cannot be greater than the Grand Total ({2})"
-					).format(formatted_advance_paid, self.name, formatted_order_total)
-				)
-
 		self.db_set("advance_paid", advance_paid)
+		self.set_advance_payment_status()
 
 	def set_advance_payment_status(self):
 		new_status = None
