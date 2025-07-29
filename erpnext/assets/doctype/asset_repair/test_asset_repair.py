@@ -4,11 +4,7 @@
 import unittest
 
 import frappe
-<<<<<<< HEAD
-from frappe.utils import flt, nowdate
-=======
-from frappe.utils import add_days, add_months, flt, get_first_day, nowdate, nowtime, today
->>>>>>> 5a82b723c2 (fix: post gl entry on completion date of asset repair)
+from frappe.utils import add_days, flt, nowdate
 
 from erpnext.assets.doctype.asset.asset import (
 	get_asset_account,
