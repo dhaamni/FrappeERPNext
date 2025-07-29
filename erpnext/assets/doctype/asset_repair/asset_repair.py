@@ -20,6 +20,23 @@ class AssetRepair(AccountsController):
 			self.set_stock_items_cost()
 		self.calculate_total_repair_cost()
 
+<<<<<<< HEAD
+=======
+	def validate_asset(self):
+		if self.asset_doc.status in ("Sold", "Fully Depreciated", "Scrapped"):
+			frappe.throw(
+				_("Asset {0} is in {1} status and cannot be repaired.").format(
+					get_link_to_form("Asset", self.asset), self.asset_doc.status
+				)
+			)
+
+	def validate_dates(self):
+		if self.completion_date and (getdate(self.failure_date) > getdate(self.completion_date)):
+			frappe.throw(
+				_("Completion Date can not be before Failure Date. Please adjust the dates accordingly.")
+			)
+
+>>>>>>> 5a82b723c2 (fix: post gl entry on completion date of asset repair)
 	def update_status(self):
 		if self.repair_status == "Pending":
 			frappe.db.set_value("Asset", self.asset, "status", "Out of Order")
@@ -195,7 +212,7 @@ class AssetRepair(AccountsController):
 					"voucher_type": self.doctype,
 					"voucher_no": self.name,
 					"cost_center": self.cost_center,
-					"posting_date": getdate(),
+					"posting_date": self.completion_date,
 					"against_voucher_type": "Purchase Invoice",
 					"against_voucher": self.purchase_invoice,
 					"company": self.company,
@@ -214,7 +231,7 @@ class AssetRepair(AccountsController):
 					"voucher_type": self.doctype,
 					"voucher_no": self.name,
 					"cost_center": self.cost_center,
-					"posting_date": getdate(),
+					"posting_date": self.completion_date,
 					"company": self.company,
 				},
 				item=self,
@@ -248,7 +265,7 @@ class AssetRepair(AccountsController):
 							"voucher_type": self.doctype,
 							"voucher_no": self.name,
 							"cost_center": self.cost_center,
-							"posting_date": getdate(),
+							"posting_date": self.completion_date,
 							"company": self.company,
 						},
 						item=self,
@@ -265,7 +282,7 @@ class AssetRepair(AccountsController):
 							"voucher_type": self.doctype,
 							"voucher_no": self.name,
 							"cost_center": self.cost_center,
-							"posting_date": getdate(),
+							"posting_date": self.completion_date,
 							"against_voucher_type": "Stock Entry",
 							"against_voucher": self.stock_entry,
 							"company": self.company,
