@@ -70,11 +70,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2021-09-14 01:20:48.588052",
-=======
  "modified": "2025-07-29 13:09:57.323835",
->>>>>>> c18d565d3e (fix: change modified timestamp so migrations work)
  "modified_by": "Administrator",
  "module": "Manufacturing",
  "name": "Job Card Scrap Item",
