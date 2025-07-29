@@ -27,6 +27,7 @@ from frappe.utils import (
 	nowdate,
 )
 from pypika import Order
+from pypika.functions import Coalesce
 from pypika.terms import ExistsCriterion
 
 import erpnext
@@ -717,7 +718,9 @@ def update_reference_in_payment_entry(
 
 	# Update Reconciliation effect date in reference
 	if payment_entry.book_advance_payments_in_separate_party_account:
-		reconcile_on = get_reconciliation_effect_date(d, payment_entry.company, payment_entry.posting_date)
+		reconcile_on = get_reconciliation_effect_date(
+			d.against_voucher_type, d.against_voucher, payment_entry.company, payment_entry.posting_date
+		)
 		reference_details.update({"reconcile_effect_on": reconcile_on})
 
 	if d.voucher_detail_no:
@@ -771,20 +774,21 @@ def update_reference_in_payment_entry(
 	return row, update_advance_paid
 
 
-def get_reconciliation_effect_date(reference, company, posting_date):
+def get_reconciliation_effect_date(against_voucher_type, against_voucher, company, posting_date):
 	reconciliation_takes_effect_on = frappe.get_cached_value(
 		"Company", company, "reconciliation_takes_effect_on"
 	)
+
+	# default
+	reconcile_on = posting_date
 
 	if reconciliation_takes_effect_on == "Advance Payment Date":
 		reconcile_on = posting_date
 	elif reconciliation_takes_effect_on == "Oldest Of Invoice Or Advance":
 		date_field = "posting_date"
-		if reference.against_voucher_type in ["Sales Order", "Purchase Order"]:
+		if against_voucher_type in ["Sales Order", "Purchase Order"]:
 			date_field = "transaction_date"
-		reconcile_on = frappe.db.get_value(
-			reference.against_voucher_type, reference.against_voucher, date_field
-		)
+		reconcile_on = frappe.db.get_value(against_voucher_type, against_voucher, date_field)
 		if getdate(reconcile_on) < getdate(posting_date):
 			reconcile_on = posting_date
 	elif reconciliation_takes_effect_on == "Reconciliation Date":
@@ -2354,6 +2358,8 @@ def sync_auto_reconcile_config(auto_reconciliation_job_trigger: int = 15):
 def build_qb_match_conditions(doctype, user=None) -> list:
 	match_filters = build_match_conditions(doctype, user, False)
 	criterion = []
+	apply_strict_user_permissions = frappe.get_system_settings("apply_strict_user_permissions")
+
 	if match_filters:
 		from frappe import qb
 
@@ -2362,6 +2368,12 @@ def build_qb_match_conditions(doctype, user=None) -> list:
 		for filter in match_filters:
 			for d, names in filter.items():
 				fieldname = d.lower().replace(" ", "_")
-				criterion.append(_dt[fieldname].isin(names))
+				field = _dt[fieldname]
+
+				cond = field.isin(names)
+				if not apply_strict_user_permissions:
+					cond = (Coalesce(field, "") == "") | field.isin(names)
+
+				criterion.append(cond)
 
 	return criterion
