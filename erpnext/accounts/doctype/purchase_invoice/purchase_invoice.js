@@ -31,7 +31,6 @@ erpnext.accounts.PurchaseInvoice = class PurchaseInvoice extends erpnext.buying.
 				query: "erpnext.controllers.queries.get_expense_account",
 				filters: {
 					company: doc.company,
-					disabled: 0,
 				},
 			};
 		});
