@@ -7,7 +7,7 @@ import frappe
 from frappe import _, qb
 from frappe.model.document import Document
 from frappe.query_builder import Criterion
-from frappe.query_builder.functions import Abs, Sum
+from frappe.query_builder.functions import Abs, IfNull, Sum
 from frappe.utils.data import comma_and
 
 from erpnext.accounts.utils import (
@@ -162,19 +162,19 @@ def get_linked_payments_for_doc(
 
 			res = query.run(as_dict=True)
 
-			res += get_linked_advances(company, _dn, ple)
+			res += get_linked_advances(company, _dn)
 
 			return res
 
 	return []
 
 
-def get_linked_advances(company, _dn, adv):
+def get_linked_advances(company, docname):
 	adv = qb.DocType("Advance Payment Ledger Entry")
 	criteria = [
 		(adv.company == company),
 		(adv.delinked == 0),
-		(adv.voucher_no == _dn),
+		(adv.voucher_no == docname),
 		(adv.event == "Submit"),
 	]
 
