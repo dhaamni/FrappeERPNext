@@ -638,6 +638,17 @@ def scan_barcode(search_value: str) -> BarcodeScanResult:
 		set_cache(batch_no_data)
 		return batch_no_data
 
+	warehouse_data = frappe.db.get_value(
+		"Warehouse",
+		search_value,
+		["name as warehouse", "warehouse_name"],
+		as_dict=True,
+	)
+	if warehouse_data:
+		warehouse_data["is_warehouse"] = True
+		set_cache(warehouse_data)
+		return warehouse_data
+
 	return {}
 
 
