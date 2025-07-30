@@ -2594,6 +2594,7 @@ class AccountsController(TransactionBase):
 
 		self.payment_schedule = []
 		self.payment_terms_template = po_or_so.payment_terms_template
+		posting_date = self.get("bill_date") or self.get("posting_date") or self.get("transaction_date")
 
 		for schedule in po_or_so.payment_schedule:
 			payment_schedule = {
@@ -2606,6 +2607,16 @@ class AccountsController(TransactionBase):
 			}
 
 			if automatically_fetch_payment_terms:
+				if schedule.payment_term:
+					# fields not available in payment schedule
+					payment_term = frappe.db.get_value(
+						"Payment Term",
+						schedule.payment_term,
+						["due_date_based_on", "credit_days", "credit_months"],
+						as_dict=True,
+					)
+					payment_schedule["due_date"] = get_due_date(payment_term, posting_date)
+
 				payment_schedule["payment_amount"] = flt(
 					grand_total * flt(payment_schedule["invoice_portion"]) / 100,
 					schedule.precision("payment_amount"),
