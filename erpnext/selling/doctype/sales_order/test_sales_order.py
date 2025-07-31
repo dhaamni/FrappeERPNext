@@ -2568,11 +2568,10 @@ class TestSalesOrder(AccountsTestMixin, IntegrationTestCase):
 
 def compare_payment_schedules(doc, doc1, doc2):
 	for index, schedule in enumerate(doc1.get("payment_schedule")):
-		term = frappe.get_doc("Payment Term", schedule.payment_term) if schedule.payment_term else None
-		due_date = schedule.due_date
 		posting_date = doc1.get("bill_date") or doc1.get("posting_date") or doc1.get("transaction_date")
-		if term:
-			due_date = get_due_date(term, posting_date=posting_date)
+		due_date = schedule.due_date
+		if schedule.due_date_based_on:
+			due_date = get_due_date(schedule, posting_date=posting_date)
 		doc.assertEqual(schedule.payment_term, doc2.payment_schedule[index].payment_term)
 		doc.assertEqual(due_date, doc2.payment_schedule[index].due_date)
 		doc.assertEqual(schedule.invoice_portion, doc2.payment_schedule[index].invoice_portion)
