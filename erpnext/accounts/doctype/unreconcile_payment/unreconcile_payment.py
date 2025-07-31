@@ -7,7 +7,7 @@ import frappe
 from frappe import _, qb
 from frappe.model.document import Document
 from frappe.query_builder import Criterion
-from frappe.query_builder.functions import Abs, IfNull, Sum
+from frappe.query_builder.functions import Abs, Sum
 from frappe.utils.data import comma_and
 
 from erpnext.accounts.utils import (
@@ -94,7 +94,6 @@ def doc_has_references(doctype: str | None = None, docname: str | None = None):
 				"delinked": 0,
 				"voucher_no": docname,
 				"voucher_type": doctype,
-				"amount": ["<", 0],
 				"event": ["=", "Submit"],
 			},
 		)
