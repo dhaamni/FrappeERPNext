@@ -734,10 +734,9 @@ def update_reference_in_payment_entry(
 
 	# Update Reconciliation effect date in reference from the Payment Reconciliation Tool
 	if payment_entry.book_advance_payments_in_separate_party_account:
-		reconcile_on = get_reconciliation_effect_date(
+		reconcile_on = d.reconcile_date or get_reconciliation_effect_date(
 			d.against_voucher_type, d.against_voucher, payment_entry.company, payment_entry.posting_date
-		)
-		reconcile_on = d.reconcile_date or nowdate()
+			)
 		reference_details.update({"reconcile_effect_on": reconcile_on})
 
 	if d.voucher_detail_no:
