@@ -2609,7 +2609,7 @@ class AccountsController(TransactionBase):
 			if automatically_fetch_payment_terms:
 				if schedule.due_date_based_on:
 					payment_schedule["due_date"] = get_due_date(schedule, posting_date)
-					payment_schedule["due_date_based_on"] = schedule.credit_days
+					payment_schedule["due_date_based_on"] = schedule.due_date_based_on
 					payment_schedule["credit_days"] = schedule.credit_days
 					payment_schedule["credit_months"] = schedule.credit_months
 
