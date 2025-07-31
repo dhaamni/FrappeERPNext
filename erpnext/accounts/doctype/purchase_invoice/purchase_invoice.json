@@ -64,6 +64,7 @@
   "column_break_50",
   "base_total",
   "base_net_total",
+  "claimed_landed_cost_amount",
   "column_break_28",
   "total",
   "net_total",
@@ -1660,6 +1661,15 @@
    "is_virtual": 1,
    "label": "Last Scanned Warehouse",
    "options": "Warehouse"
+   },
+  {
+   "fieldname": "claimed_landed_cost_amount",
+   "fieldtype": "Currency",
+   "label": "Claimed Landed Cost Amount (Company Currency)",
+   "no_copy": 1,
+   "options": "Company:company:default_currency",
+   "print_hide": 1,
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
@@ -1667,7 +1677,7 @@
  "idx": 204,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-31 17:19:59.726103",
+ "modified": "2025-07-30 23:16:05.722875",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Purchase Invoice",
