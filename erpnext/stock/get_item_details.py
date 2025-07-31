@@ -1285,20 +1285,12 @@ def get_conversion_factor(item_code, uom):
 	variant_of = frappe.db.get_value("Item", item_code, "variant_of", cache=True)
 	filters = {"parent": item_code, "uom": uom}
 
-<<<<<<< HEAD
 	if variant_of:
 		filters["parent"] = ("in", (item_code, variant_of))
-	conversion_factor = frappe.db.get_value("UOM Conversion Detail", filters, "conversion_factor")
-	if not conversion_factor:
-		stock_uom = frappe.db.get_value("Item", item_code, "stock_uom")
-		conversion_factor = get_uom_conv_factor(uom, stock_uom)
-=======
-	if item.variant_of:
-		filters["parent"] = ("in", (item_code, item.variant_of))
 	conversion_factor = frappe.get_all("UOM Conversion Detail", filters, pluck="conversion_factor")
 	if not conversion_factor:
-		conversion_factor = [get_uom_conv_factor(uom, item.stock_uom) or 1]
->>>>>>> 732a9b86c6 (fix: return conversion factor of variant and not template)
+		stock_uom = frappe.db.get_value("Item", item_code, "stock_uom")
+		conversion_factor = [get_uom_conv_factor(uom, stock_uom) or 1]
 
 	return {"conversion_factor": conversion_factor[-1]}
 
