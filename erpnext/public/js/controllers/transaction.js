@@ -477,6 +477,10 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 		this.barcode_scanner.process_scan();
 	}
 
+    last_scanned_warehouse() {
+        this.barcode_scanner.render_clear_last_scanned_warehouse_button();
+    }
+
 	barcode(doc, cdt, cdn)  {
 		let row = locals[cdt][cdn];
 		if (row.barcode) {

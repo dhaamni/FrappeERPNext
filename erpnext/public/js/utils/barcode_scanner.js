@@ -13,6 +13,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 		this.uom_field = opts.uom_field || "uom";
 		this.qty_field = opts.qty_field || "qty";
 		this.warehouse_field = opts.warehouse_field || "warehouse";
+		this.last_scanned_warehouse_field = opts.last_scanned_warehouse_field || "last_scanned_warehouse";
 		// field name on row which defines max quantity to be scanned e.g. picklist
 		this.max_qty_field = opts.max_qty_field;
 		// scanner won't add a new row if this flag is set.
@@ -462,6 +463,30 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 		return this.items_table.find((d) => !d.item_code);
 	}
 
+	render_clear_last_scanned_warehouse_button() {
+		const last_scanned_warehouse_field = this.frm.fields_dict[this.last_scanned_warehouse_field];
+
+		if (!last_scanned_warehouse_field) return;
+
+		const clear_btn = $(`
+            <a class="btn-clear" style="
+                position: absolute;
+                right: 8px;
+                top: 50%;
+                transform: translateY(-50%);
+                z-index: 1;
+                " title="${__("Clear Link")}">
+                ${frappe.utils.icon("close", "xs", "es-icon")}
+			</a>
+        `);
+
+		last_scanned_warehouse_field.$wrapper.find(".control-value").append(clear_btn);
+
+		clear_btn.on("click", () => {
+			this.clear_warehouse_context();
+		});
+	}
+
 	handle_warehouse_scan(data) {
 		const warehouse = data.warehouse;
 		const warehouse_name = data.warehouse_name || warehouse;
@@ -473,6 +498,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 		);
 
 		this.last_scanned_warehouse = warehouse;
+		this.frm.set_value(this.last_scanned_warehouse_field, warehouse);
 
 		// Focus back to scan field for next scan
 		setTimeout(() => {
@@ -482,6 +508,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 
 	clear_warehouse_context() {
 		this.last_scanned_warehouse = null;
+		this.frm.set_value(this.last_scanned_warehouse_field, null);
 		this.show_alert(__("Warehouse context cleared"), "blue");
 	}
 

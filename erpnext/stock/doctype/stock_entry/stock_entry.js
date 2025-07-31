@@ -1003,7 +1003,10 @@ erpnext.stock.StockEntry = class StockEntry extends erpnext.stock.StockControlle
 	setup() {
 		var me = this;
 
-		this.barcode_scanner = new erpnext.utils.BarcodeScanner({ frm: this.frm });
+		this.barcode_scanner = new erpnext.utils.BarcodeScanner({
+			frm: this.frm,
+			warehouse_field: "s_warehouse",
+		});
 
 		this.setup_posting_date_time_check();
 
@@ -1134,19 +1137,11 @@ erpnext.stock.StockEntry = class StockEntry extends erpnext.stock.StockControlle
 
 	scan_barcode() {
 		frappe.flags.dialog_set = false;
-
-		// Add a helper button to clear warehouse context if needed
-		if (!this.frm.fields_dict.clear_warehouse_btn) {
-			this.frm.add_custom_button(
-				__("Clear Warehouse Context"),
-				function () {
-					this.barcode_scanner.clear_warehouse_context();
-				},
-				__("Barcode Scanner")
-			);
-		}
-
 		this.barcode_scanner.process_scan();
+	}
+
+	last_scanned_warehouse() {
+		this.barcode_scanner.render_clear_last_scanned_warehouse_button();
 	}
 
 	on_submit() {
