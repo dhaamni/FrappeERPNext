@@ -374,7 +374,7 @@ def validate_serial_no(sle, item_det):
 
 					if (
 						sr.delivery_document_no
-						and sle.voucher_type not in ["Stock Entry", "Stock Reconciliation"]
+						and sle.voucher_type not in ["Stock Entry", "Stock Reconciliation", "Asset Capitalization"]
 						and sle.voucher_type == sr.delivery_document_type
 					):
 						return_against = frappe.db.get_value(
