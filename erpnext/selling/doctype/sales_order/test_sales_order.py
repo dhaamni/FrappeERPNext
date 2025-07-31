@@ -11,7 +11,7 @@ from frappe.tests import IntegrationTestCase, change_settings
 from frappe.utils import add_days, flt, getdate, nowdate, today
 
 from erpnext.accounts.test.accounts_mixin import AccountsTestMixin
-from erpnext.controllers.accounts_controller import InvalidQtyError, update_child_qty_rate
+from erpnext.controllers.accounts_controller import InvalidQtyError, get_due_date, update_child_qty_rate
 from erpnext.maintenance.doctype.maintenance_schedule.test_maintenance_schedule import (
 	make_maintenance_schedule,
 )
@@ -2568,8 +2568,13 @@ class TestSalesOrder(AccountsTestMixin, IntegrationTestCase):
 
 def compare_payment_schedules(doc, doc1, doc2):
 	for index, schedule in enumerate(doc1.get("payment_schedule")):
+		term = frappe.get_doc("Payment Term", schedule.payment_term) if schedule.payment_term else None
+		due_date = schedule.due_date
+		posting_date = doc1.get("bill_date") or doc1.get("posting_date") or doc1.get("transaction_date")
+		if term:
+			due_date = get_due_date(term, posting_date=posting_date)
 		doc.assertEqual(schedule.payment_term, doc2.payment_schedule[index].payment_term)
-		doc.assertEqual(getdate(schedule.due_date), doc2.payment_schedule[index].due_date)
+		doc.assertEqual(due_date, doc2.payment_schedule[index].due_date)
 		doc.assertEqual(schedule.invoice_portion, doc2.payment_schedule[index].invoice_portion)
 		doc.assertEqual(schedule.payment_amount, doc2.payment_schedule[index].payment_amount)
 
