@@ -84,6 +84,7 @@ class DeliveryNote(SellingController):
 		issue_credit_note: DF.Check
 		items: DF.Table[DeliveryNoteItem]
 		language: DF.Link | None
+		last_scanned_warehouse: DF.Link | None
 		letter_head: DF.Link | None
 		lr_date: DF.Date | None
 		lr_no: DF.Data | None
@@ -95,7 +96,6 @@ class DeliveryNote(SellingController):
 		per_billed: DF.Percent
 		per_installed: DF.Percent
 		per_returned: DF.Percent
-		pick_list: DF.Link | None
 		plc_conversion_rate: DF.Float
 		po_date: DF.Date | None
 		po_no: DF.SmallText | None

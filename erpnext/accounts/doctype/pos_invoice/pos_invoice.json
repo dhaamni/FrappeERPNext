@@ -43,6 +43,7 @@
   "items_section",
   "update_stock",
   "scan_barcode",
+  "last_scanned_warehouse",
   "items",
   "pricing_rule_details",
   "pricing_rules",
@@ -1593,12 +1594,20 @@
    "fieldname": "more_info_tab",
    "fieldtype": "Tab Break",
    "label": "More Info"
+  },
+  {
+   "depends_on": "eval: doc.last_scanned_warehouse",
+   "fieldname": "last_scanned_warehouse",
+   "fieldtype": "Link",
+   "is_virtual": 1,
+   "label": "Last Scanned Warehouse",
+   "options": "Warehouse"
   }
  ],
  "icon": "fa fa-file-text",
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-18 16:50:30.516162",
+ "modified": "2025-07-31 17:21:03.791267",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "POS Invoice",
