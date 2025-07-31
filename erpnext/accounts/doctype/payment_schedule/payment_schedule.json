@@ -184,42 +184,51 @@
    "fieldname": "due_date_based_on",
    "fieldtype": "Select",
    "label": "Due Date Based On",
-   "options": "\nDay(s) after invoice date\nDay(s) after the end of the invoice month\nMonth(s) after the end of the invoice month"
+   "options": "\nDay(s) after invoice date\nDay(s) after the end of the invoice month\nMonth(s) after the end of the invoice month",
+   "read_only": 1
   },
   {
+   "depends_on": "eval:in_list(['Day(s) after invoice date', 'Day(s) after the end of the invoice month'], doc.due_date_based_on)",
    "fetch_if_empty": 1,
    "fieldname": "credit_days",
    "fieldtype": "Int",
    "label": "Credit Days",
-   "non_negative": 1
+   "non_negative": 1,
+   "read_only": 1
   },
   {
+   "depends_on": "eval:doc.due_date_based_on=='Month(s) after the end of the invoice month'",
    "fetch_if_empty": 1,
    "fieldname": "credit_months",
    "fieldtype": "Int",
    "label": "Credit Months",
-   "non_negative": 1
+   "non_negative": 1,
+   "read_only": 1
   },
   {
+   "depends_on": "discount",
    "fetch_from": "payment_term.discount_validity_based_on",
    "fetch_if_empty": 1,
    "fieldname": "discount_validity_based_on",
    "fieldtype": "Select",
    "label": "Discount Validity Based On",
-   "options": "\nDay(s) after invoice date\nDay(s) after the end of the invoice month\nMonth(s) after the end of the invoice month"
+   "options": "\nDay(s) after invoice date\nDay(s) after the end of the invoice month\nMonth(s) after the end of the invoice month",
+   "read_only": 1
   },
   {
+   "depends_on": "discount_validity_based_on",
    "fetch_from": "payment_term.discount_validity",
    "fetch_if_empty": 1,
    "fieldname": "discount_validity",
    "fieldtype": "Int",
-   "label": "Discount Validity"
+   "label": "Discount Validity",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-31 05:31:58.406637",
+ "modified": "2025-07-31 07:38:37.383470",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Payment Schedule",

@@ -2604,15 +2604,19 @@ class AccountsController(TransactionBase):
 				"mode_of_payment": schedule.mode_of_payment,
 				"description": schedule.description,
 				"paid_amount": schedule.paid_amount,
-				"discount_date": schedule.discount_date,
 			}
 
 			if automatically_fetch_payment_terms:
 				if schedule.due_date_based_on:
 					payment_schedule["due_date"] = get_due_date(schedule, posting_date)
+					payment_schedule["due_date_based_on"] = schedule.credit_days
+					payment_schedule["credit_days"] = schedule.credit_days
+					payment_schedule["credit_months"] = schedule.credit_months
 
 				if schedule.discount_validity_based_on:
 					payment_schedule["discount_date"] = get_discount_date(schedule, posting_date)
+					payment_schedule["discount_validity_based_on"] = schedule.discount_validity_based_on
+					payment_schedule["discount_validity"] = schedule.discount_validity
 
 				payment_schedule["payment_amount"] = flt(
 					grand_total * flt(payment_schedule["invoice_portion"]) / 100,
