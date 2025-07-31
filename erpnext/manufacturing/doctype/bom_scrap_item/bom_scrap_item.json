@@ -42,6 +42,7 @@
    "fieldtype": "Float",
    "in_list_view": 1,
    "label": "Qty",
+   "non_negative": 1,
    "reqd": 1
   },
   {
@@ -49,6 +50,7 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Rate",
+   "non_negative": 1,
    "options": "currency"
   },
   {
@@ -92,14 +94,23 @@
  ],
  "istable": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2023-01-03 14:19:28.460965",
+=======
+ "modified": "2025-07-31 16:21:44.047007",
+>>>>>>> 3a80e116e8 (fix: prevent negative values in BOM fields (#48520, #48662) (#48696))
  "modified_by": "Administrator",
  "module": "Manufacturing",
  "name": "BOM Scrap Item",
  "owner": "Administrator",
  "permissions": [],
  "quick_entry": 1,
+<<<<<<< HEAD
  "sort_field": "modified",
+=======
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+>>>>>>> 3a80e116e8 (fix: prevent negative values in BOM fields (#48520, #48662) (#48696))
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1
