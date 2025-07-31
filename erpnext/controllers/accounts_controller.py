@@ -397,7 +397,6 @@ class AccountsController(TransactionBase):
 	def on_trash(self):
 		from erpnext.accounts.utils import delete_exchange_gain_loss_journal
 
-		self._remove_advance_payment_ledger_entries()
 		self._remove_references_in_repost_doctypes()
 		self._remove_references_in_unreconcile()
 		self.remove_serial_and_batch_bundle()
@@ -425,6 +424,8 @@ class AccountsController(TransactionBase):
 			frappe.qb.from_(sle).delete().where(
 				(sle.voucher_type == self.doctype) & (sle.voucher_no == self.name)
 			).run()
+
+			self._remove_advance_payment_ledger_entries()
 
 	def remove_serial_and_batch_bundle(self):
 		bundles = frappe.get_all(
@@ -2233,35 +2234,30 @@ class AccountsController(TransactionBase):
 
 	def calculate_total_advance_from_ledger(self):
 		adv = frappe.qb.DocType("Advance Payment Ledger Entry")
-		advance = (
-			frappe.qb.from_(adv)
-			.select(adv.currency.as_("account_currency"), Abs(Sum(adv.amount)).as_("amount"))
-			.where(
-				(adv.against_voucher_type == self.doctype)
-				& (adv.against_voucher_no == self.name)
-				& (adv.company == self.company)
-			)
+		return (
+			qb.from_(adv)
+			.select(Abs(Sum(adv.amount)).as_("amount"), adv.currency.as_("account_currency"))
+			.where(adv.company == self.company)
+			.where(adv.delinked == 0)
+			.where(adv.against_voucher_type == self.doctype)
+			.where(adv.against_voucher_no == self.name)
 			.run(as_dict=True)
 		)
-		return advance
 
 	def set_total_advance_paid(self):
 		advance = self.calculate_total_advance_from_ledger()
-		advance_paid, order_total = None, None
+		advance_paid = 0
 
 		if advance:
 			advance = advance[0]
 
 			advance_paid = flt(advance.amount, self.precision("advance_paid"))
-			formatted_advance_paid = fmt_money(
-				advance_paid, precision=self.precision("advance_paid"), currency=advance.account_currency
-			)
-
 			if advance.account_currency:
 				frappe.db.set_value(
 					self.doctype, self.name, "party_account_currency", advance.account_currency
 				)
 
+<<<<<<< HEAD
 			if advance.account_currency == self.currency:
 				order_total = self.get("rounded_total") or self.grand_total
 				precision = "rounded_total" if self.get("rounded_total") else "grand_total"
@@ -2281,6 +2277,40 @@ class AccountsController(TransactionBase):
 				)
 
 			self.db_set("advance_paid", advance_paid)
+=======
+		self.db_set("advance_paid", advance_paid)
+		self.set_advance_payment_status()
+
+	def set_advance_payment_status(self):
+		new_status = None
+
+		PaymentRequest = frappe.qb.DocType("Payment Request")
+		paid_amount = frappe.get_value(
+			doctype="Payment Request",
+			filters={
+				"reference_doctype": self.doctype,
+				"reference_name": self.name,
+				"docstatus": 1,
+			},
+			fieldname=Sum(PaymentRequest.grand_total - PaymentRequest.outstanding_amount),
+		)
+
+		if not paid_amount:
+			if self.doctype in self.get_advance_payment_doctypes(payment_type="receivable"):
+				new_status = "Not Requested" if paid_amount is None else "Requested"
+			elif self.doctype in self.get_advance_payment_doctypes(payment_type="payable"):
+				new_status = "Not Initiated" if paid_amount is None else "Initiated"
+		else:
+			total_amount = self.get("rounded_total") or self.get("grand_total")
+			new_status = "Fully Paid" if paid_amount == total_amount else "Partially Paid"
+
+		if new_status == self.advance_payment_status:
+			return
+
+		self.db_set("advance_payment_status", new_status, update_modified=False)
+		self.set_status(update=True)
+		self.notify_update()
+>>>>>>> e70caedddc (fix: multiple fixes for advance payment accounting)
 
 	@property
 	def company_abbr(self):
@@ -2923,64 +2953,6 @@ class AccountsController(TransactionBase):
 
 	def get_advance_payment_doctypes(self) -> list:
 		return _get_advance_payment_doctypes()
-
-	def make_advance_payment_ledger_for_journal(self):
-		advance_payment_doctypes = self.get_advance_payment_doctypes()
-		advance_doctype_references = [
-			x for x in self.accounts if x.reference_type in advance_payment_doctypes
-		]
-
-		for x in advance_doctype_references:
-			# Looking for payments
-			dr_or_cr = (
-				"credit_in_account_currency"
-				if x.account_type == "Receivable"
-				else "debit_in_account_currency"
-			)
-
-			amount = x.get(dr_or_cr)
-			if amount > 0:
-				doc = frappe.new_doc("Advance Payment Ledger Entry")
-				doc.company = self.company
-				doc.voucher_type = self.doctype
-				doc.voucher_no = self.name
-				doc.against_voucher_type = x.reference_type
-				doc.against_voucher_no = x.reference_name
-				doc.amount = amount if self.docstatus == 1 else -1 * amount
-				doc.event = "Submit" if self.docstatus == 1 else "Cancel"
-				doc.currency = x.account_currency
-				doc.flags.ignore_permissions = 1
-				doc.save()
-
-	def make_advance_payment_ledger_for_payment(self):
-		advance_payment_doctypes = self.get_advance_payment_doctypes()
-		advance_doctype_references = [
-			x for x in self.references if x.reference_doctype in advance_payment_doctypes
-		]
-		currency = (
-			self.paid_from_account_currency
-			if self.payment_type == "Receive"
-			else self.paid_to_account_currency
-		)
-		for x in advance_doctype_references:
-			doc = frappe.new_doc("Advance Payment Ledger Entry")
-			doc.company = self.company
-			doc.voucher_type = self.doctype
-			doc.voucher_no = self.name
-			doc.against_voucher_type = x.reference_doctype
-			doc.against_voucher_no = x.reference_name
-			doc.amount = x.allocated_amount if self.docstatus == 1 else -1 * x.allocated_amount
-			doc.currency = currency
-			doc.event = "Submit" if self.docstatus == 1 else "Cancel"
-			doc.flags.ignore_permissions = 1
-			doc.save()
-
-	def make_advance_payment_ledger_entries(self):
-		if self.docstatus != 0:
-			if self.doctype == "Journal Entry":
-				self.make_advance_payment_ledger_for_journal()
-			elif self.doctype == "Payment Entry":
-				self.make_advance_payment_ledger_for_payment()
 
 	def set_transaction_currency_and_rate_in_gl_map(self, gl_entries):
 		for x in gl_entries:
