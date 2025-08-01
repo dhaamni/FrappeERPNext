@@ -112,6 +112,10 @@ class AccountsController(TransactionBase):
 		return print_setting_fields
 
 	@property
+	def last_scanned_warehouse(self):
+		return self.get("last_scanned_warehouse")
+
+	@property
 	def company_currency(self):
 		if not hasattr(self, "__company_currency"):
 			self.__company_currency = erpnext.get_company_currency(self.company)
@@ -1791,9 +1795,9 @@ class AccountsController(TransactionBase):
 	def update_against_document_in_jv(self):
 		"""
 		Links invoice and advance voucher:
-		        1. cancel advance voucher
-		        2. split into multiple rows if partially adjusted, assign against voucher
-		        3. submit advance voucher
+				1. cancel advance voucher
+				2. split into multiple rows if partially adjusted, assign against voucher
+				3. submit advance voucher
 		"""
 
 		if self.doctype == "Sales Invoice":
@@ -3677,7 +3681,7 @@ def update_child_qty_rate(parent_doctype, trans_items, parent_doctype_name, chil
 
 		1. Change rate of subcontracting - regardless of other changes.
 		2. Change qty and/or add new items and/or remove items
-		        Exception: Transfer/Consumption is already made, qty change not allowed.
+				Exception: Transfer/Consumption is already made, qty change not allowed.
 		"""
 
 		supplied_items_processed = any(
