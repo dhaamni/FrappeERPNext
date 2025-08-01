@@ -641,7 +641,7 @@ def scan_barcode(search_value: str) -> BarcodeScanResult:
 	warehouse_data = frappe.db.get_value(
 		"Warehouse",
 		{"name": search_value, "disabled": 0},
-		["name as warehouse", "warehouse_name"],
+		["name as warehouse"],
 		as_dict=True,
 	)
 	if warehouse_data:
@@ -649,7 +649,6 @@ def scan_barcode(search_value: str) -> BarcodeScanResult:
 		if not frappe.has_permission("Warehouse", "read", warehouse_data.get("warehouse")):
 			return {}
 
-		warehouse_data["is_warehouse"] = True
 		set_cache(warehouse_data)
 		return warehouse_data
 

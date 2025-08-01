@@ -36,8 +36,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 		//     batch_no: "LOT12", // present if batch was scanned
 		//     serial_no: "987XYZ", // present if serial no was scanned
 		//     uom: "Kg", // present if barcode UOM is different from default
-		//     warehouse: "Store-001", // present if warehouse was scanned (location-first scanning)
-		//     is_warehouse: true, // present if a warehouse was scanned
+		//     warehouse: "Store-001", // present if warehouse was found (location-first scanning)
 		// }
 		this.scan_api = opts.scan_api || "erpnext.stock.utils.scan_barcode";
 	}
@@ -63,7 +62,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 				}
 
 				// Handle warehouse scanning
-				if (data.is_warehouse) {
+				if (data.warehouse) {
 					this.handle_warehouse_scan(data);
 					this.play_success_sound();
 					resolve();
