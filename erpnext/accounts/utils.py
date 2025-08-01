@@ -526,14 +526,6 @@ def reconcile_against_document(
 				entry.party_type,
 				entry.party,
 			)
-<<<<<<< HEAD
-		# update advance paid in Advance Receivable/Payable doctypes
-		if update_advance_paid:
-			for t, n in update_advance_paid:
-				frappe.get_doc(t, n).set_total_advance_paid()
-
-=======
->>>>>>> e70caedddc (fix: multiple fixes for advance payment accounting)
 		frappe.flags.ignore_party_validation = False
 
 
@@ -614,15 +606,6 @@ def update_reference_in_journal_entry(d, journal_entry, do_not_save=False):
 	"""
 	jv_detail = journal_entry.get("accounts", {"name": d["voucher_detail_no"]})[0]
 
-<<<<<<< HEAD
-	# Update Advance Paid in SO/PO since they might be getting unlinked
-	update_advance_paid = []
-
-	if jv_detail.get("reference_type") in ["Sales Order", "Purchase Order"]:
-		update_advance_paid.append((jv_detail.reference_type, jv_detail.reference_name))
-
-=======
->>>>>>> e70caedddc (fix: multiple fixes for advance payment accounting)
 	rev_dr_or_cr = (
 		"debit_in_account_currency"
 		if d["dr_or_cr"] == "credit_in_account_currency"
@@ -718,13 +701,6 @@ def update_reference_in_payment_entry(
 	if d.voucher_detail_no:
 		existing_row = payment_entry.get("references", {"name": d["voucher_detail_no"]})[0]
 
-<<<<<<< HEAD
-		# Update Advance Paid in SO/PO since they are getting unlinked
-		if existing_row.get("reference_doctype") in ["Sales Order", "Purchase Order"]:
-			update_advance_paid.append((existing_row.reference_doctype, existing_row.reference_name))
-
-=======
->>>>>>> e70caedddc (fix: multiple fixes for advance payment accounting)
 		if d.allocated_amount <= existing_row.allocated_amount:
 			existing_row.allocated_amount -= d.allocated_amount
 
@@ -1928,8 +1904,6 @@ def create_payment_ledger_entry(
 
 
 def update_voucher_outstanding(voucher_type, voucher_no, account, party_type, party):
-<<<<<<< HEAD
-=======
 	if not voucher_type or not voucher_no:
 		return
 
@@ -1938,10 +1912,6 @@ def update_voucher_outstanding(voucher_type, voucher_no, account, party_type, pa
 		ref_doc.set_total_advance_paid()
 		return
 
-	if not (voucher_type in OUTSTANDING_DOCTYPES and party_type and party):
-		return
-
->>>>>>> e70caedddc (fix: multiple fixes for advance payment accounting)
 	ple = frappe.qb.DocType("Payment Ledger Entry")
 	vouchers = [frappe._dict({"voucher_type": voucher_type, "voucher_no": voucher_no})]
 	common_filter = []

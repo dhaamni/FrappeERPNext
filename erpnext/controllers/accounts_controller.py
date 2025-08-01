@@ -2257,60 +2257,7 @@ class AccountsController(TransactionBase):
 					self.doctype, self.name, "party_account_currency", advance.account_currency
 				)
 
-<<<<<<< HEAD
-			if advance.account_currency == self.currency:
-				order_total = self.get("rounded_total") or self.grand_total
-				precision = "rounded_total" if self.get("rounded_total") else "grand_total"
-			else:
-				order_total = self.get("base_rounded_total") or self.base_grand_total
-				precision = "base_rounded_total" if self.get("base_rounded_total") else "base_grand_total"
-
-			formatted_order_total = fmt_money(
-				order_total, precision=self.precision(precision), currency=advance.account_currency
-			)
-
-			if self.currency == self.company_currency and advance_paid > order_total:
-				frappe.throw(
-					_(
-						"Total advance ({0}) against Order {1} cannot be greater than the Grand Total ({2})"
-					).format(formatted_advance_paid, self.name, formatted_order_total)
-				)
-
-			self.db_set("advance_paid", advance_paid)
-=======
 		self.db_set("advance_paid", advance_paid)
-		self.set_advance_payment_status()
-
-	def set_advance_payment_status(self):
-		new_status = None
-
-		PaymentRequest = frappe.qb.DocType("Payment Request")
-		paid_amount = frappe.get_value(
-			doctype="Payment Request",
-			filters={
-				"reference_doctype": self.doctype,
-				"reference_name": self.name,
-				"docstatus": 1,
-			},
-			fieldname=Sum(PaymentRequest.grand_total - PaymentRequest.outstanding_amount),
-		)
-
-		if not paid_amount:
-			if self.doctype in self.get_advance_payment_doctypes(payment_type="receivable"):
-				new_status = "Not Requested" if paid_amount is None else "Requested"
-			elif self.doctype in self.get_advance_payment_doctypes(payment_type="payable"):
-				new_status = "Not Initiated" if paid_amount is None else "Initiated"
-		else:
-			total_amount = self.get("rounded_total") or self.get("grand_total")
-			new_status = "Fully Paid" if paid_amount == total_amount else "Partially Paid"
-
-		if new_status == self.advance_payment_status:
-			return
-
-		self.db_set("advance_payment_status", new_status, update_modified=False)
-		self.set_status(update=True)
-		self.notify_update()
->>>>>>> e70caedddc (fix: multiple fixes for advance payment accounting)
 
 	@property
 	def company_abbr(self):

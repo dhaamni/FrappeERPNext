@@ -2220,9 +2220,7 @@ class TestPaymentReconciliation(FrappeTestCase):
 			],
 			as_dict=True,
 		)
-		first_fy_start_date = frappe.db.get_value(
-			"Fiscal Year", {"disabled": 0}, [{"MIN": "year_start_date"}]
-		)
+		first_fy_start_date = frappe.db.get_value("Fiscal Year", {"disabled": 0}, "min(year_start_date)")
 		prev_fy_start_date = add_years(first_fy_start_date, -1)
 		prev_fy_end_date = add_days(first_fy_start_date, -1)
 

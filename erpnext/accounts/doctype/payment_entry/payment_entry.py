@@ -1688,20 +1688,6 @@ class PaymentEntry(AccountsController):
 
 		return flt(gl_dict.get(field, 0) / (conversion_rate or 1))
 
-<<<<<<< HEAD
-	def update_advance_paid(self):
-		if self.payment_type not in ("Receive", "Pay") or not self.party:
-			return
-
-		advance_payment_doctypes = get_advance_payment_doctypes()
-		for d in self.get("references"):
-			if d.allocated_amount and d.reference_doctype in advance_payment_doctypes:
-				frappe.get_doc(
-					d.reference_doctype, d.reference_name, for_update=True
-				).set_total_advance_paid()
-
-=======
->>>>>>> e70caedddc (fix: multiple fixes for advance payment accounting)
 	def on_recurring(self, reference_doc, auto_repeat_doc):
 		self.reference_no = reference_doc.name
 		self.reference_date = nowdate()

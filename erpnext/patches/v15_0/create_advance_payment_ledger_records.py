@@ -5,12 +5,7 @@ from frappe.utils import now_datetime
 
 from erpnext.accounts.utils import get_advance_payment_doctypes
 
-<<<<<<< HEAD
-def get_advance_doctypes() -> list:
-	return frappe.get_hooks("advance_payment_doctypes")
-=======
 DOCTYPE = "Advance Payment Ledger Entry"
->>>>>>> e70caedddc (fix: multiple fixes for advance payment accounting)
 
 FIELDS = [
 	"name",
