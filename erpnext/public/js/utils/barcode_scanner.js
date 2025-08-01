@@ -474,7 +474,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
                 top: 50%;
                 transform: translateY(-50%);
                 z-index: 1;
-                " title="${__("Clear Link")}">
+                " title="${__("Clear Last Scanned Warehouse")}">
                 ${frappe.utils.icon("close", "xs", "es-icon")}
 			</a>
         `);
@@ -488,10 +488,9 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 
 	handle_warehouse_scan(data) {
 		const warehouse = data.warehouse;
-		const warehouse_name = data.warehouse_name || warehouse;
 
 		this.show_alert(
-			__("Warehouse scanned: {0}. Next items will be added to this warehouse.", [warehouse_name]),
+			__("Warehouse scanned: {0}. Next items will be added to this warehouse.", [warehouse]),
 			"green",
 			6
 		);
@@ -508,7 +507,11 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 	clear_warehouse_context() {
 		this.last_scanned_warehouse = null;
 		this.frm.set_value(this.last_scanned_warehouse_field, null);
-		this.show_alert(__("Warehouse context cleared"), "blue");
+		this.show_alert(
+			__("The last scanned warehouse has been cleared. Next items will be added without a warehouse."),
+			"blue",
+			6
+		);
 	}
 
 	play_success_sound() {
