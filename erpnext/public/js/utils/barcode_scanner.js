@@ -102,7 +102,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 
 			const { item_code, barcode, batch_no, serial_no, uom } = data;
 
-			const warehouse = this.last_scanned_warehouse; // || default warehouse
+			const warehouse = this.last_scanned_warehouse;
 
 			let row = this.get_row_to_modify_on_scan(item_code, batch_no, uom, barcode, warehouse);
 
