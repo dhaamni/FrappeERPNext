@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: hello@frappe.io\n"
 "POT-Creation-Date: 2025-07-20 09:37+0000\n"
-"PO-Revision-Date: 2025-07-30 14:58\n"
+"PO-Revision-Date: 2025-08-01 15:07\n"
 "Last-Translator: hello@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -21114,7 +21114,7 @@ msgstr "Yta"
 #. Label of the floor_name (Data) field in DocType 'Plant Floor'
 #: erpnext/manufacturing/doctype/plant_floor/plant_floor.json
 msgid "Floor Name"
-msgstr "Yta Namn"
+msgstr "Yta Benämning"
 
 #. Name of a UOM
 #: erpnext/setup/setup_wizard/data/uom_data.json
