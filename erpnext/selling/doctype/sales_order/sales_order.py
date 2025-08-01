@@ -458,6 +458,7 @@ class SalesOrder(SellingController):
 			"GL Entry",
 			"Stock Ledger Entry",
 			"Payment Ledger Entry",
+			"Advance Payment Ledger Entry",
 			"Unreconcile Payment",
 			"Unreconcile Payment Entries",
 		)
