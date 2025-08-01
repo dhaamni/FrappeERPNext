@@ -439,10 +439,10 @@ class FIFOSlots:
 				transfer_qty_to_pop = 0
 
 	def __update_balances(self, row: dict, key: tuple | str):
-		self.item_details[key]["qty_after_transaction"] = row.qty_after_transaction or row.bal_qty
+		self.item_details[key]["qty_after_transaction"] = row.qty_after_transaction or flt(row.bal_qty)
 
 		if "total_qty" not in self.item_details[key]:
-			self.item_details[key]["total_qty"] = row.actual_qty or row.bal_qty
+			self.item_details[key]["total_qty"] = row.actual_qty or flt(row.bal_qty)
 		else:
 			self.item_details[key]["total_qty"] += row.actual_qty
 
