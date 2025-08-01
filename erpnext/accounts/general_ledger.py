@@ -305,6 +305,8 @@ def get_merge_properties(dimensions=None):
 		"project",
 		"finance_book",
 		"voucher_no",
+		"advance_voucher_type",
+		"advance_voucher_no",
 	]
 	if dimensions:
 		merge_properties.extend(dimensions)
