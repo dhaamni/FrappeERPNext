@@ -1,0 +1,138 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-08-02 04:57:05.364590",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "reference_code",
+  "display_name",
+  "indentation_level",
+  "row_type",
+  "data_source",
+  "column_break_hxqu",
+  "bold_text",
+  "italic_text",
+  "hidden_calculation",
+  "hide_when_empty",
+  "reverse_sign",
+  "section_break_ornw",
+  "calculation_formula",
+  "column_break_ooic",
+  "formula_description"
+ ],
+ "fields": [
+  {
+   "columns": 1,
+   "description": "Unique identifier for this row (e.g., A100, B200). Used for referencing in formulas.",
+   "fieldname": "reference_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Reference Code"
+  },
+  {
+   "description": "The text that will appear in the financial report for this row",
+   "fieldname": "display_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Display Name"
+  },
+  {
+   "columns": 1,
+   "description": "Controls visual hierarchy (0=main heading, 1=sub-item, 2=sub-sub-item, etc.)",
+   "fieldname": "indentation_level",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Indentation Level"
+  },
+  {
+   "fieldname": "row_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Row Type",
+   "options": "\nAccount Data\nFormula/Calculation\nBlank Line"
+  },
+  {
+   "fieldname": "data_source",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Data Source",
+   "options": "\nOpening Balance\nClosing Balance\nPeriod Movement"
+  },
+  {
+   "fieldname": "column_break_hxqu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Make this row appear in bold font",
+   "fieldname": "bold_text",
+   "fieldtype": "Check",
+   "label": "Bold Text"
+  },
+  {
+   "default": "0",
+   "description": "Make this row appear in italic font",
+   "fieldname": "italic_text",
+   "fieldtype": "Check",
+   "label": "Italic Text"
+  },
+  {
+   "default": "0",
+   "description": "Use for internal calculations only - won't appear in the final report",
+   "fieldname": "hidden_calculation",
+   "fieldtype": "Check",
+   "label": "Hidden Calculation"
+  },
+  {
+   "default": "0",
+   "description": "Don't show this row if the value is zero",
+   "fieldname": "hide_when_empty",
+   "fieldtype": "Check",
+   "label": "Hide When Empty"
+  },
+  {
+   "columns": 1,
+   "default": "0",
+   "description": "Multiply values by -1 (useful for expenses in P&L reports)",
+   "fieldname": "reverse_sign",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Reverse Sign"
+  },
+  {
+   "fieldname": "section_break_ornw",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "calculation_formula",
+   "fieldtype": "Code",
+   "label": "Calculation Formula"
+  },
+  {
+   "fieldname": "column_break_ooic",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "formula_description",
+   "fieldtype": "HTML",
+   "label": "",
+   "options": "<div style='padding: 10px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; margin-top: 10px;'>\n<h5 style='margin-top: 0; color: #495057;'>Formula Usage Guide</h5>\n<p style='margin-bottom: 10px; color: #6c757d;'>Use formulas to calculate values or filter accounts. Here are some examples:</p>\n\n<h6 style='color: #495057; margin-bottom: 5px;'>Account Filtering Examples:</h6>\n<ul style='margin-bottom: 15px; color: #6c757d;'>\n<li><code>[\"account.account_category\", \"in\", [\"Assets\", \"Liabilities\"]]</code> - Filter by category</li>\n<li><code>[\"account.account_type\", \"=\", \"Cash\"]</code> - Filter by account type</li>\n<li><code>[\"account.root_type\", \"in\", [\"Asset\", \"Liability\"]]</code> - Filter by root type</li>\n</ul>\n\n<h6 style='color: #495057; margin-bottom: 5px;'>Calculation Examples:</h6>\n<ul style='margin-bottom: 15px; color: #6c757d;'>\n<li><code>A100 + A200</code> - Add values from reference codes A100 and A200</li>\n<li><code>B100 - B200</code> - Subtract B200 from B100</li>\n<li><code>(A100 + A200) * 0.1</code> - Calculate 10% of combined values</li>\n</ul>\n\n<p style='margin-bottom: 0; color: #6c757d; font-size: 0.9em;'><strong>Note:</strong> Use reference codes (Reference Code field) to reference other rows in calculations.</p>\n</div>"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-08-02 06:52:10.686729",
+ "modified_by": "Administrator",
+ "module": "Accounts",
+ "name": "Financial Report Row",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
