@@ -8,7 +8,18 @@ import frappe
 from frappe import ValidationError, _
 from frappe.model.naming import make_autoname
 from frappe.query_builder.functions import Coalesce
-from frappe.utils import add_days, cint, cstr, flt, get_link_to_form, getdate, now, nowdate, safe_json_loads
+from frappe.utils import (
+	add_days,
+	cint,
+	cstr,
+	flt,
+	get_datetime,
+	get_link_to_form,
+	getdate,
+	now,
+	nowdate,
+	safe_json_loads,
+)
 
 from erpnext.controllers.stock_controller import StockController
 from erpnext.stock.get_item_details import get_reserved_qty_for_so
@@ -197,7 +208,7 @@ class SerialNo(StockController):
 		for sle in frappe.db.sql(
 			"""
 			SELECT voucher_type, voucher_no,
-				posting_date, posting_time, incoming_rate, actual_qty, serial_no
+				posting_date, posting_time, incoming_rate, actual_qty, serial_no, posting_datetime
 			FROM
 				`tabStock Ledger Entry`
 			WHERE
@@ -251,8 +262,23 @@ class SerialNo(StockController):
 				_("Cannot delete Serial No {0}, as it is used in stock transactions").format(self.name)
 			)
 
-	def update_serial_no_reference(self, serial_no=None):
+	def update_serial_no_reference(self, serial_no=None, sle=None):
 		last_sle = self.get_last_sle(serial_no)
+
+		_last_sle_dict = last_sle.get("last_sle")
+		if (
+			_last_sle_dict
+			and sle.get("voucher_type") != "Stock Reconciliation"
+			and sle.get("voucher_no") != _last_sle_dict.get("voucher_no")
+			and get_datetime(sle.get("posting_datetime"))
+			< get_datetime(_last_sle_dict.get("posting_datetime"))
+		):
+			frappe.throw(
+				_(
+					"You can not complete this transaction because a future transaction exists for the serial number {0}"
+				).format(serial_no)
+			)
+
 		self.set_purchase_details(last_sle.get("purchase_sle"))
 		self.set_sales_details(last_sle.get("delivery_sle"))
 		self.set_maintenance_status()
@@ -770,7 +796,7 @@ def update_args_for_serial_no(serial_no_doc, serial_no, args, is_new=False):
 		serial_no_doc.sales_order = None
 
 	serial_no_doc.validate_item()
-	serial_no_doc.update_serial_no_reference(serial_no)
+	serial_no_doc.update_serial_no_reference(serial_no, sle=args)
 
 	if is_new:
 		serial_no_doc.db_insert()

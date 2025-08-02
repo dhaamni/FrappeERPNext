@@ -77,6 +77,8 @@
   "receivable_payable_remarks_length",
   "accounts_receivable_payable_tuning_section",
   "receivable_payable_fetch_method",
+  "column_break_ntmi",
+  "drop_ar_procedures",
   "legacy_section",
   "ignore_is_opening_check_for_reporting"
  ],
@@ -488,7 +490,7 @@
    "fieldname": "receivable_payable_fetch_method",
    "fieldtype": "Select",
    "label": "Data Fetch Method",
-   "options": "Buffered Cursor\nUnBuffered Cursor"
+   "options": "Buffered Cursor\nUnBuffered Cursor\nRaw SQL"
   },
   {
    "fieldname": "accounts_receivable_payable_tuning_section",
@@ -499,6 +501,17 @@
    "fieldname": "legacy_section",
    "fieldtype": "Section Break",
    "label": "Legacy Fields"
+  },
+  {
+   "fieldname": "column_break_ntmi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.receivable_payable_fetch_method == \"Raw SQL\"",
+   "description": "Drops existing SQL Procedures and Function setup by Accounts Receivable report",
+   "fieldname": "drop_ar_procedures",
+   "fieldtype": "Button",
+   "label": "Drop Procedures"
   }
  ],
  "icon": "icon-cog",
