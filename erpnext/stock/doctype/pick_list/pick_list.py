@@ -657,6 +657,38 @@ def get_available_item_locations(
 	picked_item_details=None,
 	consider_rejected_warehouses=False,
 ):
+	filters = {
+	    "item_code": item_code,
+	    "company": company,
+	}
+
+	warehouse_filter = ""
+	if from_warehouses:
+	    warehouse_filter = "AND b.warehouse IN %(from_warehouses)s"
+
+	return frappe.db.sql(f"""
+	    SELECT
+	        b.item_code,
+	        b.warehouse,
+	        b.actual_qty AS qty
+	    FROM
+	        `tabBin` b
+	    JOIN
+	        `tabWarehouse` w ON w.name = b.warehouse
+	    WHERE
+	        b.item_code = %(item_code)s
+	        AND b.actual_qty > 0
+	        AND w.disabled = 0
+	        AND w.company = %(company)s
+	        {warehouse_filter}
+	    ORDER BY
+	        b.actual_qty DESC
+	""", {
+	    "item_code": item_code,
+	    "company": company,
+	    "from_warehouses": tuple(from_warehouses or [])
+	}, as_dict=True)
+
 	locations = []
 	total_picked_qty = (
 		sum([v.get("picked_qty") for k, v in picked_item_details.items()]) if picked_item_details else 0
