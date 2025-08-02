@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: hello@frappe.io\n"
 "POT-Creation-Date: 2025-07-20 09:37+0000\n"
-"PO-Revision-Date: 2025-07-31 15:04\n"
+"PO-Revision-Date: 2025-08-02 15:15\n"
 "Last-Translator: hello@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -5942,7 +5942,7 @@ msgstr "نام دارایی"
 #. Label of the asset_naming_series (Select) field in DocType 'Item'
 #: erpnext/stock/doctype/item/item.json
 msgid "Asset Naming Series"
-msgstr "سری نامگذاری دارایی"
+msgstr "سری نام‌گذاری دارایی"
 
 #. Label of the asset_owner (Select) field in DocType 'Asset'
 #: erpnext/assets/doctype/asset/asset.json
@@ -7622,7 +7622,7 @@ msgstr "تراکنش بانکی {0} به روز شد"
 
 #: erpnext/setup/setup_wizard/operations/install_fixtures.py:547
 msgid "Bank account cannot be named as {0}"
-msgstr "حساب بانکی نمی‌تواند به عنوان {0} نامگذاری شود"
+msgstr "حساب بانکی نمی‌تواند به عنوان {0} نام‌گذاری شود"
 
 #: erpnext/erpnext_integrations/doctype/plaid_settings/plaid_settings.py:146
 msgid "Bank account {0} already exists and could not be created again"
@@ -9285,7 +9285,7 @@ msgstr "نام کمپین"
 #. Label of the campaign_naming_by (Select) field in DocType 'CRM Settings'
 #: erpnext/crm/doctype/crm_settings/crm_settings.json
 msgid "Campaign Naming By"
-msgstr "نامگذاری کمپین توسط"
+msgstr "نام‌گذاری کمپین توسط"
 
 #. Label of the campaign_schedules_section (Section Break) field in DocType
 #. 'Campaign'
@@ -14696,7 +14696,7 @@ msgstr " نام مشتری:"
 #. Label of the cust_master_name (Select) field in DocType 'Selling Settings'
 #: erpnext/selling/doctype/selling_settings/selling_settings.json
 msgid "Customer Naming By"
-msgstr "نام گذاری مشتری توسط"
+msgstr "نام‌گذاری مشتری توسط"
 
 #. Label of the customer_number (Data) field in DocType 'Customer Number At
 #. Supplier'
@@ -19634,7 +19634,7 @@ msgstr ""
 #. Description of the 'Batch Number Series' (Data) field in DocType 'Item'
 #: erpnext/stock/doctype/item/item.json
 msgid "Example: ABCD.#####. If series is set and Batch No is not mentioned in transactions, then automatic batch number will be created based on this series. If you always want to explicitly mention Batch No for this item, leave this blank. Note: this setting will take priority over the Naming Series Prefix in Stock Settings."
-msgstr "مثال: ABCD.#####. اگر سری تنظیم شده باشد و Batch No در تراکنش ها ذکر نشده باشد، شماره دسته خودکار بر اساس این سری ایجاد می‌شود. اگر همیشه می‌خواهید به صراحت شماره دسته را برای این مورد ذکر کنید، این قسمت را خالی بگذارید. توجه: این تنظیم بر پیشوند سری نامگذاری در تنظیمات موجودی اولویت دارد."
+msgstr "مثال: ABCD.#####. اگر سری تنظیم شده باشد و Batch No در تراکنش ها ذکر نشده باشد، شماره دسته خودکار بر اساس این سری ایجاد می‌شود. اگر همیشه می‌خواهید به صراحت شماره دسته را برای این مورد ذکر کنید، این قسمت را خالی بگذارید. توجه: این تنظیم بر پیشوند سری نام‌گذاری در تنظیمات موجودی اولویت دارد."
 
 #: erpnext/stock/stock_ledger.py:2166
 msgid "Example: Serial No {0} reserved in {1}."
@@ -19838,7 +19838,7 @@ msgstr "مشتری بالفعل"
 #. Label of the held_on (Date) field in DocType 'Employee'
 #: erpnext/setup/doctype/employee/employee.json
 msgid "Exit Interview Held On"
-msgstr "مصاحبه خروج برگزار شد"
+msgstr "مصاحبه خروج در تاریخ"
 
 #: erpnext/public/js/bom_configurator/bom_configurator.bundle.js:154
 #: erpnext/public/js/bom_configurator/bom_configurator.bundle.js:187
@@ -23184,12 +23184,12 @@ msgstr "در اینجا گزینه‌هایی برای ادامه وجود دا�
 #. 'Employee'
 #: erpnext/setup/doctype/employee/employee.json
 msgid "Here you can maintain family details like name and occupation of parent, spouse and children"
-msgstr "در اینجا می‌توانید مشخصات خانوادگی مانند نام و شغل والدین، همسر و فرزندان را حفظ کنید"
+msgstr "در اینجا می‌توانید جزئیات خانواده مانند نام و شغل والدین، همسر و فرزندان را ذخیره کنید"
 
 #. Description of the 'Health Details' (Small Text) field in DocType 'Employee'
 #: erpnext/setup/doctype/employee/employee.json
 msgid "Here you can maintain height, weight, allergies, medical concerns etc"
-msgstr "در اینجا می‌توانید قد، وزن، آلرژی، نگرانی های پزشکی و غیره را حفظ کنید"
+msgstr "در اینجا می‌توانید قد، وزن، آلرژی‌ها، نگرانی‌های پزشکی و غیره را ذخیره کنید"
 
 #: erpnext/setup/doctype/employee/employee.js:122
 msgid "Here, you can select a senior of this Employee. Based on this, Organization Chart will be populated."
@@ -27188,7 +27188,7 @@ msgstr "نام آیتم"
 #. Label of the item_naming_by (Select) field in DocType 'Stock Settings'
 #: erpnext/stock/doctype/stock_settings/stock_settings.json
 msgid "Item Naming By"
-msgstr "نام گذاری آیتم توسط"
+msgstr "نام‌گذاری آیتم توسط"
 
 #. Label of a Link in the Buying Workspace
 #. Label of a Link in the Selling Workspace
@@ -31606,7 +31606,7 @@ msgstr "نام توزیع ماهانه"
 #: erpnext/stock/doctype/delivery_note/delivery_note.json
 #: erpnext/stock/doctype/purchase_receipt/purchase_receipt.json
 msgid "Named Place"
-msgstr "مکان نامگذاری شده"
+msgstr "مکان نام‌گذاری شده"
 
 #. Label of the naming_series (Select) field in DocType 'Pricing Rule'
 #. Label of the naming_series (Select) field in DocType 'Asset Depreciation
@@ -31643,22 +31643,22 @@ msgstr "مکان نامگذاری شده"
 #: erpnext/stock/doctype/stock_closing_entry/stock_closing_entry.json
 #: erpnext/stock/doctype/stock_settings/stock_settings.json
 msgid "Naming Series"
-msgstr "سری نامگذاری"
+msgstr "سری نام‌گذاری"
 
 #. Label of the naming_series_prefix (Data) field in DocType 'Stock Settings'
 #: erpnext/stock/doctype/stock_settings/stock_settings.json
 msgid "Naming Series Prefix"
-msgstr "پیشوند سری نامگذاری"
+msgstr "پیشوند سری نام‌گذاری"
 
 #. Label of the supplier_and_price_defaults_section (Tab Break) field in
 #. DocType 'Buying Settings'
 #: erpnext/buying/doctype/buying_settings/buying_settings.json
 msgid "Naming Series and Price Defaults"
-msgstr "نام گذاری سری ها و پیش‌فرض‌های قیمت"
+msgstr "نام‌گذاری سری ها و پیش‌فرض‌های قیمت"
 
 #: erpnext/stock/doctype/serial_and_batch_bundle/serial_and_batch_bundle.py:91
 msgid "Naming Series is mandatory"
-msgstr "سری نامگذاری اجباری است"
+msgstr "سری نام‌گذاری اجباری است"
 
 #. Name of a UOM
 #: erpnext/setup/setup_wizard/data/uom_data.json
@@ -44914,7 +44914,7 @@ msgstr "فرزند راست"
 #. Label of the rgt (Int) field in DocType 'Quality Procedure'
 #: erpnext/quality_management/doctype/quality_procedure/quality_procedure.json
 msgid "Right Index"
-msgstr "شاخص سمت راست"
+msgstr "شاخص درستی"
 
 #. Option for the 'Status' (Select) field in DocType 'Call Log'
 #: erpnext/telephony/doctype/call_log/call_log.json
@@ -46116,7 +46116,7 @@ msgstr "ردیف {1}: مقدار ({0}) نمی‌تواند کسری باشد. ب
 
 #: erpnext/controllers/buying_controller.py:946
 msgid "Row {idx}: Asset Naming Series is mandatory for the auto creation of assets for item {item_code}."
-msgstr "ردیف {idx}: سری نامگذاری دارایی برای ایجاد خودکار دارایی‌ها برای آیتم {item_code} الزامی است."
+msgstr "ردیف {idx}: سری نام‌گذاری دارایی برای ایجاد خودکار دارایی‌ها برای آیتم {item_code} الزامی است."
 
 #: erpnext/accounts/doctype/invoice_discounting/invoice_discounting.py:84
 msgid "Row({0}): Outstanding Amount cannot be greater than actual Outstanding Amount {1} in {2}"
@@ -48661,7 +48661,7 @@ msgstr "شماره‌های سریال برای آیتم {0} در انبار {1}
 #: erpnext/support/doctype/issue/issue.json
 #: erpnext/support/doctype/warranty_claim/warranty_claim.json
 msgid "Series"
-msgstr "سلسله"
+msgstr "سری"
 
 #. Label of the series_for_depreciation_entry (Data) field in DocType 'Company'
 #: erpnext/setup/doctype/company/company.json
@@ -52555,7 +52555,7 @@ msgstr "نام تامین کننده"
 #. Label of the supp_master_name (Select) field in DocType 'Buying Settings'
 #: erpnext/buying/doctype/buying_settings/buying_settings.json
 msgid "Supplier Naming By"
-msgstr "نامگذاری تامین کننده توسط"
+msgstr "نام‌گذاری تامین کننده توسط"
 
 #. Label of the supplier_number (Data) field in DocType 'Supplier Number At
 #. Customer'
@@ -61217,7 +61217,7 @@ msgstr "درخواست {0} برای {1}"
 
 #: erpnext/stock/doctype/item/item.py:324
 msgid "{0} Retain Sample is based on batch, please check Has Batch No to retain sample of item"
-msgstr "{0} Retain Sample بر اساس دسته است، لطفاً شماره دسته ای را دارد تا نمونه مورد را حفظ کنید"
+msgstr "{0} نگهداری نمونه بر اساس دسته است، لطفاً برای نگهداری نمونه آیتم، شماره دسته را بررسی کنید"
 
 #: erpnext/accounts/doctype/bank_reconciliation_tool/bank_reconciliation_tool.py:456
 msgid "{0} Transaction(s) Reconciled"
