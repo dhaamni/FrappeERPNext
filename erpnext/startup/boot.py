@@ -63,6 +63,7 @@ def boot_session(bootinfo):
 			bootinfo.current_fiscal_year = fiscal_year[0]
 
 		bootinfo.sysdefaults.demo_company = frappe.db.get_single_value("Global Defaults", "demo_company")
+		bootinfo.link_formatters = frappe.get_hooks("link_formatters")
 
 
 def update_page_info(bootinfo):
