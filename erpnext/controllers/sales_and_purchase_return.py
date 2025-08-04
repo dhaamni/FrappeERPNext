@@ -1004,7 +1004,7 @@ def filter_serial_batches(parent_doc, data, row, warehouse_field=None, qty_field
 
 	elif data.batches:
 		for batch_no, batch_qty in data.batches.items():
-			if parent_doc.get("is_internal_customer"):
+			if parent_doc.get("is_internal_customer") and parent_doc.get("target_warehouse"):
 				batch_qty = batch_qty * -1
 
 			if batch_qty <= 0:
@@ -1062,7 +1062,7 @@ def make_serial_batch_bundle_for_return(data, child_doc, parent_doc, warehouse_f
 		qty_field = "stock_qty"
 
 	warehouse = child_doc.get(warehouse_field)
-	if parent_doc.get("is_internal_customer"):
+	if parent_doc.get("is_internal_customer") and child_doc.get("target_warehouse"):
 		warehouse = child_doc.get("target_warehouse")
 		type_of_transaction = "Outward"
 
