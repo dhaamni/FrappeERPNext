@@ -468,13 +468,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 		if (!last_scanned_warehouse_field) return;
 
 		const clear_btn = $(`
-            <a class="btn-clear" style="
-                position: absolute;
-                right: 8px;
-                top: 50%;
-                transform: translateY(-50%);
-                z-index: 1;
-                " title="${__("Clear Last Scanned Warehouse")}">
+            <a class="btn-clear" title="${__("Clear Last Scanned Warehouse")}">
                 ${frappe.utils.icon("close", "xs", "es-icon")}
 			</a>
         `);
