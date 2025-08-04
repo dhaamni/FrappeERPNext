@@ -1339,6 +1339,7 @@ def create_payment_gateway_account(gateway, payment_channel="Email"):
 				"payment_account": bank_account.name,
 				"currency": bank_account.account_currency,
 				"payment_channel": payment_channel,
+				"company": company,
 			}
 		).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
