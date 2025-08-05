@@ -133,9 +133,6 @@ class AssetDepreciationSchedule(Document):
 					)
 				frappe.get_doc("Journal Entry", d.journal_entry).cancel()
 
-	def on_cancel(self):
-		self.db_set("status", "Cancelled")
-
 	def update_shift_depr_schedule(self):
 		if not self.shift_based or self.docstatus != 0:
 			return
