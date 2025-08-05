@@ -511,11 +511,7 @@
  ],
  "is_submittable": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2025-03-17 15:55:11.143456",
-=======
  "modified": "2025-08-04 15:47:54.514290",
->>>>>>> c30665fda7 (feat: Add non-negative constraint to completed qty fields in job card and time log)
  "modified_by": "Administrator",
  "module": "Manufacturing",
  "name": "Job Card",
