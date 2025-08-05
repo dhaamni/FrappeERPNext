@@ -101,9 +101,6 @@ class AssetDepreciationSchedule(Document):
 		self.validate_asset()
 		self.db_set("status", "Active")
 
-<<<<<<< HEAD
-	def before_cancel(self):
-=======
 	def validate_asset(self):
 		asset = frappe.get_doc("Asset", self.asset)
 		if not asset.calculate_depreciation:
@@ -121,7 +118,6 @@ class AssetDepreciationSchedule(Document):
 
 	def on_cancel(self):
 		self.db_set("status", "Cancelled")
->>>>>>> a4628c2024 (fix: submit depreciation schedule only for submitted asset)
 		if not self.flags.should_not_cancel_depreciation_entries:
 			self.cancel_depreciation_entries()
 
