@@ -244,6 +244,7 @@
    "width": "100px"
   },
   {
+   "default": "Now",
    "fieldname": "posting_time",
    "fieldtype": "Time",
    "label": "Posting Time",
@@ -1299,7 +1300,7 @@
  "idx": 261,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-31 17:18:37.679224",
+ "modified": "2025-08-04 19:18:47.754957",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Purchase Receipt",

@@ -374,6 +374,7 @@
    "search_index": 1
   },
   {
+   "default": "Now",
    "fieldname": "posting_time",
    "fieldtype": "Time",
    "hide_days": 1,
@@ -2241,7 +2242,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2025-07-31 17:19:49.609621",
+ "modified": "2025-08-04 19:20:28.732039",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Sales Invoice",
