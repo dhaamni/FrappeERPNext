@@ -98,9 +98,30 @@ class AssetDepreciationSchedule(Document):
 				)
 
 	def on_submit(self):
+		self.validate_asset()
 		self.db_set("status", "Active")
 
+<<<<<<< HEAD
 	def before_cancel(self):
+=======
+	def validate_asset(self):
+		asset = frappe.get_doc("Asset", self.asset)
+		if not asset.calculate_depreciation:
+			frappe.throw(
+				_("Asset {0} is not set to calculate depreciation.").format(
+					get_link_to_form("Asset", self.asset)
+				)
+			)
+		if asset.docstatus != 1:
+			frappe.throw(
+				_("Asset {0} is not submitted. Please submit the asset before proceeding.").format(
+					get_link_to_form("Asset", self.asset)
+				)
+			)
+
+	def on_cancel(self):
+		self.db_set("status", "Cancelled")
+>>>>>>> a4628c2024 (fix: submit depreciation schedule only for submitted asset)
 		if not self.flags.should_not_cancel_depreciation_entries:
 			self.cancel_depreciation_entries()
 
