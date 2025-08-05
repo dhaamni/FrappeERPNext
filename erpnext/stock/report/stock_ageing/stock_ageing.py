@@ -274,14 +274,6 @@ class FIFOSlots:
 
 			d.actual_qty = d.bal_qty
 			key, fifo_queue, transferred_item_key = self.__init_key_stores(d)
-			serial_nos = d.serial_no if d.serial_no else []
-			if fifo_queue and isinstance(fifo_queue[0][0], str):
-				d.has_serial_no = 1
-
-			if d.actual_qty > 0:
-				self.__compute_incoming_stock(d, fifo_queue, transferred_item_key, serial_nos)
-			else:
-				self.__compute_outgoing_stock(d, fifo_queue, transferred_item_key, serial_nos)
 
 			self.__update_balances(d, key)
 
