@@ -128,6 +128,12 @@ class AssetDepreciationSchedule(Document):
 	def cancel_depreciation_entries(self):
 		for d in self.get("depreciation_schedule"):
 			if d.journal_entry:
+				if d.journal_entry == "Draft":
+					frappe.throw(
+						_(
+							"Cannot cancel Asset Depreciation Schedule {0} as it has a draft journal entry {1}."
+						).format(self.name, d.journal_entry)
+					)
 				frappe.get_doc("Journal Entry", d.journal_entry).cancel()
 
 	def on_cancel(self):
