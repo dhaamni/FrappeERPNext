@@ -281,7 +281,7 @@ def _make_journal_entry_for_depreciation(
 	je.remark = f"Depreciation Entry against {asset.name} worth {depr_schedule.depreciation_amount}"
 =======
 	je.finance_book = depr_schedule_doc.finance_book
-	je.remark = _("Depreciation Entry against {0} worth {1}".format(
+	je.remark = _("Depreciation Entry against {0} worth {1}").format(
 		asset.name, depr_schedule.depreciation_amount
 	)
 >>>>>>> 803180d5de (chore: add translation function on remark in setup_journal_entry_metadata in depreciation.py)
