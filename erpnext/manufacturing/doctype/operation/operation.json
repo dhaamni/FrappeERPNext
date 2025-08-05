@@ -135,13 +135,7 @@
   }
  ],
  "quick_entry": 1,
-<<<<<<< HEAD
  "sort_field": "modified",
-=======
- "row_format": "Dynamic",
- "show_preview_popup": 1,
- "sort_field": "creation",
->>>>>>> f4722d3b24 (feat: add non-negative constraint to batch size and sub operation time fields)
  "sort_order": "DESC",
  "track_changes": 1
 }
