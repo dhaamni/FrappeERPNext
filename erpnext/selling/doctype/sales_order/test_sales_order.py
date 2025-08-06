@@ -830,14 +830,6 @@ class TestSalesOrder(AccountsTestMixin, IntegrationTestCase):
 			self.assertRaises(frappe.PermissionError, so.insert)
 
 		with self.set_user(test_user_2.name):
-			so = make_sales_order(
-				company="_Test Company 1",
-				customer="_Test Customer 1",
-				warehouse="_Test Warehouse 2 - _TC1",
-				do_not_save=True,
-			)
-			so.conversion_rate = 0.02
-			so.plc_conversion_rate = 0.02
 			so.insert()
 
 		frappe.permissions.remove_user_permission("Warehouse", "_Test Warehouse 1 - _TC", test_user.name)
