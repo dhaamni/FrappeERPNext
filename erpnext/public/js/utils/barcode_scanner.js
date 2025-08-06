@@ -496,9 +496,14 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 
 	handle_warehouse_scan(data) {
 		const warehouse = data.warehouse;
+		const warehouse_field_label =
+			this.frm.fields_dict[this.items_table_name].grid.fields_map[this.warehouse_field].label;
 
 		this.show_alert(
-			__("Warehouse scanned: {0}. Next items will be added to this warehouse.", [warehouse]),
+			__("Warehouse scanned: {0}. Next items will have this warehouse set in field '{1}'.", [
+				warehouse,
+				warehouse_field_label,
+			]),
 			"green",
 			6
 		);
@@ -514,7 +519,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 	clear_warehouse_context() {
 		this.frm.set_value(this.last_scanned_warehouse_field, null);
 		this.show_alert(
-			__("The last scanned warehouse has been cleared. Next items will be added without a warehouse."),
+			__("The last scanned warehouse has been cleared won't be set in the subsequently scanned items."),
 			"blue",
 			6
 		);
