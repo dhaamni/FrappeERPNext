@@ -433,9 +433,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 		let is_batch_no_scan = batch_no && frappe.meta.has_field(cur_grid.doctype, this.batch_no_field);
 		let check_max_qty = this.max_qty_field && frappe.meta.has_field(cur_grid.doctype, this.max_qty_field);
 
-		// Check if warehouse matching is needed for location-first scanning
-		let check_warehouse_match =
-			warehouse && frappe.meta.has_field(cur_grid.doctype, this.warehouse_field);
+		let has_warehouse_field = frappe.meta.has_field(cur_grid.doctype, this.warehouse_field);
 
 		const matching_row = (row) => {
 			const item_match = row.item_code == item_code;
@@ -443,7 +441,15 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 			const uom_match = !uom || row[this.uom_field] == uom;
 			const qty_in_limit = flt(row[this.qty_field]) < flt(row[this.max_qty_field]);
 			const item_scanned = row.has_item_scanned;
-			const warehouse_match = !check_warehouse_match || row[this.warehouse_field] == warehouse;
+
+			let warehouse_match = true;
+			if (has_warehouse_field) {
+				if (warehouse) {
+					warehouse_match = row[this.warehouse_field] == warehouse;
+				} else {
+					warehouse_match = !row[this.warehouse_field];
+				}
+			}
 
 			return (
 				item_match &&
@@ -455,11 +461,14 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 			);
 		};
 
-		return this.items_table.find(matching_row) || this.get_existing_blank_row();
+		const items_table = this.frm.doc[this.items_table_name] || [];
+
+		return items_table.find(matching_row) || this.get_existing_blank_row(items_table);
 	}
 
-	get_existing_blank_row() {
-		return this.items_table.find((d) => !d.item_code);
+	get_existing_blank_row(items_table) {
+		items_table = items_table || [];
+		return items_table.find((d) => !d.item_code);
 	}
 
 	setup_last_scanned_warehouse() {
