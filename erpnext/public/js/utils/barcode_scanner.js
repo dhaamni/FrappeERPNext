@@ -404,8 +404,10 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 	}
 
 	async set_warehouse(row, warehouse) {
-		if (warehouse && frappe.meta.has_field(row.doctype, this.warehouse_field)) {
-			await frappe.model.set_value(row.doctype, row.name, this.warehouse_field, warehouse);
+		const warehouse_field = this.get_warehouse_field();
+
+		if (warehouse && frappe.meta.has_field(row.doctype, warehouse_field)) {
+			await frappe.model.set_value(row.doctype, row.name, warehouse_field, warehouse);
 		}
 	}
 
@@ -436,7 +438,8 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 		let is_batch_no_scan = batch_no && frappe.meta.has_field(cur_grid.doctype, this.batch_no_field);
 		let check_max_qty = this.max_qty_field && frappe.meta.has_field(cur_grid.doctype, this.max_qty_field);
 
-		let has_warehouse_field = frappe.meta.has_field(cur_grid.doctype, this.warehouse_field);
+		const warehouse_field = this.get_warehouse_field();
+		let has_warehouse_field = frappe.meta.has_field(cur_grid.doctype, warehouse_field);
 
 		const matching_row = (row) => {
 			const item_match = row.item_code == item_code;
@@ -448,9 +451,9 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 			let warehouse_match = true;
 			if (has_warehouse_field) {
 				if (warehouse) {
-					warehouse_match = row[this.warehouse_field] == warehouse;
+					warehouse_match = row[warehouse_field] == warehouse;
 				} else {
-					warehouse_match = !row[this.warehouse_field];
+					warehouse_match = !row[warehouse_field];
 				}
 			}
 
@@ -499,8 +502,9 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 
 	handle_warehouse_scan(data) {
 		const warehouse = data.warehouse;
+		const warehouse_field = this.get_warehouse_field();
 		const warehouse_field_label =
-			this.frm.fields_dict[this.items_table_name].grid.fields_map[this.warehouse_field].label;
+			this.frm.fields_dict[this.items_table_name].grid.fields_map[warehouse_field].label;
 
 		this.show_alert(
 			__("Warehouse scanned: {0}. Next items will have this warehouse set in field '{1}'.", [
@@ -526,6 +530,13 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 			"blue",
 			6
 		);
+	}
+
+	get_warehouse_field() {
+		if (typeof this.warehouse_field === "function") {
+			return this.warehouse_field(this.frm);
+		}
+		return this.warehouse_field;
 	}
 
 	play_success_sound() {
