@@ -274,14 +274,6 @@ class FIFOSlots:
 
 			d.actual_qty = d.bal_qty
 			key, fifo_queue, transferred_item_key = self.__init_key_stores(d)
-			serial_nos = d.serial_no if d.serial_no else []
-			if fifo_queue and isinstance(fifo_queue[0][0], str):
-				d.has_serial_no = 1
-
-			if d.actual_qty > 0:
-				self.__compute_incoming_stock(d, fifo_queue, transferred_item_key, serial_nos)
-			else:
-				self.__compute_outgoing_stock(d, fifo_queue, transferred_item_key, serial_nos)
 
 			self.__update_balances(d, key)
 
@@ -439,10 +431,10 @@ class FIFOSlots:
 				transfer_qty_to_pop = 0
 
 	def __update_balances(self, row: dict, key: tuple | str):
-		self.item_details[key]["qty_after_transaction"] = row.qty_after_transaction or row.bal_qty
+		self.item_details[key]["qty_after_transaction"] = row.qty_after_transaction or flt(row.bal_qty)
 
 		if "total_qty" not in self.item_details[key]:
-			self.item_details[key]["total_qty"] = row.actual_qty or row.bal_qty
+			self.item_details[key]["total_qty"] = row.actual_qty or flt(row.bal_qty)
 		else:
 			self.item_details[key]["total_qty"] += row.actual_qty
 
