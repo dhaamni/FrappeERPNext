@@ -1014,8 +1014,6 @@ erpnext.stock.StockEntry = class StockEntry extends erpnext.stock.StockControlle
 			},
 		});
 
-		this.barcode_scanner.setup_last_scanned_warehouse();
-
 		this.setup_posting_date_time_check();
 
 		this.frm.fields_dict.bom_no.get_query = function () {

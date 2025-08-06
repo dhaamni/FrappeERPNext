@@ -42,6 +42,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 			this.frm.doctype,
 			this.last_scanned_warehouse_field
 		);
+		this.last_scanned_warehouse_initialized = false;
 	}
 
 	process_scan() {
@@ -506,6 +507,12 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 		const warehouse_field_label =
 			this.frm.fields_dict[this.items_table_name].grid.fields_map[warehouse_field].label;
 
+		if (!this.last_scanned_warehouse_initialized) {
+			this.setup_last_scanned_warehouse();
+			this.last_scanned_warehouse_initialized = true;
+		}
+
+		this.frm.set_value(this.last_scanned_warehouse_field, warehouse);
 		this.show_alert(
 			__("Warehouse scanned: {0}. Next items will have this warehouse set in field '{1}'.", [
 				warehouse,
@@ -514,8 +521,6 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 			"green",
 			6
 		);
-
-		this.frm.set_value(this.last_scanned_warehouse_field, warehouse);
 
 		// Focus back to scan field for next scan
 		setTimeout(() => {
