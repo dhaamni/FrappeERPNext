@@ -102,7 +102,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 
 			const { item_code, barcode, batch_no, serial_no, uom } = data;
 
-			const warehouse = this.last_scanned_warehouse;
+			const warehouse = this.frm.doc.last_scanned_warehouse;
 
 			let row = this.get_row_to_modify_on_scan(item_code, batch_no, uom, barcode, warehouse);
 
@@ -462,20 +462,25 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 		return this.items_table.find((d) => !d.item_code);
 	}
 
-	render_clear_last_scanned_warehouse_button() {
-		const last_scanned_warehouse_field = this.frm.fields_dict[this.last_scanned_warehouse_field];
+	setup_last_scanned_warehouse() {
+		this.frm.set_df_property("last_scanned_warehouse", "options", "Warehouse");
+		this.frm.set_df_property("last_scanned_warehouse", "fieldtype", "Link");
+		this.frm.set_df_property("last_scanned_warehouse", "formatter", function (value, df, options, doc) {
+			const link_formatter = frappe.form.get_formatter(df.fieldtype);
+			const link_value = link_formatter(value, df, options, doc);
 
-		if (!last_scanned_warehouse_field) return;
+			const clear_btn = `
+				<a class="btn-clear-last-scanned-warehouse" title="${__("Clear Last Scanned Warehouse")}">
+					${frappe.utils.icon("close", "xs", "es-icon")}
+				</a>
+			`;
 
-		const clear_btn = $(`
-            <a class="btn-clear" title="${__("Clear Last Scanned Warehouse")}">
-                ${frappe.utils.icon("close", "xs", "es-icon")}
-			</a>
-        `);
+			return link_value + clear_btn;
+		});
 
-		last_scanned_warehouse_field.$wrapper.find(".control-value").append(clear_btn);
-
-		clear_btn.on("click", () => {
+		this.frm.$wrapper.on("click", ".btn-clear-last-scanned-warehouse", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
 			this.clear_warehouse_context();
 		});
 	}
@@ -489,7 +494,6 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 			6
 		);
 
-		this.last_scanned_warehouse = warehouse;
 		this.frm.set_value(this.last_scanned_warehouse_field, warehouse);
 
 		// Focus back to scan field for next scan
@@ -499,7 +503,6 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 	}
 
 	clear_warehouse_context() {
-		this.last_scanned_warehouse = null;
 		this.frm.set_value(this.last_scanned_warehouse_field, null);
 		this.show_alert(
 			__("The last scanned warehouse has been cleared. Next items will be added without a warehouse."),

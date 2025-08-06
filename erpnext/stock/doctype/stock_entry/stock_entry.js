@@ -1007,6 +1007,7 @@ erpnext.stock.StockEntry = class StockEntry extends erpnext.stock.StockControlle
 			frm: this.frm,
 			warehouse_field: "s_warehouse",
 		});
+		this.barcode_scanner.setup_last_scanned_warehouse();
 
 		this.setup_posting_date_time_check();
 
@@ -1138,10 +1139,6 @@ erpnext.stock.StockEntry = class StockEntry extends erpnext.stock.StockControlle
 	scan_barcode() {
 		frappe.flags.dialog_set = false;
 		this.barcode_scanner.process_scan();
-	}
-
-	last_scanned_warehouse() {
-		this.barcode_scanner.render_clear_last_scanned_warehouse_button();
 	}
 
 	on_submit() {
