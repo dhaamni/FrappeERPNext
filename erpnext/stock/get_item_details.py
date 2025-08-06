@@ -1343,11 +1343,21 @@ def get_conversion_factor(item_code, uom):
 
 	if item.variant_of:
 		filters["parent"] = ("in", (item_code, item.variant_of))
-	conversion_factor = frappe.get_all("UOM Conversion Detail", filters, pluck="conversion_factor")
-	if not conversion_factor:
-		conversion_factor = [get_uom_conv_factor(uom, item.stock_uom) or 1]
+	conversions_factor = frappe.get_all(
+		"UOM Conversion Detail",
+		filters=filters,
+		fields=["parent", "conversion_factor"]
+	)
+	if not conversions_factor:
+		conversions_factor = [get_uom_conv_factor(uom, item.stock_uom) or 1]
+	else:
+		# Sort the array to be sure to have the targeted item_code first
+		def item_code_first_sort(conversion_factor):
+			return 1 - int(conversion_factor["parent"] == item_code)
+		conversions_factor.sort(key=item_code_first_sort)
+		conversions_factor = [conversion_factor["conversion_factor"] for conversion_factor in conversions_factor]
 
-	return {"conversion_factor": conversion_factor[-1]}
+	return {"conversion_factor": conversions_factor[0]}
 
 
 @frappe.whitelist()
