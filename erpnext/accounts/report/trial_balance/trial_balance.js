@@ -10,6 +10,13 @@ frappe.query_reports["Trial Balance"] = {
 			options: "Company",
 			default: frappe.defaults.get_user_default("Company"),
 			reqd: 1,
+			on_change: function (query_report) {
+				frappe.db.get_value("Company", this.value, "is_group").then((r) => {
+					const is_group = r.message.is_group;
+					query_report.toggle_filter_display("consolidated_trial_balance", !is_group);
+					query_report.set_filter_value("consolidated_trial_balance", is_group);
+				});
+			},
 		},
 		{
 			fieldname: "fiscal_year",
@@ -116,6 +123,12 @@ frappe.query_reports["Trial Balance"] = {
 			label: __("Show Group Accounts"),
 			fieldtype: "Check",
 			default: 1,
+		},
+		{
+			fieldname: "consolidated_trial_balance",
+			label: __("Consolidated Trial Balance"),
+			fieldtype: "Check",
+			default: 0,
 		},
 	],
 	formatter: erpnext.financial_statements.formatter,
