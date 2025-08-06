@@ -2225,10 +2225,9 @@
   {
    "depends_on": "eval: doc.last_scanned_warehouse",
    "fieldname": "last_scanned_warehouse",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
    "is_virtual": 1,
-   "label": "Last Scanned Warehouse",
-   "options": "Warehouse"
+   "label": "Last Scanned Warehouse"
   }
  ],
  "grid_page_length": 50,
