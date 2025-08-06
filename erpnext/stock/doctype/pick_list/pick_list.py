@@ -572,10 +572,16 @@ class PickList(TransactionBase):
 
 			if not item.item_code:
 				frappe.throw(f"Row #{item.idx}: Item Code is Mandatory")
-			if not cint(
-				frappe.get_cached_value("Item", item.item_code, "is_stock_item")
-			) and not frappe.db.exists("Product Bundle", {"new_item_code": item.item_code, "disabled": 0}):
-				continue
+
+			# Check if item is stock item or product bundle
+			is_stock_item = cint(frappe.get_cached_value("Item", item.item_code, "is_stock_item"))
+			is_product_bundle = frappe.db.exists("Product Bundle", {"new_item_code": item.item_code, "disabled": 0})
+
+			# Include non-stock items for delivery purposes, but skip them for warehouse assignment
+			if not is_stock_item and not is_product_bundle:
+				# For non-stock items, set warehouse to None and continue processing
+				item.warehouse = None
+
 			item_code = item.item_code
 			reference = item.sales_order_item or item.material_request_item
 			key = (item_code, item.uom, item.warehouse, item.batch_no, reference)
