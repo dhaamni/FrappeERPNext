@@ -123,7 +123,10 @@ frappe.ui.form.on("Pick List", {
 			});
 
 			if (has_changes) {
-				frappe.show_alert(__("Cleared auto-assigned serial numbers and batch numbers for manual picking"), 3);
+				frappe.show_alert(
+					__("Cleared auto-assigned serial numbers and batch numbers for manual picking"),
+					3
+				);
 				frm.refresh_field("locations");
 			}
 		}

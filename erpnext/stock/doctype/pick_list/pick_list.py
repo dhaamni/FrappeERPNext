@@ -575,7 +575,9 @@ class PickList(TransactionBase):
 
 			# Check if item is stock item or product bundle
 			is_stock_item = cint(frappe.get_cached_value("Item", item.item_code, "is_stock_item"))
-			is_product_bundle = frappe.db.exists("Product Bundle", {"new_item_code": item.item_code, "disabled": 0})
+			is_product_bundle = frappe.db.exists(
+				"Product Bundle", {"new_item_code": item.item_code, "disabled": 0}
+			)
 
 			# Include non-stock items for delivery purposes, but skip them for warehouse assignment
 			if not is_stock_item and not is_product_bundle:
