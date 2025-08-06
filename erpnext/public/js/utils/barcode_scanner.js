@@ -22,7 +22,6 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 		this.prompt_qty = opts.prompt_qty;
 
 		this.items_table_name = opts.items_table_name || "items";
-		this.items_table = this.frm.doc[this.items_table_name];
 
 		// optional sound name to play when scan either fails or passes.
 		// see https://frappeframework.com/docs/v14/user/en/python-api/hooks#sounds
@@ -39,6 +38,10 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 		//     warehouse: "Store-001", // present if warehouse was found (location-first scanning)
 		// }
 		this.scan_api = opts.scan_api || "erpnext.stock.utils.scan_barcode";
+		this.has_last_scanned_warehouse = frappe.meta.has_field(
+			this.frm.doctype,
+			this.last_scanned_warehouse_field
+		);
 	}
 
 	process_scan() {
@@ -62,7 +65,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 				}
 
 				// Handle warehouse scanning
-				if (data.warehouse) {
+				if (data.warehouse && this.has_last_scanned_warehouse) {
 					this.handle_warehouse_scan(data);
 					this.play_success_sound();
 					resolve();
@@ -102,7 +105,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 
 			const { item_code, barcode, batch_no, serial_no, uom } = data;
 
-			const warehouse = this.frm.doc.last_scanned_warehouse;
+			const warehouse = this.has_last_scanned_warehouse && this.frm.doc.last_scanned_warehouse;
 
 			let row = this.get_row_to_modify_on_scan(item_code, batch_no, uom, barcode, warehouse);
 
