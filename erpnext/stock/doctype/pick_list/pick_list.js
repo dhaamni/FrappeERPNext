@@ -81,6 +81,26 @@ frappe.ui.form.on("Pick List", {
 			};
 		});
 	},
+	pick_manually: (frm) => {
+		// Clear auto-assigned serial numbers and related fields when switching to manual picking
+		if (frm.doc.pick_manually && frm.doc.locations) {
+			let has_changes = false;
+			frm.doc.locations.forEach((row) => {
+				if (row.serial_no || row.batch_no || row.serial_and_batch_bundle) {
+					row.serial_no = "";
+					row.batch_no = "";
+					row.serial_and_batch_bundle = "";
+					row.picked_qty = 0;
+					has_changes = true;
+				}
+			});
+			
+			if (has_changes) {
+				frappe.show_alert(__("Cleared auto-assigned serial numbers and batch numbers for manual picking"), 3);
+				frm.refresh_field("locations");
+			}
+		}
+	},
 	set_item_locations: (frm, save) => {
 		if (!(frm.doc.locations && frm.doc.locations.length)) {
 			frappe.msgprint(__("Add items in the Item Locations table"));
@@ -273,7 +293,7 @@ frappe.ui.form.on("Pick List", {
 			max_qty_field: "qty",
 			dont_allow_new_row: true,
 			prompt_qty: frm.doc.prompt_qty,
-			serial_no_field: "not_supported", // doesn't make sense for picklist without a separate field.
+			serial_no_field: "serial_no",
 		};
 		const barcode_scanner = new erpnext.utils.BarcodeScanner(opts);
 		barcode_scanner.process_scan();
