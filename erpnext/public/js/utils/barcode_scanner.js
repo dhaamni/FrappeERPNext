@@ -58,7 +58,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 			this.scan_api_call(input, (r) => {
 				const data = r && r.message;
 				if (!data || Object.keys(data).length === 0) {
-					this.show_alert(__("Cannot find Item or Warehouse with this Barcode"), "red");
+					this.show_alert(__("Cannot find Item or Warehouse with this Barcode."), "red");
 					this.clean_up();
 					this.play_fail_sound();
 					reject();

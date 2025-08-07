@@ -662,16 +662,20 @@ def _update_item_info(scan_result: dict[str, str | None], ctx=None) -> dict[str,
 			["has_batch_no", "has_serial_no"],
 			as_dict=True,
 		):
-			from erpnext.stock.get_item_details import get_item_warehouse_
-
-			item = frappe._dict(name=item_code)
-
-			warehouse = get_item_warehouse_(ctx, item, overwrite_warehouse=True)
-			item_info.update({"default_warehouse": warehouse})
-
+			_update_default_warehouse(ctx, item_code, item_info)
 			scan_result.update(item_info)
 
 	return scan_result
+
+
+def _update_default_warehouse(ctx: BarcodeScanContext, item_code: str, item_info: dict) -> None:
+	from erpnext.stock.get_item_details import get_item_warehouse_
+
+	item = frappe._dict(name=item_code)
+	warehouse = get_item_warehouse_(ctx, item, overwrite_warehouse=True)
+
+	if warehouse:
+		item_info["default_warehouse"] = warehouse
 
 
 def get_combine_datetime(posting_date, posting_time):
