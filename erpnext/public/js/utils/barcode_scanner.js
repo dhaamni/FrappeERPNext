@@ -92,6 +92,10 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 				method: this.scan_api,
 				args: {
 					search_value: input,
+					ctx: {
+						set_warehouse: this.frm.doc.set_warehouse,
+						company: this.frm.doc.company,
+					},
 				},
 			})
 			.then((r) => {
@@ -104,9 +108,10 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 			let cur_grid = this.frm.fields_dict[this.items_table_name].grid;
 			frappe.flags.trigger_from_barcode_scanner = true;
 
-			const { item_code, barcode, batch_no, serial_no, uom } = data;
+			const { item_code, barcode, batch_no, serial_no, uom, default_warehouse } = data;
 
-			const warehouse = this.has_last_scanned_warehouse && this.frm.doc.last_scanned_warehouse;
+			const warehouse =
+				(this.has_last_scanned_warehouse && this.frm.doc.last_scanned_warehouse) || default_warehouse;
 
 			let row = this.get_row_to_modify_on_scan(item_code, batch_no, uom, barcode, warehouse);
 
