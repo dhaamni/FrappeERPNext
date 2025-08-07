@@ -81,6 +81,12 @@ def validate_filters(filters):
 		)
 		filters.to_date = filters.year_end_date
 
+	is_group_company = frappe.get_cached_value("Company", filters.company, "is_group")
+	if not is_group_company and filters.get("consolidated_trial_balance"):
+		frappe.msgprint(_("Consolidated Trial Balance can be generated only for a Group Company."))
+
+		filters.consolidated_trial_balance = 0
+
 
 def get_data(filters):
 	accounts = frappe.db.sql(
