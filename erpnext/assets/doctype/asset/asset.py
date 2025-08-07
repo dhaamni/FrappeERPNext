@@ -44,9 +44,8 @@ class Asset(AccountsController):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
-
 		from erpnext.assets.doctype.asset_finance_book.asset_finance_book import AssetFinanceBook
+		from frappe.types import DF
 
 		additional_asset_cost: DF.Currency
 		amended_from: DF.Link | None
@@ -74,7 +73,7 @@ class Asset(AccountsController):
 		image: DF.AttachImage | None
 		insurance_end_date: DF.Date | None
 		insurance_start_date: DF.Date | None
-		insured_value: DF.Data | None
+		insured_value: DF.Currency
 		insurer: DF.Data | None
 		is_composite_asset: DF.Check
 		is_composite_component: DF.Check
@@ -97,20 +96,7 @@ class Asset(AccountsController):
 		purchase_receipt: DF.Link | None
 		purchase_receipt_item: DF.Data | None
 		split_from: DF.Link | None
-		status: DF.Literal[
-			"Draft",
-			"Submitted",
-			"Partially Depreciated",
-			"Fully Depreciated",
-			"Sold",
-			"Scrapped",
-			"In Maintenance",
-			"Out of Order",
-			"Issue",
-			"Receipt",
-			"Capitalized",
-			"Work In Progress",
-		]
+		status: DF.Literal["Draft", "Submitted", "Partially Depreciated", "Fully Depreciated", "Sold", "Scrapped", "In Maintenance", "Out of Order", "Issue", "Receipt", "Capitalized", "Work In Progress"]
 		supplier: DF.Link | None
 		total_asset_cost: DF.Currency
 		total_number_of_depreciations: DF.Int
@@ -128,6 +114,7 @@ class Asset(AccountsController):
 		self.set_missing_values()
 		self.validate_gross_and_purchase_amount()
 		self.validate_finance_books()
+		self.validate_insurance_details()
 		self.total_asset_cost = self.gross_purchase_amount + self.additional_asset_cost
 		self.status = self.get_status()
 
@@ -349,6 +336,10 @@ class Asset(AccountsController):
 					_("Row #{}: Finance Book should not be empty since you're using multiple.").format(d.idx),
 					title=_("Missing Finance Book"),
 				)
+
+	def validate_insurance_details(self):
+		if self.insurance_start_date and self.insurance_end_date and getdate(self.insurance_end_date) < getdate(self.insurance_start_date):
+			frappe.throw(_("Insurance End Date cannot be before Insurance Start Date"))
 
 	def validate_category(self):
 		non_depreciable_category = frappe.db.get_value(

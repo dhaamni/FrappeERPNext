@@ -317,8 +317,9 @@
   },
   {
    "fieldname": "insured_value",
-   "fieldtype": "Data",
-   "label": "Insured value"
+   "fieldtype": "Currency",
+   "label": "Insured value",
+   "non_negative": 1
   },
   {
    "fieldname": "column_break_48",
@@ -601,8 +602,8 @@
    "link_fieldname": "target_asset"
   }
  ],
- "modified": "2025-05-20 13:44:06.229177",
- "modified_by": "Administrator",
+ "modified": "2025-08-07 17:07:31.527995",
+ "modified_by": "rehan@test.com",
  "module": "Assets",
  "name": "Asset",
  "naming_rule": "By \"Naming Series\" field",
