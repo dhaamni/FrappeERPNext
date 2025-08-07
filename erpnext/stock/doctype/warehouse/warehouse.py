@@ -64,10 +64,23 @@ class Warehouse(NestedSet):
 
 			if account:
 				self.set_onload("account", account)
+
 		load_address_and_contact(self)
 
 	def validate(self):
 		self.warn_about_multiple_warehouse_account()
+		self.validate_warehouse_account()
+
+	def validate_warehouse_account(self):
+		return
+		if self.flags.ignore_mandatory:
+			return
+
+		if self.company and not frappe.db.get_value("Company", self.company, "enable_perpetual_inventory"):
+			return
+
+		if not self.account and self.company:
+			get_warehouse_account(self, skip_random=True)
 
 	def on_update(self):
 		self.update_nsm_model()

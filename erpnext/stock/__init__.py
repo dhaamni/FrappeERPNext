@@ -1,5 +1,5 @@
 import frappe
-from frappe import _
+from frappe import _, bold
 
 install_docs = [
 	{"doctype": "Role", "role_name": "Stock Manager", "name": "Stock Manager"},
@@ -50,7 +50,7 @@ def get_warehouse_account_map(company=None):
 	return frappe.flags.warehouse_account_map.get(company) or frappe.flags.warehouse_account_map
 
 
-def get_warehouse_account(warehouse, warehouse_account=None):
+def get_warehouse_account(warehouse, warehouse_account=None, skip_random=False):
 	account = warehouse.account
 	if not account and warehouse.parent_warehouse:
 		if warehouse_account:
@@ -78,17 +78,24 @@ def get_warehouse_account(warehouse, warehouse_account=None):
 	if not account and warehouse.company:
 		account = get_company_default_inventory_account(warehouse.company)
 
-	if not account and warehouse.company:
+	# Handles the reposting case where an account is not set for the warehouse.
+	# In such cases, the system will pick a random stock account from the company.
+	# Users can later correct the account manually using a journal entry.
+	if not skip_random and not account and warehouse.company:
 		account = frappe.db.get_value(
-			"Account", {"account_type": "Stock", "is_group": 0, "company": warehouse.company}, "name"
+			"Account",
+			{"account_type": "Stock", "is_group": 0, "company": warehouse.company, "disabled": 0},
+			"name",
+			order_by="creation asc",
 		)
 
 	if not account and warehouse.company and not warehouse.is_group:
 		frappe.throw(
 			_("Please set Account in Warehouse {0} or Default Inventory Account in Company {1}").format(
-				warehouse.name, warehouse.company
+				bold(warehouse.name), bold(warehouse.company)
 			)
 		)
+
 	return account
 
 
