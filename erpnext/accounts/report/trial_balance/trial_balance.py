@@ -12,6 +12,9 @@ from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
 	get_accounting_dimensions,
 	get_dimension_with_children,
 )
+from erpnext.accounts.report.consolidated_financial_statement.consolidated_financial_statement import (
+	get_subsidiary_companies,
+)
 from erpnext.accounts.report.financial_statements import (
 	filter_accounts,
 	filter_out_zero_value_rows,
@@ -127,6 +130,14 @@ def get_data(filters):
 	accumulate_values_into_parents(accounts, accounts_by_name)
 
 	data = prepare_data(accounts, filters, parent_children_map, company_currency)
+
+	if filters.get("consolidated_trial_balance"):
+		subsidiary_companies_tb_data = get_subsidiary_companies_tb_data(filters)
+		data = consolidate_trial_balance_data(data, subsidiary_companies_tb_data)
+
+	if not filters.get("show_group_accounts"):
+		data = hide_group_accounts(data)
+
 	data = filter_out_zero_value_rows(
 		data, parent_children_map, show_zero_values=filters.get("show_zero_values")
 	)
@@ -421,9 +432,6 @@ def prepare_data(accounts, filters, parent_children_map, company_currency):
 
 	total_row = calculate_total_row(accounts, company_currency)
 
-	if not filters.get("show_group_accounts"):
-		data = hide_group_accounts(data)
-
 	data.extend([{}, total_row])
 
 	return data
@@ -526,3 +534,55 @@ def hide_group_accounts(data):
 			d.update(indent=0)
 			non_group_accounts_data.append(d)
 	return non_group_accounts_data
+
+
+def get_subsidiary_companies_tb_data(filters):
+	subsidiary_companies = get_subsidiary_companies(filters.company)
+	subsidiary_companies_tb_data = {}
+	sub_filters = frappe._dict(filters)
+	sub_filters.consolidated_trial_balance = 0
+	sub_filters.presentation_currency = filters.presentation_currency or erpnext.get_company_currency(
+		filters.company
+	)
+	for company in subsidiary_companies:
+		if company == filters.company:
+			continue
+		sub_filters.company = company
+		subsidiary_companies_tb_data[company] = get_data(sub_filters)
+
+	return subsidiary_companies_tb_data
+
+
+def consolidate_trial_balance_data(data, subsidiary_companies_tb_data):
+	parent_company_data = list(data)
+	for tb_data in subsidiary_companies_tb_data.values():
+		for entry in tb_data:
+			if entry:
+				consolidate_gle_data(parent_company_data, entry, tb_data)
+
+	return parent_company_data
+
+
+def consolidate_gle_data(data, entry, tb_data):
+	entry_gle_exists = False
+	for gle in data:
+		if gle and gle["account_name"] == entry["account_name"]:
+			entry_gle_exists = True
+			gle["closing_credit"] += entry["closing_credit"]
+			gle["closing_debit"] += entry["closing_debit"]
+			gle["credit"] += entry["credit"]
+			gle["debit"] += entry["debit"]
+			gle["opening_credit"] += entry["opening_credit"]
+			gle["opening_debit"] += entry["opening_debit"]
+			gle["has_value"] = 1
+
+	if not entry_gle_exists:
+		entry_parent_account = next(
+			(d for d in tb_data if d.get("account") == entry.get("parent_account")), None
+		)
+		parent_account_in_data = next(
+			(d for d in data if d.get("account_name") == entry_parent_account.get("account_name")), None
+		)
+		entry["parent_account"] = parent_account_in_data.get("account")
+		entry["indent"] = parent_account_in_data.get("indent") + 1
+		data.insert(data.index(parent_account_in_data) + 1, entry)
