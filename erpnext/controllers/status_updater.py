@@ -176,10 +176,12 @@ status_map = {
 		["Cancelled", "eval:self.docstatus == 2"],
 	],
 	"Employee Advance": [
+    ["Draft", None],
     ["Paid", "eval:self.paid_amount >= self.advance_amount and self.docstatus == 1"],
-	["Unpaid", "eval:self.paid_amount < self.advance_amount and self.docstatus == 1"]
-
+    ["Unpaid", "eval:self.paid_amount < self.advance_amount and self.docstatus == 1"],
+    ["Cancelled", "eval:self.docstatus == 2"],
 ],
+
 
 }
 
