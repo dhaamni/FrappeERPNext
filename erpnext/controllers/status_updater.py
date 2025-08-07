@@ -19,7 +19,7 @@ def validate_status(status, options):
 
 status_map = {
 	"Lead": [
-		["Lost Quotation", "has_lost_quotation"],
+		["Lost Quotation", "has_lost_quotation"],   
 		["Opportunity", "has_opportunity"],
 		["Quotation", "has_quotation"],
 		["Converted", "has_customer"],
@@ -33,7 +33,7 @@ status_map = {
 	],
 	"Quotation": [
 		["Draft", None],
-		["Open", "eval:self.docstatus==1"],
+		["Open", "eval:self.docstatus==1"], 
 		["Lost", "eval:self.status=='Lost'"],
 		["Partially Ordered", "is_partially_ordered"],
 		["Ordered", "is_fully_ordered"],
@@ -175,6 +175,12 @@ status_map = {
 		["Completed", "eval:self.purpose == 'Delivery' and self.delivery_status == 'Fully Delivered'"],
 		["Cancelled", "eval:self.docstatus == 2"],
 	],
+	"Employee Advance": [
+    ["Paid", "eval:self.paid_amount >= self.advance_amount and self.docstatus == 1"],
+	["Unpaid", "eval:self.paid_amount < self.advance_amount and self.docstatus == 1"]
+
+],
+
 }
 
 
@@ -619,7 +625,7 @@ class StatusUpdater(Document):
 					(ref_dn),
 				)[0][0]
 			)
-
+ 
 			billed_qty = flt(
 				frappe.db.sql(
 					"""select ifnull(sum(qty), 0)
