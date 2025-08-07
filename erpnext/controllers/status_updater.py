@@ -379,6 +379,7 @@ class StatusUpdater(Document):
 			and qty_or_amount == "amount"
 			and self.is_internal_customer
 		):
+			
 			return
 
 		elif (
