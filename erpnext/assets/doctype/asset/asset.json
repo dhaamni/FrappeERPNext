@@ -317,7 +317,7 @@
   },
   {
    "fieldname": "insured_value",
-   "fieldtype": "Data",
+   "fieldtype": "Currency",
    "label": "Insured value"
   },
   {
@@ -601,7 +601,7 @@
    "link_fieldname": "target_asset"
   }
  ],
- "modified": "2025-05-20 13:44:06.229177",
+ "modified": "2025-08-07 17:50:53.749533",
  "modified_by": "Administrator",
  "module": "Assets",
  "name": "Asset",
