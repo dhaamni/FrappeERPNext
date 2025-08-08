@@ -477,24 +477,28 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 	}
 
 	setup_last_scanned_warehouse() {
-		this.frm.set_df_property("last_scanned_warehouse", "options", "Warehouse");
-		this.frm.set_df_property("last_scanned_warehouse", "fieldtype", "Link");
-		this.frm.set_df_property("last_scanned_warehouse", "formatter", function (value, df, options, doc) {
-			const link_formatter = frappe.form.get_formatter(df.fieldtype);
-			const link_value = link_formatter(value, df, options, doc);
+		this.frm.set_df_property(this.last_scanned_warehouse_field, "options", "Warehouse");
+		this.frm.set_df_property(this.last_scanned_warehouse_field, "fieldtype", "Link");
+		this.frm.set_df_property(
+			this.last_scanned_warehouse_field,
+			"formatter",
+			function (value, df, options, doc) {
+				const link_formatter = frappe.form.get_formatter(df.fieldtype);
+				const link_value = link_formatter(value, df, options, doc);
 
-			if (!value) {
-				return link_value;
-			}
+				if (!value) {
+					return link_value;
+				}
 
-			const clear_btn = `
+				const clear_btn = `
 				<a class="btn-clear-last-scanned-warehouse" title="${__("Clear Last Scanned Warehouse")}">
 					${frappe.utils.icon("close", "xs", "es-icon")}
 				</a>
 			`;
 
-			return link_value + clear_btn;
-		});
+				return link_value + clear_btn;
+			}
+		);
 
 		this.frm.$wrapper.on("click", ".btn-clear-last-scanned-warehouse", (e) => {
 			e.preventDefault();
