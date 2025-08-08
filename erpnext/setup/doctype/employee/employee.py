@@ -425,3 +425,102 @@ def has_upload_permission(doc, ptype="read", user=None):
 	if get_doc_permissions(doc, user=user, ptype=ptype).get(ptype):
 		return True
 	return doc.user_id == user
+
+
+def has_event_permission(doc, ptype="read", user=None):
+	"""
+	Custom permission function for Event doctype to allow adding employees as participants
+	even when user has restricted User Permissions on Employee doctype.
+	"""
+	if not user:
+		user = frappe.session.user
+
+	# If user has standard permissions, allow
+	if get_doc_permissions(doc, user=user, ptype=ptype).get(ptype):
+		return True
+
+	# For Event doctype, allow users to add employees as participants
+	# even if they have restricted User Permissions on Employee doctype
+	if ptype in ["read", "write"] and doc.doctype == "Event":
+		# Check if user has permission to create/edit events
+		if frappe.has_permission("Event", ptype=ptype, user=user):
+			return True
+
+	return False
+
+
+@frappe.whitelist()
+def get_employees_for_event_participants(doctype, txt, searchfield, start, page_len, filters):
+	"""
+	Custom method to get employees for event participants that bypasses user permissions
+	for team members who need to add employees to events.
+	"""
+	# Get all active employees
+	employees = frappe.get_all(
+		"Employee",
+		filters={"status": "Active"},
+		fields=["name", "employee_name", "employee_id"],
+		or_filters=[
+			["name", "like", f"%{txt}%"],
+			["employee_name", "like", f"%{txt}%"],
+			["employee_id", "like", f"%{txt}%"]
+		],
+		start=start,
+		page_length=page_len,
+		order_by="employee_name"
+	)
+
+	return [[emp.name, f"{emp.employee_name} ({emp.employee_id})"] for emp in employees]
+
+
+def has_event_participant_permission(doc, ptype="read", user=None):
+	"""
+	Custom permission function for Event Participants to allow adding employees
+	even when user has restricted User Permissions on Employee doctype.
+	"""
+	if not user:
+		user = frappe.session.user
+
+	# If user has standard permissions, allow
+	if get_doc_permissions(doc, user=user, ptype=ptype).get(ptype):
+		return True
+
+	# For Event Participants, allow users to add employees as participants
+	# even if they have restricted User Permissions on Employee doctype
+	if ptype in ["read", "write"] and hasattr(doc, 'reference_doctype') and doc.reference_doctype == "Employee":
+		# Allow if user has permission to create/edit events
+		if frappe.has_permission("Event", ptype="write", user=user):
+			return True
+
+	return False
+
+
+@frappe.whitelist()
+def add_employee_to_event(event_name, employee_name):
+	"""
+	Add an employee as a participant to an event, bypassing user permissions.
+	"""
+	if not frappe.has_permission("Event", "write"):
+		frappe.throw(_("You don't have permission to edit events"))
+
+	# Check if employee exists and is active
+	if not frappe.db.exists("Employee", {"name": employee_name, "status": "Active"}):
+		frappe.throw(_("Employee not found or not active"))
+
+	# Get the event
+	event = frappe.get_doc("Event", event_name)
+
+	# Check if employee is already a participant
+	for participant in event.event_participants:
+		if participant.reference_doctype == "Employee" and participant.reference_docname == employee_name:
+			frappe.msgprint(_("Employee is already a participant"))
+			return
+
+	# Add employee as participant
+	event.append("event_participants", {
+		"reference_doctype": "Employee",
+		"reference_docname": employee_name
+	})
+
+	event.save(ignore_permissions=True)
+	frappe.msgprint(_("Employee added as participant successfully"))
