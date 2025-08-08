@@ -23,6 +23,27 @@ frappe.ui.form.on("Job Card", {
 			};
 		});
 
+<<<<<<< HEAD
+=======
+		frm.set_query("item_code", "scrap_items", () => {
+			return {
+				filters: {
+					disabled: 0,
+				},
+			};
+		});
+
+		frm.events.set_company_filters(frm, "source_warehouse");
+		frm.events.set_company_filters(frm, "wip_warehouse");
+		frm.set_query("source_warehouse", "items", () => {
+			return {
+				filters: {
+					company: frm.doc.company,
+				},
+			};
+		});
+
+>>>>>>> 89c2bbed7c (fix: Add filter to item_code query for scrap_items to exclude disabled items)
 		frm.set_indicator_formatter("sub_operation", function (doc) {
 			if (doc.status == "Pending") {
 				return "red";
