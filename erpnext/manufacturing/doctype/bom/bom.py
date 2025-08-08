@@ -1079,6 +1079,9 @@ class BOM(WebsiteGenerator):
 		return BOMTree(self.name)
 
 	def set_process_loss_qty(self):
+		if self.process_loss_percentage < 0:
+			frappe.throw(_("Process Loss Percentage cannot be negative"))
+
 		if self.process_loss_percentage:
 			self.process_loss_qty = flt(self.quantity) * flt(self.process_loss_percentage) / 100
 
