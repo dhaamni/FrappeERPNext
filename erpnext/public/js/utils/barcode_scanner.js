@@ -421,8 +421,6 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 		// show new row or qty increase toast
 		if (exist) {
 			this.show_alert(__("Row #{0}: Qty increased by {1}", [idx, qty]), "green");
-		} else if (warehouse) {
-			this.show_alert(__("Row #{0}: Item added (Warehouse: {1})", [idx, warehouse]), "green");
 		} else {
 			this.show_alert(__("Row #{0}: Item added", [idx]), "green");
 		}
@@ -457,7 +455,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 			let warehouse_match = true;
 			if (has_warehouse_field) {
 				if (warehouse) {
-					warehouse_match = row[warehouse_field] == warehouse;
+					warehouse_match = row[warehouse_field] === warehouse;
 				} else {
 					warehouse_match = !row[warehouse_field];
 				}
@@ -475,12 +473,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 
 		const items_table = this.frm.doc[this.items_table_name] || [];
 
-		return items_table.find(matching_row) || this.get_existing_blank_row(items_table);
-	}
-
-	get_existing_blank_row(items_table) {
-		items_table = items_table || [];
-		return items_table.find((d) => !d.item_code);
+		return items_table.find(matching_row) || items_table.find((d) => !d.item_code);
 	}
 
 	setup_last_scanned_warehouse() {
@@ -489,6 +482,10 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 		this.frm.set_df_property("last_scanned_warehouse", "formatter", function (value, df, options, doc) {
 			const link_formatter = frappe.form.get_formatter(df.fieldtype);
 			const link_value = link_formatter(value, df, options, doc);
+
+			if (!value) {
+				return link_value;
+			}
 
 			const clear_btn = `
 				<a class="btn-clear-last-scanned-warehouse" title="${__("Clear Last Scanned Warehouse")}">
@@ -509,8 +506,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 	handle_warehouse_scan(data) {
 		const warehouse = data.warehouse;
 		const warehouse_field = this.get_warehouse_field();
-		const warehouse_field_label =
-			this.frm.fields_dict[this.items_table_name].grid.fields_map[warehouse_field].label;
+		const warehouse_field_label = frappe.meta.get_label(this.items_table_name, warehouse_field);
 
 		if (!this.last_scanned_warehouse_initialized) {
 			this.setup_last_scanned_warehouse();
@@ -519,24 +515,21 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 
 		this.frm.set_value(this.last_scanned_warehouse_field, warehouse);
 		this.show_alert(
-			__("Warehouse scanned: {0}. Next items will have this warehouse set in field '{1}'.", [
-				warehouse,
-				warehouse_field_label,
+			__("{0} will be set as the {1} in subsequently scanned items.", [
+				__(warehouse).bold(),
+				__(warehouse_field_label).bold(),
 			]),
 			"green",
 			6
 		);
-
-		// Focus back to scan field for next scan
-		setTimeout(() => {
-			this.scan_barcode_field && this.scan_barcode_field.set_focus();
-		}, 100);
 	}
 
 	clear_warehouse_context() {
 		this.frm.set_value(this.last_scanned_warehouse_field, null);
 		this.show_alert(
-			__("The last scanned warehouse has been cleared won't be set in the subsequently scanned items."),
+			__(
+				"The last scanned warehouse has been cleared and won't be set in the subsequently scanned items."
+			),
 			"blue",
 			6
 		);
@@ -544,7 +537,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 
 	get_warehouse_field() {
 		if (typeof this.warehouse_field === "function") {
-			return this.warehouse_field(this.frm);
+			return this.warehouse_field(this.frm.doc);
 		}
 		return this.warehouse_field;
 	}

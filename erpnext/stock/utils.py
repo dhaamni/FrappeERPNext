@@ -18,7 +18,6 @@ from erpnext.stock.serial_batch_bundle import BatchNoValuation, SerialNoValuatio
 from erpnext.stock.valuation import FIFOValuation, LIFOValuation
 
 BarcodeScanResult = dict[str, str | None]
-BarcodeScanContext = frappe._dict
 
 
 class InvalidWarehouseCompany(frappe.ValidationError):
@@ -585,7 +584,7 @@ def check_pending_reposting(posting_date: str, throw_error: bool = True) -> bool
 
 
 @frappe.whitelist()
-def scan_barcode(search_value: str, ctx: BarcodeScanContext | str | None = None) -> BarcodeScanResult:
+def scan_barcode(search_value: str, ctx: frappe._dict | str | None = None) -> BarcodeScanResult:
 	def set_cache(data: BarcodeScanResult):
 		frappe.cache().set_value(f"erpnext:barcode_scan:{search_value}", data, expires_in_sec=120)
 
@@ -662,13 +661,13 @@ def _update_item_info(scan_result: dict[str, str | None], ctx=None) -> dict[str,
 			["has_batch_no", "has_serial_no"],
 			as_dict=True,
 		):
-			_update_default_warehouse(ctx, item_code, item_info)
+			_update_default_warehouse(item_code, item_info, ctx)
 			scan_result.update(item_info)
 
 	return scan_result
 
 
-def _update_default_warehouse(ctx: BarcodeScanContext, item_code: str, item_info: dict) -> None:
+def _update_default_warehouse(item_code: str, item_info: dict, ctx: frappe._dict | str | None) -> None:
 	from erpnext.stock.get_item_details import get_item_warehouse_
 
 	item = frappe._dict(name=item_code)
