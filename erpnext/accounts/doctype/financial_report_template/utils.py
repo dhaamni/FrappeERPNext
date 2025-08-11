@@ -147,8 +147,10 @@ class BalanceProcessor:
 		if last_closing_voucher:
 			closing_balances = self._get_closing_balances(accounts, last_closing_voucher[0].name)
 
-		if closing_balances:
-			return self._rebase_closing_balances(closing_balances, last_closing_voucher[0].period_end_date)
+			if closing_balances:
+				return self._rebase_closing_balances(
+					closing_balances, last_closing_voucher[0].period_end_date
+				)
 
 		return self._get_opening_balances_from_gl(accounts)
 
@@ -178,6 +180,8 @@ class BalanceProcessor:
 		if not closing_data:
 			return balances_data
 
+		default_balances = {"opening": 0.0, "closing": 0.0, "movement": 0.0}
+
 		first_period_key = self.periods[0]["key"]
 		report_start = getdate(self.periods[0]["from_date"])
 		closing_end = getdate(closing_date)
@@ -192,7 +196,7 @@ class BalanceProcessor:
 			if account not in balances_data:
 				balances_data[account] = {}
 			if first_period_key not in balances_data[account]:
-				balances_data[account][first_period_key] = {}
+				balances_data[account][first_period_key] = default_balances.copy()
 
 			gap_adjustment = gap_movements.get(account, 0.0) if has_gap else 0.0
 			opening_balance = closing_balance + gap_adjustment
