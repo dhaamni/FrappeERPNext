@@ -3,12 +3,12 @@
 
 
 import frappe
-import frappe.share
 from frappe import _
 from frappe.utils import cint, flt, get_time, now_datetime
 
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import get_dimensions
 from erpnext.controllers.status_updater import StatusUpdater
+from erpnext.hooks import purchase_doctypes, sales_doctypes
 from erpnext.stock.get_item_details import get_item_details
 from erpnext.stock.utils import get_incoming_rate
 
@@ -565,3 +565,64 @@ def validate_uom_is_integer(doc, uom_field, qty_fields, child_dt=None):
 							),
 							UOMMustBeIntegerError,
 						)
+
+
+def after_mapping(doc, method, source_doc):
+	if (doc.doctype in sales_doctypes and source_doc.doctype in purchase_doctypes) or (
+		doc.doctype in purchase_doctypes and source_doc.doctype in sales_doctypes
+	):
+		return
+
+	if not (doc.meta.get_field("discount_amount") and source_doc.meta.get_field("discount_amount")):
+		return
+
+	if not source_doc.discount_amount or source_doc.additional_discount_percentage:
+		return
+
+	item_table = f"{doc.doctype} Item"
+	meta = frappe.get_meta(item_table)
+
+	reference_fieldname = next(
+		(
+			row.fieldname
+			for row in meta.fields
+			if row.fieldtype == "Link"
+			and row.options == source_doc.doctype
+			and not row.get("is_custom_field")
+		),
+		None,
+	)
+
+	if not reference_fieldname:
+		return
+
+	previous_documents = frappe.get_all(
+		doc.doctype,
+		fields=["name", "discount_amount"],
+		filters=(
+			(doc.doctype, "docstatus", "=", 1),
+			(doc.doctype, "discount_amount", "!=", 0),
+			(
+				item_table,
+				reference_fieldname,
+				"=",
+				source_doc.name,
+			),
+		),
+		distinct=True,
+	)
+
+	if not previous_documents:
+		return
+
+	doc.discount_amount = flt(
+		doc.discount_amount - sum(previous_doc.discount_amount for previous_doc in previous_documents),
+		doc.precision("discount_amount"),
+	)
+
+	if (source_doc.grand_total >= 0 and doc.discount_amount < 0) or (
+		source_doc.grand_total < 0 and doc.discount_amount > 0
+	):
+		doc.discount_amount = 0
+
+	doc.run_method("calculate_taxes_and_totals")

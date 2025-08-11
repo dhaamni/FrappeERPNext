@@ -8,6 +8,7 @@ import frappe
 from frappe import _, scrub
 from frappe.model.document import Document
 from frappe.utils import cint, flt, round_based_on_smallest_currency_fraction
+from frappe.utils.data import fmt_money
 
 import erpnext
 from erpnext.accounts.doctype.journal_entry.journal_entry import get_exchange_rate
@@ -705,13 +706,24 @@ class calculate_taxes_and_totals:
 					tax.item_wise_tax_detail = json.dumps(tax.item_wise_tax_detail)
 
 	def set_discount_amount(self):
+		discount_amount = self.doc.discount_amount or 0.0
 		if self.doc.additional_discount_percentage:
-			self.doc.discount_amount = flt(
+			discount_amount = flt(
 				flt(self.doc.get(scrub(self.doc.apply_discount_on)))
 				* self.doc.additional_discount_percentage
 				/ 100,
 				self.doc.precision("discount_amount"),
 			)
+
+		if abs(discount_amount) > abs(self.doc.grand_total):
+			frappe.throw(
+				_("Discount amount ({0}) cannot be greater than Grand Total ({1})").format(
+					fmt_money(discount_amount, self.doc.precision("discount_amount"), self.doc.currency),
+					fmt_money(self.doc.grand_total, self.doc.precision("grand_total"), self.doc.currency),
+				),
+			)
+
+		self.doc.discount_amount = discount_amount
 
 	def apply_discount_amount(self):
 		if self.doc.discount_amount:

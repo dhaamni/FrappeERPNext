@@ -21,6 +21,7 @@ from erpnext.accounts.doctype.pricing_rule.pricing_rule import (
 	get_pricing_rule_for_item,
 	set_transaction_type,
 )
+from erpnext.hooks import purchase_doctypes, sales_doctypes
 from erpnext.setup.doctype.brand.brand import get_brand_defaults
 from erpnext.setup.doctype.item_group.item_group import get_item_group_defaults
 from erpnext.setup.utils import get_exchange_rate
@@ -31,15 +32,6 @@ from erpnext.stock.doctype.price_list.price_list import get_price_list_details
 ItemDetails = frappe._dict
 ItemDetailsCtx = frappe._dict
 ItemPriceCtx = frappe._dict
-
-sales_doctypes = ["Quotation", "Sales Order", "Delivery Note", "Sales Invoice", "POS Invoice"]
-purchase_doctypes = [
-	"Material Request",
-	"Supplier Quotation",
-	"Purchase Order",
-	"Purchase Receipt",
-	"Purchase Invoice",
-]
 
 
 def _preprocess_ctx(ctx):

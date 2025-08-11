@@ -99,6 +99,15 @@ demo_transaction_doctypes = [
 	"sales_order",
 ]
 
+sales_doctypes = ("Quotation", "Sales Order", "Delivery Note", "Sales Invoice", "POS Invoice")
+purchase_doctypes = (
+	"Material Request",
+	"Supplier Quotation",
+	"Purchase Order",
+	"Purchase Receipt",
+	"Purchase Invoice",
+)
+
 jinja = {
 	"methods": [
 		"erpnext.stock.serial_batch_bundle.get_serial_or_batch_nos",
@@ -392,6 +401,9 @@ doc_events = {
 	},
 	"Integration Request": {
 		"validate": "erpnext.accounts.doctype.payment_request.payment_request.validate_payment"
+	},
+	(*sales_doctypes, *purchase_doctypes): {
+		"after_mapping": "erpnext.utilities.transaction_base.after_mapping"
 	},
 }
 
