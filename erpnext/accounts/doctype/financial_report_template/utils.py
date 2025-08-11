@@ -16,7 +16,9 @@ from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
 	get_dimension_with_children,
 )
 from erpnext.accounts.report.financial_statements import (
+	calculate_values,
 	get_cost_centers_with_children,
+	set_gl_entries_by_account,
 )
 
 
@@ -107,37 +109,8 @@ class BalanceProcessor:
 
 		Returns dict: {account: {period_key: {opening, closing, movement}}}
 		"""
-		ignore_closing_balances = frappe.get_single_value(
-			"Accounts Settings", "ignore_account_closing_balance"
-		)
-		first_period_start = getdate(self.periods[0]["from_date"])
-		balances_data = {}
-
 		# Step 1: Get opening balances from Account Closing Balance if available
-		if not ignore_closing_balances:
-			last_closing_voucher = frappe.db.get_all(
-				"Period Closing Voucher",
-				filters={
-					"docstatus": 1,
-					"company": self.company,
-					"period_end_date": ("<", first_period_start),
-				},
-				fields=["period_end_date", "name"],
-				order_by="period_end_date desc",
-				limit=1,
-			)
-
-			if last_closing_voucher:
-				closing_balances = self._get_closing_balances(accounts, last_closing_voucher[0].name)
-
-				if closing_balances:
-					balances_data = self._rebase_closing_balances(
-						balances_data, closing_balances, last_closing_voucher[0].period_end_date
-					)
-
-		else:
-			# TODO: Implement opening balance retrieval using rebase closing balances
-			pass
+		balances_data = self._get_opening_balances(accounts)
 
 		# Step 2: Get GL Entry data (from adjusted date or original period start)
 		gl_data = self._get_gl_movements(accounts)
@@ -146,6 +119,38 @@ class BalanceProcessor:
 		balances_data = self._calculate_running_balances(balances_data, gl_data)
 
 		return balances_data
+
+	def _get_opening_balances(self, accounts: list[str]) -> dict[str, dict[str, dict[str, float]]]:
+		"""
+		Get opening balances for accounts, prioritizing `Period Closing Voucher` approach when enabled.
+		Steps: check settings → find latest closing voucher → get balances → rebase to period start
+
+		Returns: {account: {period_key: {"opening": balance}}}
+		Example: {"Cash - COMP": {"jan2024": {"opening": 1500.0}}}
+		"""
+		if frappe.get_single_value("Accounts Settings", "ignore_account_closing_balance"):
+			return self._get_opening_balances_from_gl(accounts)
+
+		first_period_start = getdate(self.periods[0]["from_date"])
+		last_closing_voucher = frappe.db.get_all(
+			"Period Closing Voucher",
+			filters={
+				"docstatus": 1,
+				"company": self.company,
+				"period_end_date": ("<", first_period_start),
+			},
+			fields=["period_end_date", "name"],
+			order_by="period_end_date desc",
+			limit=1,
+		)
+
+		if last_closing_voucher:
+			closing_balances = self._get_closing_balances(accounts, last_closing_voucher[0].name)
+
+		if closing_balances:
+			return self._rebase_closing_balances(closing_balances, last_closing_voucher[0].period_end_date)
+
+		return self._get_opening_balances_from_gl(accounts)
 
 	def _get_closing_balances(self, account_names: list[str], closing_voucher: str) -> dict:
 		acb_table = frappe.qb.DocType("Account Closing Balance")
@@ -162,12 +167,14 @@ class BalanceProcessor:
 		)
 
 		query = self._apply_filters(query, acb_table)
-		results = query.run(as_dict=True)
+		results = self._execute_with_permissions(query, "Account Closing Balance")
 
 		return {row["account"]: row["balance"] for row in results}
 
-	def _rebase_closing_balances(self, balances_data: dict, closing_data: dict, closing_date: str) -> dict:
+	def _rebase_closing_balances(self, closing_data: dict, closing_date: str) -> dict:
 		"""Rebase closing balances to align with the report start date."""
+		balances_data = {}
+
 		if not closing_data:
 			return balances_data
 
@@ -203,8 +210,19 @@ class BalanceProcessor:
 			.where(gl_table.posting_date < to_date)
 		)
 
-		results = query.run(as_dict=True)
+		results = self._execute_with_permissions(query, "GL Entry")
 		return {row["account"]: row["movement"] or 0.0 for row in results}
+
+	def _get_opening_balances_from_gl(self, account_names: list[str]) -> dict:
+		"""Calculate opening balances from GL movements when closing vouchers are disabled."""
+
+		# Simulate zero closing balances
+		zero_closing_balances = {account: 0.0 for account in account_names}
+
+		# Use a very early date
+		earliest_date = "1900-01-01"
+
+		return self._rebase_closing_balances(zero_closing_balances, earliest_date)
 
 	def _get_gl_movements(self, account_names: list[str]) -> list:
 		query, gl_table = self._build_gl_base_query(account_names)
@@ -227,7 +245,7 @@ class BalanceProcessor:
 			).as_(f"{period_key}_movement")
 			query = query.select(movement_column)
 
-		return self._execute_with_permissions(query)
+		return self._execute_with_permissions(query, "GL Entry")
 
 	def _calculate_running_balances(self, balances_data: dict, gl_data: list) -> dict:
 		for row in gl_data:
@@ -295,26 +313,22 @@ class BalanceProcessor:
 			self.filters.cost_center = get_cost_centers_with_children(self.filters.cost_center)
 			query = query.where(table.cost_center.isin(self.filters.cost_center))
 
+		finance_book = self.filters.get("finance_book")
 		if self.filters.get("include_default_book_entries"):
 			default_book = frappe.get_cached_value("Company", self.filters.company, "default_finance_book")
 
-			if (
-				self.filters.finance_book
-				and default_book
-				and cstr(self.filters.finance_book) != cstr(default_book)
-			):
+			if finance_book and default_book and cstr(finance_book) != cstr(default_book):
 				frappe.throw(
 					_("To use a different finance book, please uncheck 'Include Default FB Entries'")
 				)
 
 			query = query.where(
-				(table.finance_book.isin([cstr(self.filters.finance_book), cstr(default_book), ""]))
+				(table.finance_book.isin([cstr(finance_book), cstr(default_book), ""]))
 				| (table.finance_book.isnull())
 			)
 		else:
 			query = query.where(
-				(table.finance_book.isin([cstr(self.filters.finance_book), ""]))
-				| (table.finance_book.isnull())
+				(table.finance_book.isin([cstr(finance_book), ""])) | (table.finance_book.isnull())
 			)
 
 		dimensions = get_accounting_dimensions(as_list=False)
@@ -329,12 +343,12 @@ class BalanceProcessor:
 
 		return query
 
-	def _execute_with_permissions(self, query):
+	def _execute_with_permissions(self, query, doctype):
 		query_sql = query.walk()
 
 		from frappe.desk.reportview import build_match_conditions
 
-		user_conditions = build_match_conditions("GL Entry")
+		user_conditions = build_match_conditions(doctype)
 
 		if user_conditions:
 			final_query = f"({query_sql}) AND ({user_conditions})"
