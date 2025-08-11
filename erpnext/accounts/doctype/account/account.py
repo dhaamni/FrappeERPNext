@@ -210,7 +210,7 @@ class Account(NestedSet):
 		if doc_before_save and not doc_before_save.parent_account:
 			throw(_("Root cannot be edited."), RootNotEditable)
 
-		if not self.parent_account and not self.is_group:
+		if not self.parent_account and not cint(self.is_group):
 			throw(_("The root account {0} must be a group").format(frappe.bold(self.name)))
 
 	def validate_root_company_and_sync_account_to_children(self):
