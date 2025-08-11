@@ -167,7 +167,7 @@ class Account(NestedSet):
 			if par.root_type:
 				self.root_type = par.root_type
 
-		if self.is_group:
+		if cint(self.is_group):
 			db_value = self.get_doc_before_save()
 			if db_value:
 				if self.report_type != db_value.report_type:
@@ -259,7 +259,7 @@ class Account(NestedSet):
 
 		if self.check_gle_exists():
 			throw(_("Account with existing transaction cannot be converted to ledger"))
-		elif self.is_group:
+		elif cint(self.is_group):
 			if self.account_type and not self.flags.exclude_account_type_check:
 				throw(_("Cannot covert to Group because Account Type is selected."))
 		elif self.check_if_child_exists():
