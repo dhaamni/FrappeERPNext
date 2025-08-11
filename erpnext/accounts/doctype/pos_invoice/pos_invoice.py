@@ -213,6 +213,7 @@ class POSInvoice(SalesInvoice):
 		self.validate_return_items_qty()
 		self.set_status()
 		self.validate_pos()
+		self.update_packing_list()
 		self.validate_payment_amount()
 		self.validate_loyalty_transaction()
 		self.validate_company_with_pos_company()
@@ -893,13 +894,25 @@ def get_bin_qty(item_code, warehouse):
 
 
 def get_pos_reserved_qty(item_code, warehouse):
-	p_inv = frappe.qb.DocType("POS Invoice")
-	p_item = frappe.qb.DocType("POS Invoice Item")
+	pinv_item_reserved_qty = reserved_stock_qty_sql("POS Invoice Item", item_code, warehouse)
+	packed_item_reserved_qty = reserved_stock_qty_sql("Packed Item", item_code, warehouse)
 
-	reserved_qty = (
+	reserved_qty = flt(pinv_item_reserved_qty[0].stock_qty) if pinv_item_reserved_qty else 0
+	reserved_qty += flt(packed_item_reserved_qty[0].stock_qty) if packed_item_reserved_qty else 0
+
+	return reserved_qty
+
+
+def reserved_stock_qty_sql(child_table, item_code, warehouse):
+	p_inv = frappe.qb.DocType("POS Invoice")
+	p_item = frappe.qb.DocType(child_table)
+
+	qty_column = "qty" if child_table == "Packed Item" else "stock_qty"
+
+	stock_qty = (
 		frappe.qb.from_(p_inv)
 		.from_(p_item)
-		.select(Sum(p_item.stock_qty).as_("stock_qty"))
+		.select(Sum(p_item[qty_column]).as_("stock_qty"))
 		.where(
 			(p_inv.name == p_item.parent)
 			& (IfNull(p_inv.consolidated_invoice, "") == "")
@@ -909,7 +922,7 @@ def get_pos_reserved_qty(item_code, warehouse):
 		)
 	).run(as_dict=True)
 
-	return flt(reserved_qty[0].stock_qty) if reserved_qty else 0
+	return stock_qty
 
 
 @frappe.whitelist()
