@@ -20,7 +20,7 @@ def get():
 					"account_number": "1100",
 				},
 				_("Loans and Advances (Assets)"): {
-					_("Employee Advances"): {"account_number": "1610", "account_type": "Payable"},
+					_("Employee Advances"): {"account_number": "1610", "account_type": "Receivable"},
 					"account_number": "1600",
 				},
 				_("Securities and Deposits"): {

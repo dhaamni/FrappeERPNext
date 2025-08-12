@@ -321,17 +321,32 @@ class Company(NestedSet):
 		frappe.local.flags.ignore_root_company_validation = True
 		create_charts(self.name, self.chart_of_accounts, self.existing_company)
 
-		self.db_set(
-			"default_receivable_account",
-			frappe.db.get_value(
-				"Account", {"company": self.name, "account_type": "Receivable", "is_group": 0}
-			),
-		)
+		self.db_set("default_receivable_account", self.get_receivable_or_payable_account("Receivable"))
 
-		self.db_set(
-			"default_payable_account",
-			frappe.db.get_value("Account", {"company": self.name, "account_type": "Payable", "is_group": 0}),
+		self.db_set("default_receivable_account", self.get_receivable_or_payable_account("Payable"))
+
+	def get_receivable_or_payable_account(self, account_type):
+		if account_type == "Receivable":
+			root_type = "Asset"
+			search_string = "Debtors"
+		elif account_type == "Payable":
+			root_type = "Liability"
+			search_string = "Creditors"
+
+		accounts = frappe.get_all(
+			"Account",
+			{"company": self.name, "account_type": account_type, "is_group": 0, "root_type": root_type},
 		)
+		receibale_or_payable_account = None
+		if len(accounts) == 1:
+			receibale_or_payable_account = accounts[0].name
+		else:
+			for account in accounts:
+				if search_string in account.name or account_type in account.name:
+					receibale_or_payable_account = account.name
+					break
+
+		return receibale_or_payable_account
 
 	def create_default_departments(self):
 		records = [
