@@ -95,6 +95,10 @@ class Subscription(Document):
 		`current_invoice_start` and the end of the billing period is represented
 		as `current_invoice_end`.
 		"""
+		# Don't update period if the new start date would be after subscription end date
+		if self.end_date and date and getdate(date) > getdate(self.end_date):
+			return
+		
 		self.current_invoice_start = self.get_current_invoice_start(date)
 		self.current_invoice_end = self.get_current_invoice_end(self.current_invoice_start)
 
