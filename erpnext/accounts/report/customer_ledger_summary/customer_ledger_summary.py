@@ -151,7 +151,7 @@ class PartyLedgerSummaryReport:
 				}
 			)
 
-		credit_or_debit_note = "Credit Note" if self.filters.party_type == "Customer" else "Debit Note"
+		# credit_or_debit_note = "Credit Note" if self.filters.party_type == "Customer" else "Debit Note"
 
 		columns += [
 			{
