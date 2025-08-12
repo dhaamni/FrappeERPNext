@@ -3912,7 +3912,7 @@ class TestSalesInvoice(FrappeTestCase):
 		pe.source_exchange_rate = 85
 		pe.target_exchange_rate = 1
 		pe.paid_amount = si.outstanding_amount
-		pe.received_amount = 85
+		pe.received_amount = 8500
 		pe.insert()
 		pe.submit()
 
