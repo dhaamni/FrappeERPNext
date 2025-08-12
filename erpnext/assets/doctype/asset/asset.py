@@ -74,7 +74,7 @@ class Asset(AccountsController):
 		image: DF.AttachImage | None
 		insurance_end_date: DF.Date | None
 		insurance_start_date: DF.Date | None
-		insured_value: DF.Data | None
+		insured_value: DF.Currency
 		insurer: DF.Data | None
 		is_composite_asset: DF.Check
 		is_composite_component: DF.Check
@@ -128,6 +128,7 @@ class Asset(AccountsController):
 		self.set_missing_values()
 		self.validate_gross_and_purchase_amount()
 		self.validate_finance_books()
+		self.validate_insurance_details()
 		self.total_asset_cost = self.gross_purchase_amount + self.additional_asset_cost
 		self.status = self.get_status()
 
@@ -349,6 +350,14 @@ class Asset(AccountsController):
 					_("Row #{}: Finance Book should not be empty since you're using multiple.").format(d.idx),
 					title=_("Missing Finance Book"),
 				)
+
+	def validate_insurance_details(self):
+		if (
+			self.insurance_start_date
+			and self.insurance_end_date
+			and getdate(self.insurance_end_date) < getdate(self.insurance_start_date)
+		):
+			frappe.throw(_("Insurance End Date cannot be before Insurance Start Date"))
 
 	def validate_category(self):
 		non_depreciable_category = frappe.db.get_value(
