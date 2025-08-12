@@ -285,6 +285,12 @@ sounds = [
 
 has_upload_permission = {"Employee": "erpnext.setup.doctype.employee.employee.has_upload_permission"}
 
+# Add custom permission for Event doctype to allow adding employees as participants
+has_permission = {"Event": "erpnext.setup.doctype.employee.employee.has_event_permission"}
+
+# Add custom permission for Event Participants to bypass user permissions for employees
+has_permission.update({"Event Participants": "erpnext.setup.doctype.employee.employee.has_event_participant_permission"})
+
 has_website_permission = {
 	"Sales Order": "erpnext.controllers.website_list_for_contact.has_website_permission",
 	"Quotation": "erpnext.controllers.website_list_for_contact.has_website_permission",
