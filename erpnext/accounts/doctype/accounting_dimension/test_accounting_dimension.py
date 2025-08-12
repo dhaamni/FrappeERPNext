@@ -3,15 +3,13 @@
 import unittest
 
 import frappe
-from frappe.tests import IntegrationTestCase
 
 from erpnext.accounts.doctype.journal_entry.test_journal_entry import make_journal_entry
 from erpnext.accounts.doctype.sales_invoice.test_sales_invoice import create_sales_invoice
+from erpnext.tests.utils import ERPNextTestSuite
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Cost Center", "Location", "Warehouse", "Department"]
 
-
-class TestAccountingDimension(IntegrationTestCase):
+class TestAccountingDimension(ERPNextTestSuite):
 	def setUp(self):
 		create_dimension()
 

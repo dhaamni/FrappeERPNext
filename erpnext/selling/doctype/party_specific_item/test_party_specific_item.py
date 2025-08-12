@@ -2,11 +2,9 @@
 # See license.txt
 
 import frappe
-from frappe.tests import IntegrationTestCase
 
 from erpnext.controllers.queries import item_query
-
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Item", "Customer", "Supplier"]
+from erpnext.tests.utils import ERPNextTestSuite
 
 
 def create_party_specific_item(**args):
@@ -18,7 +16,7 @@ def create_party_specific_item(**args):
 	psi.insert()
 
 
-class TestPartySpecificItem(IntegrationTestCase):
+class TestPartySpecificItem(ERPNextTestSuite):
 	def setUp(self):
 		self.customer = frappe.get_last_doc("Customer")
 		self.supplier = frappe.get_last_doc("Supplier")

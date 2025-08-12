@@ -3,12 +3,11 @@
 import unittest
 
 import frappe
-from frappe.tests import IntegrationTestCase
 
-IGNORE_TEST_RECORD_DEPENDENCIES = ["Leave Block List"]
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestDepartment(IntegrationTestCase):
+class TestDepartment(ERPNextTestSuite):
 	def test_remove_department_data(self):
 		doc = create_department("Test Department")
 		frappe.delete_doc("Department", doc.name)

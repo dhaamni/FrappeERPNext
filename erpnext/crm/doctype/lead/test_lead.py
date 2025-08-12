@@ -3,7 +3,6 @@
 import unittest
 
 import frappe
-from frappe.tests import IntegrationTestCase
 from frappe.utils import random_string, today
 
 from erpnext.crm.doctype.lead.lead import make_opportunity
@@ -127,6 +126,7 @@ class TestLead(ERPNextTestSuite):
 		create_todo("followup", "Lead", lead.name)
 
 		opportunity = make_opportunity(lead.name)
+		opportunity.company = self.companies[0].name
 		opportunity.save()
 
 		self.assertEqual(opportunity.get("party_name"), lead.name)

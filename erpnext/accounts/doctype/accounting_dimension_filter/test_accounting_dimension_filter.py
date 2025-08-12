@@ -11,11 +11,10 @@ from erpnext.accounts.doctype.accounting_dimension.test_accounting_dimension imp
 )
 from erpnext.accounts.doctype.sales_invoice.test_sales_invoice import create_sales_invoice
 from erpnext.exceptions import InvalidAccountDimensionError, MandatoryAccountDimensionError
+from erpnext.tests.utils import ERPNextTestSuite
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Location", "Cost Center", "Department"]
 
-
-class TestAccountingDimensionFilter(unittest.TestCase):
+class TestAccountingDimensionFilter(ERPNextTestSuite):
 	def setUp(self):
 		create_dimension()
 		create_accounting_dimension_filter()

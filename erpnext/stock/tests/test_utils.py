@@ -1,9 +1,9 @@
 import json
 
 import frappe
-from frappe.tests import IntegrationTestCase
 
 from erpnext.stock.utils import scan_barcode
+from erpnext.tests.utils import ERPNextTestSuite
 
 
 class StockTestMixin:
@@ -57,7 +57,7 @@ class StockTestMixin:
 				self.assertEqual(exp_value, act_value, msg=f"{k} doesn't match \n{exp_gle}\n{act_gle}")
 
 
-class TestStockUtilities(IntegrationTestCase, StockTestMixin):
+class TestStockUtilities(ERPNextTestSuite, StockTestMixin):
 	def test_barcode_scanning(self):
 		simple_item = self.make_item(properties={"barcodes": [{"barcode": "12399"}]})
 		self.assertEqual(scan_barcode("12399")["item_code"], simple_item.name)

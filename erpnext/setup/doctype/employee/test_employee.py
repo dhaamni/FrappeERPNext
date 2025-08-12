@@ -4,13 +4,13 @@ import unittest
 
 import frappe
 import frappe.utils
-from frappe.tests import IntegrationTestCase
 
 import erpnext
 from erpnext.setup.doctype.employee.employee import InactiveEmployeeStatusError
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestEmployee(IntegrationTestCase):
+class TestEmployee(ERPNextTestSuite):
 	def test_employee_status_left(self):
 		employee1 = make_employee("test_employee_1@company.com")
 		employee2 = make_employee("test_employee_2@company.com")

@@ -5,7 +5,6 @@ import unittest
 
 import frappe
 from frappe import _
-from frappe.tests import IntegrationTestCase
 
 from erpnext.accounts.doctype.mode_of_payment.test_mode_of_payment import (
 	set_default_account_for_mode_of_payment,
@@ -22,12 +21,14 @@ from erpnext.stock.doctype.serial_and_batch_bundle.test_serial_and_batch_bundle 
 	make_serial_batch_bundle,
 )
 from erpnext.stock.doctype.stock_entry.stock_entry_utils import make_stock_entry
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestPOSInvoice(IntegrationTestCase):
+class TestPOSInvoice(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
+		cls.load_test_records("Stock Entry")
 		cls.enterClassContext(cls.change_settings("Selling Settings", validate_selling_price=0))
 		cls.enterClassContext(cls.change_settings("POS Settings", invoice_type="POS Invoice"))
 		make_stock_entry(target="_Test Warehouse - _TC", item_code="_Test Item", qty=800, basic_rate=100)
@@ -954,9 +955,10 @@ class TestPOSInvoice(IntegrationTestCase):
 		se.cancel()
 
 	def test_ignore_pricing_rule(self):
+		frappe.set_user("Administrator")
 		from erpnext.accounts.doctype.pricing_rule.test_pricing_rule import make_pricing_rule
 
-		item_price = frappe.get_doc(
+		item_price = self.truncate_make_item_price(
 			{
 				"doctype": "Item Price",
 				"item_code": "_Test Item",
@@ -964,7 +966,7 @@ class TestPOSInvoice(IntegrationTestCase):
 				"price_list_rate": "450",
 			}
 		)
-		item_price.insert()
+
 		pr = make_pricing_rule(selling=1, priority=5, discount_percentage=10)
 		pr.save()
 
