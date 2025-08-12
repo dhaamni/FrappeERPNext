@@ -195,9 +195,8 @@ class PartyLedgerSummaryReport:
 				"fieldtype": "Currency",
 				"options": "currency",
 				"width": 120,
-			}
+			},
 		]
-
 
 		for account in self.party_adjustment_accounts:
 			columns.append(
