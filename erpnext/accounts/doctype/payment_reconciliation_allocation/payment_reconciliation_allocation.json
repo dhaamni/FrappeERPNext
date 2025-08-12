@@ -11,6 +11,7 @@
   "column_break_3",
   "invoice_type",
   "invoice_number",
+  "reconcile_date",
   "section_break_6",
   "allocated_amount",
   "unreconciled_amount",
@@ -168,17 +169,24 @@
   {
    "fieldname": "dimension_col_break",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reconcile_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Reconcile Date"
   }
  ],
  "is_virtual": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-03-27 13:10:10.704417",
+ "modified": "2025-07-03 10:38:21.000941",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Payment Reconciliation Allocation",
  "owner": "Administrator",
  "permissions": [],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
