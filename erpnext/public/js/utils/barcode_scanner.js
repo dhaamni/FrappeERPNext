@@ -38,7 +38,6 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 		// }
 		this.scan_api = opts.scan_api || "erpnext.stock.utils.scan_barcode";
 		this.has_last_scanned_warehouse = frappe.meta.has_field(this.frm.doctype, "last_scanned_warehouse");
-		this.last_scanned_warehouse_initialized = false;
 	}
 
 	process_scan() {
@@ -53,8 +52,17 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 
 			this.scan_api_call(input, (r) => {
 				const data = r && r.message;
-				if (!data || Object.keys(data).length === 0) {
-					this.show_alert(__("Cannot find Item or Warehouse with this Barcode."), "red");
+				if (
+					!data ||
+					Object.keys(data).length === 0 ||
+					(data.warehouse && !this.has_last_scanned_warehouse)
+				) {
+					this.show_alert(
+						this.has_last_scanned_warehouse
+							? __("Cannot find Item or Warehouse with this Barcode")
+							: __("Cannot find Item with this Barcode"),
+						"red"
+					);
 					this.clean_up();
 					this.play_fail_sound();
 					reject();
@@ -62,7 +70,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 				}
 
 				// Handle warehouse scanning
-				if (data.warehouse && this.has_last_scanned_warehouse) {
+				if (data.warehouse) {
 					this.handle_warehouse_scan(data);
 					this.play_success_sound();
 					resolve();
@@ -106,12 +114,12 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 
 			const { item_code, barcode, batch_no, serial_no, uom, default_warehouse } = data;
 
-			const warehouse =
-				(this.has_last_scanned_warehouse && this.frm.doc.last_scanned_warehouse) || default_warehouse;
+			const warehouse = this.has_last_scanned_warehouse
+				? this.frm.doc.last_scanned_warehouse || default_warehouse
+				: null;
 
 			let row = this.get_row_to_modify_on_scan(item_code, batch_no, uom, barcode, warehouse);
-
-			let is_new_row = row && row?.item_code ? false : true;
+			let is_new_row = !row?.item_code;
 			if (!row) {
 				if (this.dont_allow_new_row) {
 					this.show_alert(__("Maximum quantity scanned for item {0}.", [item_code]), "red");
@@ -138,7 +146,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 				() => this.set_selector_trigger_flag(data),
 				() =>
 					this.set_item(row, item_code, barcode, batch_no, serial_no).then((qty) => {
-						this.show_scan_message(row.idx, !is_new_row, qty, warehouse);
+						this.show_scan_message(row.idx, !is_new_row, qty);
 					}),
 				() => this.set_barcode_uom(row, uom),
 				() => this.set_serial_no(row, serial_no),
@@ -413,7 +421,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 		}
 	}
 
-	show_scan_message(idx, is_existing_row = false, qty = 1, warehouse = null) {
+	show_scan_message(idx, is_existing_row = false, qty = 1) {
 		// show new row or qty increase toast
 		if (is_existing_row) {
 			this.show_alert(__("Row #{0}: Qty increased by {1}", [idx, qty]), "green");
@@ -511,7 +519,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 
 		this.frm.set_value("last_scanned_warehouse", warehouse);
 		this.show_alert(
-			__("{0} will be set as the {1} in subsequently scanned items.", [
+			__("{0} will be set as the {1} in subsequently scanned items", [
 				__(warehouse).bold(),
 				__(warehouse_field_label).bold(),
 			]),
@@ -524,7 +532,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 		this.frm.set_value("last_scanned_warehouse", null);
 		this.show_alert(
 			__(
-				"The last scanned warehouse has been cleared and won't be set in the subsequently scanned items."
+				"The last scanned warehouse has been cleared and won't be set in the subsequently scanned items"
 			),
 			"blue",
 			6
