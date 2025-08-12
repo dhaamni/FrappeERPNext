@@ -111,7 +111,8 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 			const { item_code, barcode, batch_no, serial_no, uom, default_warehouse } = data;
 
 			const warehouse =
-				(this.has_last_scanned_warehouse && this.frm.doc.last_scanned_warehouse) || default_warehouse;
+				(this.has_last_scanned_warehouse && this.frm.doc[this.last_scanned_warehouse_field]) ||
+				default_warehouse;
 
 			let row = this.get_row_to_modify_on_scan(item_code, batch_no, uom, barcode, warehouse);
 
@@ -417,9 +418,9 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 		}
 	}
 
-	show_scan_message(idx, exist = null, qty = 1, warehouse = null) {
+	show_scan_message(idx, is_existing_row = false, qty = 1, warehouse = null) {
 		// show new row or qty increase toast
-		if (exist) {
+		if (is_existing_row) {
 			this.show_alert(__("Row #{0}: Qty increased by {1}", [idx, qty]), "green");
 		} else {
 			this.show_alert(__("Row #{0}: Item added", [idx]), "green");
