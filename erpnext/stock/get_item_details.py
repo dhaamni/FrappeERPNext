@@ -567,6 +567,7 @@ def get_item_warehouse(item, args, overwrite_warehouse, defaults=None):
 			or args.get("warehouse")
 		)
 
+<<<<<<< HEAD
 		if not warehouse:
 			defaults = frappe.defaults.get_defaults() or {}
 			warehouse_exists = frappe.db.exists(
@@ -575,12 +576,19 @@ def get_item_warehouse(item, args, overwrite_warehouse, defaults=None):
 			if defaults.get("default_warehouse") and warehouse_exists:
 				warehouse = defaults.default_warehouse
 
+=======
+>>>>>>> e11cadca58 (perf: remove unnecessary branching and use cache in `get_item_warehouse`)
 	else:
 		warehouse = args.get("warehouse")
 
 	if not warehouse:
+<<<<<<< HEAD
 		default_warehouse = frappe.db.get_single_value("Stock Settings", "default_warehouse")
 		if frappe.db.get_value("Warehouse", default_warehouse, "company") == args.company:
+=======
+		default_warehouse = frappe.get_single_value("Stock Settings", "default_warehouse")
+		if frappe.get_cached_value("Warehouse", default_warehouse, "company") == ctx.company:
+>>>>>>> e11cadca58 (perf: remove unnecessary branching and use cache in `get_item_warehouse`)
 			return default_warehouse
 
 	return warehouse
