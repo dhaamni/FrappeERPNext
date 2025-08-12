@@ -587,8 +587,15 @@ def get_item_warehouse(item, args, overwrite_warehouse, defaults=None):
 		if frappe.db.get_value("Warehouse", default_warehouse, "company") == args.company:
 =======
 		default_warehouse = frappe.get_single_value("Stock Settings", "default_warehouse")
+<<<<<<< HEAD
 		if frappe.get_cached_value("Warehouse", default_warehouse, "company") == ctx.company:
 >>>>>>> e11cadca58 (perf: remove unnecessary branching and use cache in `get_item_warehouse`)
+=======
+		if (
+			default_warehouse
+			and frappe.get_cached_value("Warehouse", default_warehouse, "company") == ctx.company
+		):
+>>>>>>> 6bf63f66ec (fix: guard against default not set in stock settings)
 			return default_warehouse
 
 	return warehouse
