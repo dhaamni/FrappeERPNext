@@ -1223,7 +1223,7 @@ class PurchaseInvoice(BuyingController):
 						)
 
 			if item.is_fixed_asset and item.landed_cost_voucher_amount:
-				self.update_gross_purchase_amount_for_linked_assets(item)
+				self.update_net_purchase_amount_for_linked_assets(item)
 
 	def get_provisional_accounts(self):
 		self.provisional_accounts = frappe._dict()
@@ -1285,7 +1285,7 @@ class PurchaseInvoice(BuyingController):
 					),
 				)
 
-	def update_gross_purchase_amount_for_linked_assets(self, item):
+	def update_net_purchase_amount_for_linked_assets(self, item):
 		assets = frappe.db.get_all(
 			"Asset",
 			filters={
@@ -1301,7 +1301,7 @@ class PurchaseInvoice(BuyingController):
 				"Asset",
 				asset.name,
 				{
-					"gross_purchase_amount": purchase_amount,
+					"net_purchase_amount": purchase_amount,
 					"purchase_amount": purchase_amount,
 				},
 			)
