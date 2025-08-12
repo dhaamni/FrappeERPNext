@@ -176,13 +176,28 @@ class PartyLedgerSummaryReport:
 				"width": 120,
 			},
 			{
-				"label": _(credit_or_debit_note),
+				"label": _("Return Amount"),
 				"fieldname": "return_amount",
 				"fieldtype": "Currency",
 				"options": "currency",
 				"width": 120,
 			},
+			{
+				"label": _("Net Invoiced Amount"),
+				"fieldname": "net_invoiced_amount",
+				"fieldtype": "Currency",
+				"options": "currency",
+				"width": 120,
+			},
+			{
+				"label": _("Net Paid Amount"),
+				"fieldname": "net_paid_amount",
+				"fieldtype": "Currency",
+				"options": "currency",
+				"width": 120,
+			}
 		]
+
 
 		for account in self.party_adjustment_accounts:
 			columns.append(
@@ -265,6 +280,8 @@ class PartyLedgerSummaryReport:
 						"invoiced_amount": 0,
 						"paid_amount": 0,
 						"return_amount": 0,
+						"net_invoiced_amount": 0,
+						"net_paid_amount": 0,
 						"closing_balance": 0,
 						"currency": company_currency,
 					}
@@ -310,6 +327,11 @@ class PartyLedgerSummaryReport:
 					amount for amount in self.party_adjustment_details.get(party, {}).values()
 				)
 				row.paid_amount -= total_party_adjustment
+
+				# Deducting refund amount from invoiced and paid amount
+				row.net_invoiced_amount = row.invoiced_amount - row.return_amount
+				row.net_paid_amount = row.paid_amount - row.return_amount
+				row.closing_balance = row.invoiced_amount - row.paid_amount
 
 				adjustments = self.party_adjustment_details.get(party, {})
 				for account in self.party_adjustment_accounts:
