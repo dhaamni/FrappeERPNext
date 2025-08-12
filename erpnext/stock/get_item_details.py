@@ -567,20 +567,15 @@ def get_item_warehouse(item, args, overwrite_warehouse, defaults=None):
 			or args.get("warehouse")
 		)
 
-		if not warehouse:
-			defaults = frappe.defaults.get_defaults() or {}
-			warehouse_exists = frappe.db.exists(
-				"Warehouse", {"name": defaults.default_warehouse, "company": args.company}
-			)
-			if defaults.get("default_warehouse") and warehouse_exists:
-				warehouse = defaults.default_warehouse
-
 	else:
 		warehouse = args.get("warehouse")
 
 	if not warehouse:
-		default_warehouse = frappe.db.get_single_value("Stock Settings", "default_warehouse")
-		if frappe.db.get_value("Warehouse", default_warehouse, "company") == args.company:
+		default_warehouse = frappe.get_single_value("Stock Settings", "default_warehouse")
+		if (
+			default_warehouse
+			and frappe.get_cached_value("Warehouse", default_warehouse, "company") == args.company
+		):
 			return default_warehouse
 
 	return warehouse
