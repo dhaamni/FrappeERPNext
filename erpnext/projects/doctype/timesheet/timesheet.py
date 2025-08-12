@@ -419,6 +419,9 @@ def make_sales_invoice(source_name, item_code=None, customer=None, currency=None
 
 	if item_code:
 		target.append("items", {"item_code": item_code, "qty": hours, "rate": billing_rate})
+	else:
+		# Auto-create items based on Activity Type → Item mapping
+		_add_timesheet_items_from_activity_mapping(target, timesheet)
 
 	for time_log in timesheet.time_logs:
 		if time_log.is_billable:
@@ -441,6 +444,86 @@ def make_sales_invoice(source_name, item_code=None, customer=None, currency=None
 	target.run_method("set_missing_values")
 
 	return target
+
+
+def _add_timesheet_items_from_activity_mapping(target, timesheet):
+	"""Add items to Sales Invoice based on Activity Type → Item mapping"""
+	# Get activity type to item mapping
+	activity_item_map = {}
+	for time_log in timesheet.time_logs:
+		if time_log.is_billable and time_log.activity_type and time_log.activity_type not in activity_item_map:
+			item_code = frappe.db.get_value("Activity Type", time_log.activity_type, "item")
+			if item_code:
+				activity_item_map[time_log.activity_type] = item_code
+
+	if not activity_item_map:
+		return
+
+	# Check if we should sum similar timesheets
+	sum_similar = frappe.db.get_single_value("Selling Settings", "sum_similar_timesheets_in_sales_invoice")
+	allow_multiple_items = frappe.db.get_single_value("Selling Settings", "allow_multiple_items")
+
+	if sum_similar:
+		_add_grouped_timesheet_items_to_invoice(target, timesheet, activity_item_map)
+	else:
+		_add_individual_timesheet_items_to_invoice(target, timesheet, activity_item_map, allow_multiple_items)
+
+
+def _add_grouped_timesheet_items_to_invoice(target, timesheet, activity_item_map):
+	"""Add grouped timesheet items (sum similar items with same rate)"""
+	grouped_items = {}
+
+	for time_log in timesheet.time_logs:
+		if time_log.is_billable and time_log.activity_type in activity_item_map:
+			item_code = activity_item_map[time_log.activity_type]
+			rate = time_log.billing_amount / time_log.billing_hours if time_log.billing_hours else 0
+			
+			# Create a key for grouping (item_code + rate)
+			group_key = f"{item_code}_{rate}"
+			
+			if group_key not in grouped_items:
+				grouped_items[group_key] = {
+					"item_code": item_code,
+					"qty": 0,
+					"rate": rate,
+					"description": f"Timesheet hours for {time_log.activity_type}",
+					"uom": "Hour"
+				}
+			
+			grouped_items[group_key]["qty"] += time_log.billing_hours
+
+	# Add grouped items to sales invoice
+	for item_data in grouped_items.values():
+		if item_data["qty"] > 0:
+			target.append("items", item_data)
+
+
+def _add_individual_timesheet_items_to_invoice(target, timesheet, activity_item_map, allow_multiple_items):
+	"""Add individual timesheet items"""
+	added_items = set()
+
+	for time_log in timesheet.time_logs:
+		if time_log.is_billable and time_log.activity_type in activity_item_map:
+			item_code = activity_item_map[time_log.activity_type]
+			
+			# Check if item already exists (if multiple items not allowed)
+			if not allow_multiple_items and item_code in added_items:
+				# Find existing item and update qty
+				for item in target.items:
+					if item.item_code == item_code:
+						item.qty += time_log.billing_hours
+						break
+			else:
+				# Add new item
+				rate = time_log.billing_amount / time_log.billing_hours if time_log.billing_hours else 0
+				target.append("items", {
+					"item_code": item_code,
+					"qty": time_log.billing_hours,
+					"rate": rate,
+					"description": f"Timesheet: {time_log.description or time_log.activity_type}",
+					"uom": "Hour"
+				})
+				added_items.add(item_code)
 
 
 @frappe.whitelist()

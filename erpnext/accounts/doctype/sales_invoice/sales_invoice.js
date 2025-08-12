@@ -909,9 +909,130 @@ frappe.ui.form.on("Sales Invoice", {
 
 		if (kwargs.item_code) {
 			frm.events.add_timesheet_item(frm, kwargs.item_code, timesheets);
+		} else {
+			// Auto-create items based on Activity Type → Item mapping
+			await frm.events.add_timesheet_items_auto(frm, timesheets);
 		}
 
 		return frm.events.set_timesheet_data(frm, timesheets);
+	},
+
+	async add_timesheet_items_auto(frm, timesheets) {
+		if (!timesheets || timesheets.length === 0) {
+			return;
+		}
+
+		// Get activity type to item mapping
+		const activity_types = [...new Set(timesheets.map(t => t.activity_type).filter(Boolean))];
+		if (activity_types.length === 0) {
+			return;
+		}
+
+		const { message: activity_item_map } = await frappe.call({
+			method: "frappe.client.get_list",
+			args: {
+				doctype: "Activity Type",
+				filters: [["name", "in", activity_types], ["item", "!=", ""]],
+				fields: ["name", "item"]
+			}
+		});
+
+		if (!activity_item_map || activity_item_map.length === 0) {
+			return;
+		}
+
+		// Create a map for easy lookup
+		const activityToItem = {};
+		activity_item_map.forEach(row => {
+			activityToItem[row.name] = row.item;
+		});
+
+		// Check settings for grouping
+		const { message: sum_similar } = await frappe.call({
+			method: "frappe.client.get_single_value",
+			args: {
+				doctype: "Selling Settings",
+				field: "sum_similar_timesheets_in_sales_invoice"
+			}
+		});
+
+		const { message: allow_multiple } = await frappe.call({
+			method: "frappe.client.get_single_value",
+			args: {
+				doctype: "Selling Settings", 
+				field: "allow_multiple_items"
+			}
+		});
+
+		if (sum_similar) {
+			frm.events.add_grouped_timesheet_items(frm, timesheets, activityToItem);
+		} else {
+			frm.events.add_individual_timesheet_items(frm, timesheets, activityToItem, allow_multiple);
+		}
+	},
+
+	add_grouped_timesheet_items(frm, timesheets, activityToItem) {
+		const grouped_items = {};
+
+		timesheets.forEach(timesheet => {
+			if (timesheet.activity_type && activityToItem[timesheet.activity_type]) {
+				const item_code = activityToItem[timesheet.activity_type];
+				const rate = timesheet.billing_hours ? timesheet.billing_amount / timesheet.billing_hours : 0;
+				const group_key = `${item_code}_${rate}`;
+
+				if (!grouped_items[group_key]) {
+					grouped_items[group_key] = {
+						item_code: item_code,
+						qty: 0,
+						rate: rate,
+						description: `Timesheet hours for ${timesheet.activity_type}`,
+						uom: "Hour"
+					};
+				}
+
+				grouped_items[group_key].qty += (timesheet.billing_hours || 0);
+			}
+		});
+
+		// Add grouped items to sales invoice
+		Object.values(grouped_items).forEach(item_data => {
+			if (item_data.qty > 0) {
+				const row = frm.add_child("items");
+				Object.keys(item_data).forEach(key => {
+					frappe.model.set_value(row.doctype, row.name, key, item_data[key]);
+				});
+			}
+		});
+	},
+
+	add_individual_timesheet_items(frm, timesheets, activityToItem, allow_multiple) {
+		const added_items = new Set();
+
+		timesheets.forEach(timesheet => {
+			if (timesheet.activity_type && activityToItem[timesheet.activity_type]) {
+				const item_code = activityToItem[timesheet.activity_type];
+
+				if (!allow_multiple && added_items.has(item_code)) {
+					// Find existing item and update qty
+					frm.doc.items.forEach(item => {
+						if (item.item_code === item_code) {
+							item.qty = (item.qty || 0) + (timesheet.billing_hours || 0);
+						}
+					});
+				} else {
+					// Add new item
+					const rate = timesheet.billing_hours ? timesheet.billing_amount / timesheet.billing_hours : 0;
+					const row = frm.add_child("items");
+					frappe.model.set_value(row.doctype, row.name, "item_code", item_code);
+					frappe.model.set_value(row.doctype, row.name, "qty", timesheet.billing_hours || 0);
+					frappe.model.set_value(row.doctype, row.name, "rate", rate);
+					frappe.model.set_value(row.doctype, row.name, "description", 
+						`Timesheet: ${timesheet.description || timesheet.activity_type}`);
+					frappe.model.set_value(row.doctype, row.name, "uom", "Hour");
+					added_items.add(item_code);
+				}
+			}
+		});
 	},
 
 	add_timesheet_item: function (frm, item_code, timesheets) {
@@ -1027,6 +1148,7 @@ frappe.ui.form.on("Sales Invoice", {
 								fieldname: "item_code",
 								fieldtype: "Link",
 								options: "Item",
+								description: __("Optional. If not specified, items will be auto-created based on Activity Type mapping."),
 								get_query: () => {
 									return {
 										query: "erpnext.controllers.queries.item_query",
@@ -1054,6 +1176,20 @@ frappe.ui.form.on("Sales Invoice", {
 								fieldtype: "Link",
 								options: "Project",
 								default: frm.doc.project,
+							},
+							{
+								fieldtype: "Section Break",
+								fieldname: "section_break_auto",
+							},
+							{
+								fieldtype: "HTML",
+								fieldname: "auto_mapping_info",
+								options: `<div class="text-muted small">
+									<p><strong>Automatic Item Creation:</strong></p>
+									<p>• If Item Code is not specified, line items will be automatically created based on Activity Type → Item mapping</p>
+									<p>• Configure Activity Types in Projects module to map to Items</p>
+									<p>• Check "Sum Similar Timesheets" in Selling Settings to group items with same rate</p>
+								</div>`
 							},
 						],
 						primary_action: function () {

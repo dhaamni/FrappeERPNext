@@ -12,7 +12,9 @@
   "costing_rate",
   "column_break_3",
   "billing_rate",
-  "disabled"
+  "disabled",
+  "section_break_1",
+  "item"
  ],
  "fields": [
   {
@@ -42,6 +44,18 @@
    "fieldname": "disabled",
    "fieldtype": "Check",
    "label": "Disabled"
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break",
+   "label": "Item Mapping"
+  },
+  {
+   "description": "Link this Activity Type to an Item for automatic line item creation in Sales Invoices",
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "label": "Item",
+   "options": "Item"
   }
  ],
  "icon": "icon-flag",
