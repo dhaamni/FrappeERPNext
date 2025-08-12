@@ -115,7 +115,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 
 			let row = this.get_row_to_modify_on_scan(item_code, batch_no, uom, barcode, warehouse);
 
-			this.is_new_row = false;
+			let is_new_row = row && row?.item_code ? false : true;
 			if (!row) {
 				if (this.dont_allow_new_row) {
 					this.show_alert(__("Maximum quantity scanned for item {0}.", [item_code]), "red");
@@ -123,7 +123,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 					reject();
 					return;
 				}
-				this.is_new_row = true;
+				is_new_row = true;
 
 				// add new row if new item/batch is scanned
 				row = frappe.model.add_child(this.frm.doc, cur_grid.doctype, this.items_table_name);
@@ -142,7 +142,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 				() => this.set_selector_trigger_flag(data),
 				() =>
 					this.set_item(row, item_code, barcode, batch_no, serial_no).then((qty) => {
-						this.show_scan_message(row.idx, row.item_code, qty, warehouse);
+						this.show_scan_message(row.idx, !is_new_row, qty, warehouse);
 					}),
 				() => this.set_barcode_uom(row, uom),
 				() => this.set_serial_no(row, serial_no),
