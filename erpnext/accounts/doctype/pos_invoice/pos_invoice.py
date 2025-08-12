@@ -868,10 +868,8 @@ def get_bundle_availability(bundle_item_code, warehouse):
 	bundle_bin_qty = 1000000
 	for item in product_bundle.items:
 		item_bin_qty = get_bin_qty(item.item_code, warehouse)
-		item_pos_reserved_qty = get_pos_reserved_qty(item.item_code, warehouse)
-		available_qty = item_bin_qty - item_pos_reserved_qty
 
-		max_available_bundles = available_qty / item.qty
+		max_available_bundles = item_bin_qty / item.qty
 		if bundle_bin_qty > max_available_bundles and frappe.get_value(
 			"Item", item.item_code, "is_stock_item"
 		):
