@@ -13,7 +13,6 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 		this.uom_field = opts.uom_field || "uom";
 		this.qty_field = opts.qty_field || "qty";
 		this.warehouse_field = opts.warehouse_field || "warehouse";
-		this.last_scanned_warehouse_field = opts.last_scanned_warehouse_field || "last_scanned_warehouse";
 		// field name on row which defines max quantity to be scanned e.g. picklist
 		this.max_qty_field = opts.max_qty_field;
 		// scanner won't add a new row if this flag is set.
@@ -38,10 +37,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 		//     warehouse: "Store-001", // present if warehouse was found (location-first scanning)
 		// }
 		this.scan_api = opts.scan_api || "erpnext.stock.utils.scan_barcode";
-		this.has_last_scanned_warehouse = frappe.meta.has_field(
-			this.frm.doctype,
-			this.last_scanned_warehouse_field
-		);
+		this.has_last_scanned_warehouse = frappe.meta.has_field(this.frm.doctype, "last_scanned_warehouse");
 		this.last_scanned_warehouse_initialized = false;
 	}
 
@@ -111,8 +107,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 			const { item_code, barcode, batch_no, serial_no, uom, default_warehouse } = data;
 
 			const warehouse =
-				(this.has_last_scanned_warehouse && this.frm.doc[this.last_scanned_warehouse_field]) ||
-				default_warehouse;
+				(this.has_last_scanned_warehouse && this.frm.doc.last_scanned_warehouse) || default_warehouse;
 
 			let row = this.get_row_to_modify_on_scan(item_code, batch_no, uom, barcode, warehouse);
 
@@ -478,28 +473,24 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 	}
 
 	setup_last_scanned_warehouse() {
-		this.frm.set_df_property(this.last_scanned_warehouse_field, "options", "Warehouse");
-		this.frm.set_df_property(this.last_scanned_warehouse_field, "fieldtype", "Link");
-		this.frm.set_df_property(
-			this.last_scanned_warehouse_field,
-			"formatter",
-			function (value, df, options, doc) {
-				const link_formatter = frappe.form.get_formatter(df.fieldtype);
-				const link_value = link_formatter(value, df, options, doc);
+		this.frm.set_df_property("last_scanned_warehouse", "options", "Warehouse");
+		this.frm.set_df_property("last_scanned_warehouse", "fieldtype", "Link");
+		this.frm.set_df_property("last_scanned_warehouse", "formatter", function (value, df, options, doc) {
+			const link_formatter = frappe.form.get_formatter(df.fieldtype);
+			const link_value = link_formatter(value, df, options, doc);
 
-				if (!value) {
-					return link_value;
-				}
+			if (!value) {
+				return link_value;
+			}
 
-				const clear_btn = `
+			const clear_btn = `
 				<a class="btn-clear-last-scanned-warehouse" title="${__("Clear Last Scanned Warehouse")}">
 					${frappe.utils.icon("close", "xs", "es-icon")}
 				</a>
 			`;
 
-				return link_value + clear_btn;
-			}
-		);
+			return link_value + clear_btn;
+		});
 
 		this.frm.$wrapper.on("click", ".btn-clear-last-scanned-warehouse", (e) => {
 			e.preventDefault();
@@ -518,7 +509,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 			this.last_scanned_warehouse_initialized = true;
 		}
 
-		this.frm.set_value(this.last_scanned_warehouse_field, warehouse);
+		this.frm.set_value("last_scanned_warehouse", warehouse);
 		this.show_alert(
 			__("{0} will be set as the {1} in subsequently scanned items.", [
 				__(warehouse).bold(),
@@ -530,7 +521,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 	}
 
 	clear_warehouse_context() {
-		this.frm.set_value(this.last_scanned_warehouse_field, null);
+		this.frm.set_value("last_scanned_warehouse", null);
 		this.show_alert(
 			__(
 				"The last scanned warehouse has been cleared and won't be set in the subsequently scanned items."
