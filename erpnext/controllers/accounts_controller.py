@@ -2570,6 +2570,7 @@ class AccountsController(TransactionBase):
 
 		self.payment_schedule = []
 		self.payment_terms_template = po_or_so.payment_terms_template
+		posting_date = self.get("bill_date") or self.get("posting_date") or self.get("transaction_date")
 
 		for schedule in po_or_so.payment_schedule:
 			payment_schedule = {
@@ -2582,6 +2583,17 @@ class AccountsController(TransactionBase):
 			}
 
 			if automatically_fetch_payment_terms:
+				if schedule.due_date_based_on:
+					payment_schedule["due_date"] = get_due_date(schedule, posting_date)
+					payment_schedule["due_date_based_on"] = schedule.due_date_based_on
+					payment_schedule["credit_days"] = schedule.credit_days
+					payment_schedule["credit_months"] = schedule.credit_months
+
+				if schedule.discount_validity_based_on:
+					payment_schedule["discount_date"] = get_discount_date(schedule, posting_date)
+					payment_schedule["discount_validity_based_on"] = schedule.discount_validity_based_on
+					payment_schedule["discount_validity"] = schedule.discount_validity
+
 				payment_schedule["payment_amount"] = flt(
 					grand_total * flt(payment_schedule["invoice_portion"]) / 100,
 					schedule.precision("payment_amount"),
@@ -3392,6 +3404,11 @@ def get_payment_term_details(
 	term_details.discount = term.discount
 	term_details.outstanding = term_details.payment_amount
 	term_details.mode_of_payment = term.mode_of_payment
+	term_details.due_date_based_on = term.due_date_based_on
+	term_details.credit_days = term.credit_days
+	term_details.credit_months = term.credit_months
+	term_details.discount_validity_based_on = term.discount_validity_based_on
+	term_details.discount_validity = term.discount_validity
 
 	if bill_date:
 		term_details.due_date = get_due_date(term, bill_date)
@@ -3406,8 +3423,8 @@ def get_payment_term_details(
 	return term_details
 
 
-def get_due_date(term, posting_date=None, bill_date=None):
-	due_date = None
+def get_due_date(term, posting_date=None, bill_date=None, default_date=None):
+	due_date = default_date
 	date = bill_date or posting_date
 	if term.due_date_based_on == "Day(s) after invoice date":
 		due_date = add_days(date, term.credit_days)
