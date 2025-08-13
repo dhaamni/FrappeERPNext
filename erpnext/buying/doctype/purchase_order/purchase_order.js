@@ -480,9 +480,10 @@ erpnext.buying.PurchaseOrderController = class PurchaseOrderController extends (
 						let internal = me.frm.doc.is_internal_supplier;
 						if (internal) {
 							let button_label =
-								me.frm.doc.company === me.frm.doc.represents_company
-									? "Internal Sales Order"
-									: "Inter Company Sales Order";
+							me.frm.doc.company === me.frm.doc.represents_company
+								? __("Internal Sales Order")
+								: __("Inter Company Sales Order");
+
 
 							me.frm.add_custom_button(
 								button_label,
